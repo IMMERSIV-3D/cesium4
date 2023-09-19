@@ -2558,16 +2558,6 @@ var require_URI = __commonJS({
   }
 });
 
-// packages/engine/Source/Core/defaultValue.js
-function defaultValue(a3, b) {
-  if (a3 !== void 0 && a3 !== null) {
-    return a3;
-  }
-  return b;
-}
-defaultValue.EMPTY_OBJECT = Object.freeze({});
-var defaultValue_default = defaultValue;
-
 // packages/engine/Source/Core/defined.js
 function defined(value) {
   return value !== void 0 && value !== null;
@@ -2704,88 +2694,15 @@ Check.typeOf.number.equals = function(name1, name2, test1, test2) {
 };
 var Check_default = Check;
 
-// packages/engine/Source/Core/Event.js
-function Event() {
-  this._listeners = [];
-  this._scopes = [];
-  this._toRemove = [];
-  this._insideRaiseEvent = false;
+// packages/engine/Source/Core/defaultValue.js
+function defaultValue(a3, b) {
+  if (a3 !== void 0 && a3 !== null) {
+    return a3;
+  }
+  return b;
 }
-Object.defineProperties(Event.prototype, {
-  /**
-   * The number of listeners currently subscribed to the event.
-   * @memberof Event.prototype
-   * @type {number}
-   * @readonly
-   */
-  numberOfListeners: {
-    get: function() {
-      return this._listeners.length - this._toRemove.length;
-    }
-  }
-});
-Event.prototype.addEventListener = function(listener, scope) {
-  Check_default.typeOf.func("listener", listener);
-  this._listeners.push(listener);
-  this._scopes.push(scope);
-  const event = this;
-  return function() {
-    event.removeEventListener(listener, scope);
-  };
-};
-Event.prototype.removeEventListener = function(listener, scope) {
-  Check_default.typeOf.func("listener", listener);
-  const listeners = this._listeners;
-  const scopes = this._scopes;
-  let index = -1;
-  for (let i = 0; i < listeners.length; i++) {
-    if (listeners[i] === listener && scopes[i] === scope) {
-      index = i;
-      break;
-    }
-  }
-  if (index !== -1) {
-    if (this._insideRaiseEvent) {
-      this._toRemove.push(index);
-      listeners[index] = void 0;
-      scopes[index] = void 0;
-    } else {
-      listeners.splice(index, 1);
-      scopes.splice(index, 1);
-    }
-    return true;
-  }
-  return false;
-};
-function compareNumber(a3, b) {
-  return b - a3;
-}
-Event.prototype.raiseEvent = function() {
-  this._insideRaiseEvent = true;
-  let i;
-  const listeners = this._listeners;
-  const scopes = this._scopes;
-  let length = listeners.length;
-  for (i = 0; i < length; i++) {
-    const listener = listeners[i];
-    if (defined_default(listener)) {
-      listeners[i].apply(scopes[i], arguments);
-    }
-  }
-  const toRemove = this._toRemove;
-  length = toRemove.length;
-  if (length > 0) {
-    toRemove.sort(compareNumber);
-    for (i = 0; i < length; i++) {
-      const index = toRemove[i];
-      listeners.splice(index, 1);
-      scopes.splice(index, 1);
-    }
-    toRemove.length = 0;
-  }
-  this._insideRaiseEvent = false;
-};
-var Event_default = Event;
+defaultValue.EMPTY_OBJECT = Object.freeze({});
+var defaultValue_default = defaultValue;
 
 // packages/engine/Source/Core/Math.js
 var import_mersenne_twister = __toESM(require_mersenne_twister(), 1);
@@ -3142,302 +3059,6 @@ CesiumMath.fastApproximateAtan2 = function(x, y) {
 };
 var Math_default = CesiumMath;
 
-// packages/engine/Source/Core/Cartesian2.js
-function Cartesian2(x, y) {
-  this.x = defaultValue_default(x, 0);
-  this.y = defaultValue_default(y, 0);
-}
-Cartesian2.fromElements = function(x, y, result) {
-  if (!defined_default(result)) {
-    return new Cartesian2(x, y);
-  }
-  result.x = x;
-  result.y = y;
-  return result;
-};
-Cartesian2.clone = function(cartesian, result) {
-  if (!defined_default(cartesian)) {
-    return void 0;
-  }
-  if (!defined_default(result)) {
-    return new Cartesian2(cartesian.x, cartesian.y);
-  }
-  result.x = cartesian.x;
-  result.y = cartesian.y;
-  return result;
-};
-Cartesian2.fromCartesian3 = Cartesian2.clone;
-Cartesian2.fromCartesian4 = Cartesian2.clone;
-Cartesian2.packedLength = 2;
-Cartesian2.pack = function(value, array, startingIndex) {
-  Check_default.typeOf.object("value", value);
-  Check_default.defined("array", array);
-  startingIndex = defaultValue_default(startingIndex, 0);
-  array[startingIndex++] = value.x;
-  array[startingIndex] = value.y;
-  return array;
-};
-Cartesian2.unpack = function(array, startingIndex, result) {
-  Check_default.defined("array", array);
-  startingIndex = defaultValue_default(startingIndex, 0);
-  if (!defined_default(result)) {
-    result = new Cartesian2();
-  }
-  result.x = array[startingIndex++];
-  result.y = array[startingIndex];
-  return result;
-};
-Cartesian2.packArray = function(array, result) {
-  Check_default.defined("array", array);
-  const length = array.length;
-  const resultLength = length * 2;
-  if (!defined_default(result)) {
-    result = new Array(resultLength);
-  } else if (!Array.isArray(result) && result.length !== resultLength) {
-    throw new DeveloperError_default(
-      "If result is a typed array, it must have exactly array.length * 2 elements"
-    );
-  } else if (result.length !== resultLength) {
-    result.length = resultLength;
-  }
-  for (let i = 0; i < length; ++i) {
-    Cartesian2.pack(array[i], result, i * 2);
-  }
-  return result;
-};
-Cartesian2.unpackArray = function(array, result) {
-  Check_default.defined("array", array);
-  Check_default.typeOf.number.greaterThanOrEquals("array.length", array.length, 2);
-  if (array.length % 2 !== 0) {
-    throw new DeveloperError_default("array length must be a multiple of 2.");
-  }
-  const length = array.length;
-  if (!defined_default(result)) {
-    result = new Array(length / 2);
-  } else {
-    result.length = length / 2;
-  }
-  for (let i = 0; i < length; i += 2) {
-    const index = i / 2;
-    result[index] = Cartesian2.unpack(array, i, result[index]);
-  }
-  return result;
-};
-Cartesian2.fromArray = Cartesian2.unpack;
-Cartesian2.maximumComponent = function(cartesian) {
-  Check_default.typeOf.object("cartesian", cartesian);
-  return Math.max(cartesian.x, cartesian.y);
-};
-Cartesian2.minimumComponent = function(cartesian) {
-  Check_default.typeOf.object("cartesian", cartesian);
-  return Math.min(cartesian.x, cartesian.y);
-};
-Cartesian2.minimumByComponent = function(first, second, result) {
-  Check_default.typeOf.object("first", first);
-  Check_default.typeOf.object("second", second);
-  Check_default.typeOf.object("result", result);
-  result.x = Math.min(first.x, second.x);
-  result.y = Math.min(first.y, second.y);
-  return result;
-};
-Cartesian2.maximumByComponent = function(first, second, result) {
-  Check_default.typeOf.object("first", first);
-  Check_default.typeOf.object("second", second);
-  Check_default.typeOf.object("result", result);
-  result.x = Math.max(first.x, second.x);
-  result.y = Math.max(first.y, second.y);
-  return result;
-};
-Cartesian2.clamp = function(value, min, max, result) {
-  Check_default.typeOf.object("value", value);
-  Check_default.typeOf.object("min", min);
-  Check_default.typeOf.object("max", max);
-  Check_default.typeOf.object("result", result);
-  const x = Math_default.clamp(value.x, min.x, max.x);
-  const y = Math_default.clamp(value.y, min.y, max.y);
-  result.x = x;
-  result.y = y;
-  return result;
-};
-Cartesian2.magnitudeSquared = function(cartesian) {
-  Check_default.typeOf.object("cartesian", cartesian);
-  return cartesian.x * cartesian.x + cartesian.y * cartesian.y;
-};
-Cartesian2.magnitude = function(cartesian) {
-  return Math.sqrt(Cartesian2.magnitudeSquared(cartesian));
-};
-var distanceScratch = new Cartesian2();
-Cartesian2.distance = function(left, right) {
-  Check_default.typeOf.object("left", left);
-  Check_default.typeOf.object("right", right);
-  Cartesian2.subtract(left, right, distanceScratch);
-  return Cartesian2.magnitude(distanceScratch);
-};
-Cartesian2.distanceSquared = function(left, right) {
-  Check_default.typeOf.object("left", left);
-  Check_default.typeOf.object("right", right);
-  Cartesian2.subtract(left, right, distanceScratch);
-  return Cartesian2.magnitudeSquared(distanceScratch);
-};
-Cartesian2.normalize = function(cartesian, result) {
-  Check_default.typeOf.object("cartesian", cartesian);
-  Check_default.typeOf.object("result", result);
-  const magnitude = Cartesian2.magnitude(cartesian);
-  result.x = cartesian.x / magnitude;
-  result.y = cartesian.y / magnitude;
-  if (isNaN(result.x) || isNaN(result.y)) {
-    throw new DeveloperError_default("normalized result is not a number");
-  }
-  return result;
-};
-Cartesian2.dot = function(left, right) {
-  Check_default.typeOf.object("left", left);
-  Check_default.typeOf.object("right", right);
-  return left.x * right.x + left.y * right.y;
-};
-Cartesian2.cross = function(left, right) {
-  Check_default.typeOf.object("left", left);
-  Check_default.typeOf.object("right", right);
-  return left.x * right.y - left.y * right.x;
-};
-Cartesian2.multiplyComponents = function(left, right, result) {
-  Check_default.typeOf.object("left", left);
-  Check_default.typeOf.object("right", right);
-  Check_default.typeOf.object("result", result);
-  result.x = left.x * right.x;
-  result.y = left.y * right.y;
-  return result;
-};
-Cartesian2.divideComponents = function(left, right, result) {
-  Check_default.typeOf.object("left", left);
-  Check_default.typeOf.object("right", right);
-  Check_default.typeOf.object("result", result);
-  result.x = left.x / right.x;
-  result.y = left.y / right.y;
-  return result;
-};
-Cartesian2.add = function(left, right, result) {
-  Check_default.typeOf.object("left", left);
-  Check_default.typeOf.object("right", right);
-  Check_default.typeOf.object("result", result);
-  result.x = left.x + right.x;
-  result.y = left.y + right.y;
-  return result;
-};
-Cartesian2.subtract = function(left, right, result) {
-  Check_default.typeOf.object("left", left);
-  Check_default.typeOf.object("right", right);
-  Check_default.typeOf.object("result", result);
-  result.x = left.x - right.x;
-  result.y = left.y - right.y;
-  return result;
-};
-Cartesian2.multiplyByScalar = function(cartesian, scalar, result) {
-  Check_default.typeOf.object("cartesian", cartesian);
-  Check_default.typeOf.number("scalar", scalar);
-  Check_default.typeOf.object("result", result);
-  result.x = cartesian.x * scalar;
-  result.y = cartesian.y * scalar;
-  return result;
-};
-Cartesian2.divideByScalar = function(cartesian, scalar, result) {
-  Check_default.typeOf.object("cartesian", cartesian);
-  Check_default.typeOf.number("scalar", scalar);
-  Check_default.typeOf.object("result", result);
-  result.x = cartesian.x / scalar;
-  result.y = cartesian.y / scalar;
-  return result;
-};
-Cartesian2.negate = function(cartesian, result) {
-  Check_default.typeOf.object("cartesian", cartesian);
-  Check_default.typeOf.object("result", result);
-  result.x = -cartesian.x;
-  result.y = -cartesian.y;
-  return result;
-};
-Cartesian2.abs = function(cartesian, result) {
-  Check_default.typeOf.object("cartesian", cartesian);
-  Check_default.typeOf.object("result", result);
-  result.x = Math.abs(cartesian.x);
-  result.y = Math.abs(cartesian.y);
-  return result;
-};
-var lerpScratch = new Cartesian2();
-Cartesian2.lerp = function(start, end, t, result) {
-  Check_default.typeOf.object("start", start);
-  Check_default.typeOf.object("end", end);
-  Check_default.typeOf.number("t", t);
-  Check_default.typeOf.object("result", result);
-  Cartesian2.multiplyByScalar(end, t, lerpScratch);
-  result = Cartesian2.multiplyByScalar(start, 1 - t, result);
-  return Cartesian2.add(lerpScratch, result, result);
-};
-var angleBetweenScratch = new Cartesian2();
-var angleBetweenScratch2 = new Cartesian2();
-Cartesian2.angleBetween = function(left, right) {
-  Check_default.typeOf.object("left", left);
-  Check_default.typeOf.object("right", right);
-  Cartesian2.normalize(left, angleBetweenScratch);
-  Cartesian2.normalize(right, angleBetweenScratch2);
-  return Math_default.acosClamped(
-    Cartesian2.dot(angleBetweenScratch, angleBetweenScratch2)
-  );
-};
-var mostOrthogonalAxisScratch = new Cartesian2();
-Cartesian2.mostOrthogonalAxis = function(cartesian, result) {
-  Check_default.typeOf.object("cartesian", cartesian);
-  Check_default.typeOf.object("result", result);
-  const f = Cartesian2.normalize(cartesian, mostOrthogonalAxisScratch);
-  Cartesian2.abs(f, f);
-  if (f.x <= f.y) {
-    result = Cartesian2.clone(Cartesian2.UNIT_X, result);
-  } else {
-    result = Cartesian2.clone(Cartesian2.UNIT_Y, result);
-  }
-  return result;
-};
-Cartesian2.equals = function(left, right) {
-  return left === right || defined_default(left) && defined_default(right) && left.x === right.x && left.y === right.y;
-};
-Cartesian2.equalsArray = function(cartesian, array, offset) {
-  return cartesian.x === array[offset] && cartesian.y === array[offset + 1];
-};
-Cartesian2.equalsEpsilon = function(left, right, relativeEpsilon, absoluteEpsilon) {
-  return left === right || defined_default(left) && defined_default(right) && Math_default.equalsEpsilon(
-    left.x,
-    right.x,
-    relativeEpsilon,
-    absoluteEpsilon
-  ) && Math_default.equalsEpsilon(
-    left.y,
-    right.y,
-    relativeEpsilon,
-    absoluteEpsilon
-  );
-};
-Cartesian2.ZERO = Object.freeze(new Cartesian2(0, 0));
-Cartesian2.ONE = Object.freeze(new Cartesian2(1, 1));
-Cartesian2.UNIT_X = Object.freeze(new Cartesian2(1, 0));
-Cartesian2.UNIT_Y = Object.freeze(new Cartesian2(0, 1));
-Cartesian2.prototype.clone = function(result) {
-  return Cartesian2.clone(this, result);
-};
-Cartesian2.prototype.equals = function(right) {
-  return Cartesian2.equals(this, right);
-};
-Cartesian2.prototype.equalsEpsilon = function(right, relativeEpsilon, absoluteEpsilon) {
-  return Cartesian2.equalsEpsilon(
-    this,
-    right,
-    relativeEpsilon,
-    absoluteEpsilon
-  );
-};
-Cartesian2.prototype.toString = function() {
-  return `(${this.x}, ${this.y})`;
-};
-var Cartesian2_default = Cartesian2;
-
 // packages/engine/Source/Core/Cartesian3.js
 function Cartesian3(x, y, z) {
   this.x = defaultValue_default(x, 0);
@@ -3584,18 +3205,18 @@ Cartesian3.magnitudeSquared = function(cartesian) {
 Cartesian3.magnitude = function(cartesian) {
   return Math.sqrt(Cartesian3.magnitudeSquared(cartesian));
 };
-var distanceScratch2 = new Cartesian3();
+var distanceScratch = new Cartesian3();
 Cartesian3.distance = function(left, right) {
   Check_default.typeOf.object("left", left);
   Check_default.typeOf.object("right", right);
-  Cartesian3.subtract(left, right, distanceScratch2);
-  return Cartesian3.magnitude(distanceScratch2);
+  Cartesian3.subtract(left, right, distanceScratch);
+  return Cartesian3.magnitude(distanceScratch);
 };
 Cartesian3.distanceSquared = function(left, right) {
   Check_default.typeOf.object("left", left);
   Check_default.typeOf.object("right", right);
-  Cartesian3.subtract(left, right, distanceScratch2);
-  return Cartesian3.magnitudeSquared(distanceScratch2);
+  Cartesian3.subtract(left, right, distanceScratch);
+  return Cartesian3.magnitudeSquared(distanceScratch);
 };
 Cartesian3.normalize = function(cartesian, result) {
   Check_default.typeOf.object("cartesian", cartesian);
@@ -3684,38 +3305,38 @@ Cartesian3.abs = function(cartesian, result) {
   result.z = Math.abs(cartesian.z);
   return result;
 };
-var lerpScratch2 = new Cartesian3();
+var lerpScratch = new Cartesian3();
 Cartesian3.lerp = function(start, end, t, result) {
   Check_default.typeOf.object("start", start);
   Check_default.typeOf.object("end", end);
   Check_default.typeOf.number("t", t);
   Check_default.typeOf.object("result", result);
-  Cartesian3.multiplyByScalar(end, t, lerpScratch2);
+  Cartesian3.multiplyByScalar(end, t, lerpScratch);
   result = Cartesian3.multiplyByScalar(start, 1 - t, result);
-  return Cartesian3.add(lerpScratch2, result, result);
+  return Cartesian3.add(lerpScratch, result, result);
 };
-var angleBetweenScratch3 = new Cartesian3();
-var angleBetweenScratch22 = new Cartesian3();
+var angleBetweenScratch = new Cartesian3();
+var angleBetweenScratch2 = new Cartesian3();
 Cartesian3.angleBetween = function(left, right) {
   Check_default.typeOf.object("left", left);
   Check_default.typeOf.object("right", right);
-  Cartesian3.normalize(left, angleBetweenScratch3);
-  Cartesian3.normalize(right, angleBetweenScratch22);
-  const cosine = Cartesian3.dot(angleBetweenScratch3, angleBetweenScratch22);
+  Cartesian3.normalize(left, angleBetweenScratch);
+  Cartesian3.normalize(right, angleBetweenScratch2);
+  const cosine = Cartesian3.dot(angleBetweenScratch, angleBetweenScratch2);
   const sine = Cartesian3.magnitude(
     Cartesian3.cross(
-      angleBetweenScratch3,
-      angleBetweenScratch22,
-      angleBetweenScratch3
+      angleBetweenScratch,
+      angleBetweenScratch2,
+      angleBetweenScratch
     )
   );
   return Math.atan2(sine, cosine);
 };
-var mostOrthogonalAxisScratch2 = new Cartesian3();
+var mostOrthogonalAxisScratch = new Cartesian3();
 Cartesian3.mostOrthogonalAxis = function(cartesian, result) {
   Check_default.typeOf.object("cartesian", cartesian);
   Check_default.typeOf.object("result", result);
-  const f = Cartesian3.normalize(cartesian, mostOrthogonalAxisScratch2);
+  const f = Cartesian3.normalize(cartesian, mostOrthogonalAxisScratch);
   Cartesian3.abs(f, f);
   if (f.x <= f.y) {
     if (f.x <= f.z) {
@@ -3955,2181 +3576,399 @@ Cartesian3.prototype.toString = function() {
 };
 var Cartesian3_default = Cartesian3;
 
-// packages/engine/Source/Core/scaleToGeodeticSurface.js
-var scaleToGeodeticSurfaceIntersection = new Cartesian3_default();
-var scaleToGeodeticSurfaceGradient = new Cartesian3_default();
-function scaleToGeodeticSurface(cartesian, oneOverRadii, oneOverRadiiSquared, centerToleranceSquared, result) {
-  if (!defined_default(cartesian)) {
-    throw new DeveloperError_default("cartesian is required.");
-  }
-  if (!defined_default(oneOverRadii)) {
-    throw new DeveloperError_default("oneOverRadii is required.");
-  }
-  if (!defined_default(oneOverRadiiSquared)) {
-    throw new DeveloperError_default("oneOverRadiiSquared is required.");
-  }
-  if (!defined_default(centerToleranceSquared)) {
-    throw new DeveloperError_default("centerToleranceSquared is required.");
-  }
-  const positionX = cartesian.x;
-  const positionY = cartesian.y;
-  const positionZ = cartesian.z;
-  const oneOverRadiiX = oneOverRadii.x;
-  const oneOverRadiiY = oneOverRadii.y;
-  const oneOverRadiiZ = oneOverRadii.z;
-  const x2 = positionX * positionX * oneOverRadiiX * oneOverRadiiX;
-  const y2 = positionY * positionY * oneOverRadiiY * oneOverRadiiY;
-  const z2 = positionZ * positionZ * oneOverRadiiZ * oneOverRadiiZ;
-  const squaredNorm = x2 + y2 + z2;
-  const ratio = Math.sqrt(1 / squaredNorm);
-  const intersection = Cartesian3_default.multiplyByScalar(
-    cartesian,
-    ratio,
-    scaleToGeodeticSurfaceIntersection
-  );
-  if (squaredNorm < centerToleranceSquared) {
-    return !isFinite(ratio) ? void 0 : Cartesian3_default.clone(intersection, result);
-  }
-  const oneOverRadiiSquaredX = oneOverRadiiSquared.x;
-  const oneOverRadiiSquaredY = oneOverRadiiSquared.y;
-  const oneOverRadiiSquaredZ = oneOverRadiiSquared.z;
-  const gradient = scaleToGeodeticSurfaceGradient;
-  gradient.x = intersection.x * oneOverRadiiSquaredX * 2;
-  gradient.y = intersection.y * oneOverRadiiSquaredY * 2;
-  gradient.z = intersection.z * oneOverRadiiSquaredZ * 2;
-  let lambda = (1 - ratio) * Cartesian3_default.magnitude(cartesian) / (0.5 * Cartesian3_default.magnitude(gradient));
-  let correction = 0;
-  let func;
-  let denominator;
-  let xMultiplier;
-  let yMultiplier;
-  let zMultiplier;
-  let xMultiplier2;
-  let yMultiplier2;
-  let zMultiplier2;
-  let xMultiplier3;
-  let yMultiplier3;
-  let zMultiplier3;
-  do {
-    lambda -= correction;
-    xMultiplier = 1 / (1 + lambda * oneOverRadiiSquaredX);
-    yMultiplier = 1 / (1 + lambda * oneOverRadiiSquaredY);
-    zMultiplier = 1 / (1 + lambda * oneOverRadiiSquaredZ);
-    xMultiplier2 = xMultiplier * xMultiplier;
-    yMultiplier2 = yMultiplier * yMultiplier;
-    zMultiplier2 = zMultiplier * zMultiplier;
-    xMultiplier3 = xMultiplier2 * xMultiplier;
-    yMultiplier3 = yMultiplier2 * yMultiplier;
-    zMultiplier3 = zMultiplier2 * zMultiplier;
-    func = x2 * xMultiplier2 + y2 * yMultiplier2 + z2 * zMultiplier2 - 1;
-    denominator = x2 * xMultiplier3 * oneOverRadiiSquaredX + y2 * yMultiplier3 * oneOverRadiiSquaredY + z2 * zMultiplier3 * oneOverRadiiSquaredZ;
-    const derivative = -2 * denominator;
-    correction = func / derivative;
-  } while (Math.abs(func) > Math_default.EPSILON12);
-  if (!defined_default(result)) {
-    return new Cartesian3_default(
-      positionX * xMultiplier,
-      positionY * yMultiplier,
-      positionZ * zMultiplier
-    );
-  }
-  result.x = positionX * xMultiplier;
-  result.y = positionY * yMultiplier;
-  result.z = positionZ * zMultiplier;
-  return result;
+// packages/engine/Source/Core/Cartesian4.js
+function Cartesian4(x, y, z, w) {
+  this.x = defaultValue_default(x, 0);
+  this.y = defaultValue_default(y, 0);
+  this.z = defaultValue_default(z, 0);
+  this.w = defaultValue_default(w, 0);
 }
-var scaleToGeodeticSurface_default = scaleToGeodeticSurface;
-
-// packages/engine/Source/Core/Cartographic.js
-function Cartographic(longitude, latitude, height) {
-  this.longitude = defaultValue_default(longitude, 0);
-  this.latitude = defaultValue_default(latitude, 0);
-  this.height = defaultValue_default(height, 0);
-}
-Cartographic.fromRadians = function(longitude, latitude, height, result) {
-  Check_default.typeOf.number("longitude", longitude);
-  Check_default.typeOf.number("latitude", latitude);
-  height = defaultValue_default(height, 0);
+Cartesian4.fromElements = function(x, y, z, w, result) {
   if (!defined_default(result)) {
-    return new Cartographic(longitude, latitude, height);
-  }
-  result.longitude = longitude;
-  result.latitude = latitude;
-  result.height = height;
-  return result;
-};
-Cartographic.fromDegrees = function(longitude, latitude, height, result) {
-  Check_default.typeOf.number("longitude", longitude);
-  Check_default.typeOf.number("latitude", latitude);
-  longitude = Math_default.toRadians(longitude);
-  latitude = Math_default.toRadians(latitude);
-  return Cartographic.fromRadians(longitude, latitude, height, result);
-};
-var cartesianToCartographicN = new Cartesian3_default();
-var cartesianToCartographicP = new Cartesian3_default();
-var cartesianToCartographicH = new Cartesian3_default();
-var wgs84OneOverRadii = new Cartesian3_default(
-  1 / 6378137,
-  1 / 6378137,
-  1 / 6356752314245179e-9
-);
-var wgs84OneOverRadiiSquared = new Cartesian3_default(
-  1 / (6378137 * 6378137),
-  1 / (6378137 * 6378137),
-  1 / (6356752314245179e-9 * 6356752314245179e-9)
-);
-var wgs84CenterToleranceSquared = Math_default.EPSILON1;
-Cartographic.fromCartesian = function(cartesian, ellipsoid, result) {
-  const oneOverRadii = defined_default(ellipsoid) ? ellipsoid.oneOverRadii : wgs84OneOverRadii;
-  const oneOverRadiiSquared = defined_default(ellipsoid) ? ellipsoid.oneOverRadiiSquared : wgs84OneOverRadiiSquared;
-  const centerToleranceSquared = defined_default(ellipsoid) ? ellipsoid._centerToleranceSquared : wgs84CenterToleranceSquared;
-  const p = scaleToGeodeticSurface_default(
-    cartesian,
-    oneOverRadii,
-    oneOverRadiiSquared,
-    centerToleranceSquared,
-    cartesianToCartographicP
-  );
-  if (!defined_default(p)) {
-    return void 0;
-  }
-  let n = Cartesian3_default.multiplyComponents(
-    p,
-    oneOverRadiiSquared,
-    cartesianToCartographicN
-  );
-  n = Cartesian3_default.normalize(n, n);
-  const h = Cartesian3_default.subtract(cartesian, p, cartesianToCartographicH);
-  const longitude = Math.atan2(n.y, n.x);
-  const latitude = Math.asin(n.z);
-  const height = Math_default.sign(Cartesian3_default.dot(h, cartesian)) * Cartesian3_default.magnitude(h);
-  if (!defined_default(result)) {
-    return new Cartographic(longitude, latitude, height);
-  }
-  result.longitude = longitude;
-  result.latitude = latitude;
-  result.height = height;
-  return result;
-};
-Cartographic.toCartesian = function(cartographic, ellipsoid, result) {
-  Check_default.defined("cartographic", cartographic);
-  return Cartesian3_default.fromRadians(
-    cartographic.longitude,
-    cartographic.latitude,
-    cartographic.height,
-    ellipsoid,
-    result
-  );
-};
-Cartographic.clone = function(cartographic, result) {
-  if (!defined_default(cartographic)) {
-    return void 0;
-  }
-  if (!defined_default(result)) {
-    return new Cartographic(
-      cartographic.longitude,
-      cartographic.latitude,
-      cartographic.height
-    );
-  }
-  result.longitude = cartographic.longitude;
-  result.latitude = cartographic.latitude;
-  result.height = cartographic.height;
-  return result;
-};
-Cartographic.equals = function(left, right) {
-  return left === right || defined_default(left) && defined_default(right) && left.longitude === right.longitude && left.latitude === right.latitude && left.height === right.height;
-};
-Cartographic.equalsEpsilon = function(left, right, epsilon) {
-  epsilon = defaultValue_default(epsilon, 0);
-  return left === right || defined_default(left) && defined_default(right) && Math.abs(left.longitude - right.longitude) <= epsilon && Math.abs(left.latitude - right.latitude) <= epsilon && Math.abs(left.height - right.height) <= epsilon;
-};
-Cartographic.ZERO = Object.freeze(new Cartographic(0, 0, 0));
-Cartographic.prototype.clone = function(result) {
-  return Cartographic.clone(this, result);
-};
-Cartographic.prototype.equals = function(right) {
-  return Cartographic.equals(this, right);
-};
-Cartographic.prototype.equalsEpsilon = function(right, epsilon) {
-  return Cartographic.equalsEpsilon(this, right, epsilon);
-};
-Cartographic.prototype.toString = function() {
-  return `(${this.longitude}, ${this.latitude}, ${this.height})`;
-};
-var Cartographic_default = Cartographic;
-
-// packages/engine/Source/Core/Ellipsoid.js
-function initialize(ellipsoid, x, y, z) {
-  x = defaultValue_default(x, 0);
-  y = defaultValue_default(y, 0);
-  z = defaultValue_default(z, 0);
-  Check_default.typeOf.number.greaterThanOrEquals("x", x, 0);
-  Check_default.typeOf.number.greaterThanOrEquals("y", y, 0);
-  Check_default.typeOf.number.greaterThanOrEquals("z", z, 0);
-  ellipsoid._radii = new Cartesian3_default(x, y, z);
-  ellipsoid._radiiSquared = new Cartesian3_default(x * x, y * y, z * z);
-  ellipsoid._radiiToTheFourth = new Cartesian3_default(
-    x * x * x * x,
-    y * y * y * y,
-    z * z * z * z
-  );
-  ellipsoid._oneOverRadii = new Cartesian3_default(
-    x === 0 ? 0 : 1 / x,
-    y === 0 ? 0 : 1 / y,
-    z === 0 ? 0 : 1 / z
-  );
-  ellipsoid._oneOverRadiiSquared = new Cartesian3_default(
-    x === 0 ? 0 : 1 / (x * x),
-    y === 0 ? 0 : 1 / (y * y),
-    z === 0 ? 0 : 1 / (z * z)
-  );
-  ellipsoid._minimumRadius = Math.min(x, y, z);
-  ellipsoid._maximumRadius = Math.max(x, y, z);
-  ellipsoid._centerToleranceSquared = Math_default.EPSILON1;
-  if (ellipsoid._radiiSquared.z !== 0) {
-    ellipsoid._squaredXOverSquaredZ = ellipsoid._radiiSquared.x / ellipsoid._radiiSquared.z;
-  }
-}
-function Ellipsoid(x, y, z) {
-  this._radii = void 0;
-  this._radiiSquared = void 0;
-  this._radiiToTheFourth = void 0;
-  this._oneOverRadii = void 0;
-  this._oneOverRadiiSquared = void 0;
-  this._minimumRadius = void 0;
-  this._maximumRadius = void 0;
-  this._centerToleranceSquared = void 0;
-  this._squaredXOverSquaredZ = void 0;
-  initialize(this, x, y, z);
-}
-Object.defineProperties(Ellipsoid.prototype, {
-  /**
-   * Gets the radii of the ellipsoid.
-   * @memberof Ellipsoid.prototype
-   * @type {Cartesian3}
-   * @readonly
-   */
-  radii: {
-    get: function() {
-      return this._radii;
-    }
-  },
-  /**
-   * Gets the squared radii of the ellipsoid.
-   * @memberof Ellipsoid.prototype
-   * @type {Cartesian3}
-   * @readonly
-   */
-  radiiSquared: {
-    get: function() {
-      return this._radiiSquared;
-    }
-  },
-  /**
-   * Gets the radii of the ellipsoid raise to the fourth power.
-   * @memberof Ellipsoid.prototype
-   * @type {Cartesian3}
-   * @readonly
-   */
-  radiiToTheFourth: {
-    get: function() {
-      return this._radiiToTheFourth;
-    }
-  },
-  /**
-   * Gets one over the radii of the ellipsoid.
-   * @memberof Ellipsoid.prototype
-   * @type {Cartesian3}
-   * @readonly
-   */
-  oneOverRadii: {
-    get: function() {
-      return this._oneOverRadii;
-    }
-  },
-  /**
-   * Gets one over the squared radii of the ellipsoid.
-   * @memberof Ellipsoid.prototype
-   * @type {Cartesian3}
-   * @readonly
-   */
-  oneOverRadiiSquared: {
-    get: function() {
-      return this._oneOverRadiiSquared;
-    }
-  },
-  /**
-   * Gets the minimum radius of the ellipsoid.
-   * @memberof Ellipsoid.prototype
-   * @type {number}
-   * @readonly
-   */
-  minimumRadius: {
-    get: function() {
-      return this._minimumRadius;
-    }
-  },
-  /**
-   * Gets the maximum radius of the ellipsoid.
-   * @memberof Ellipsoid.prototype
-   * @type {number}
-   * @readonly
-   */
-  maximumRadius: {
-    get: function() {
-      return this._maximumRadius;
-    }
-  }
-});
-Ellipsoid.clone = function(ellipsoid, result) {
-  if (!defined_default(ellipsoid)) {
-    return void 0;
-  }
-  const radii = ellipsoid._radii;
-  if (!defined_default(result)) {
-    return new Ellipsoid(radii.x, radii.y, radii.z);
-  }
-  Cartesian3_default.clone(radii, result._radii);
-  Cartesian3_default.clone(ellipsoid._radiiSquared, result._radiiSquared);
-  Cartesian3_default.clone(ellipsoid._radiiToTheFourth, result._radiiToTheFourth);
-  Cartesian3_default.clone(ellipsoid._oneOverRadii, result._oneOverRadii);
-  Cartesian3_default.clone(ellipsoid._oneOverRadiiSquared, result._oneOverRadiiSquared);
-  result._minimumRadius = ellipsoid._minimumRadius;
-  result._maximumRadius = ellipsoid._maximumRadius;
-  result._centerToleranceSquared = ellipsoid._centerToleranceSquared;
-  return result;
-};
-Ellipsoid.fromCartesian3 = function(cartesian, result) {
-  if (!defined_default(result)) {
-    result = new Ellipsoid();
-  }
-  if (!defined_default(cartesian)) {
-    return result;
-  }
-  initialize(result, cartesian.x, cartesian.y, cartesian.z);
-  return result;
-};
-Ellipsoid.WGS84 = Object.freeze(
-  new Ellipsoid(6378137, 6378137, 6356752314245179e-9)
-);
-Ellipsoid.UNIT_SPHERE = Object.freeze(new Ellipsoid(1, 1, 1));
-Ellipsoid.MOON = Object.freeze(
-  new Ellipsoid(
-    Math_default.LUNAR_RADIUS,
-    Math_default.LUNAR_RADIUS,
-    Math_default.LUNAR_RADIUS
-  )
-);
-Ellipsoid.prototype.clone = function(result) {
-  return Ellipsoid.clone(this, result);
-};
-Ellipsoid.packedLength = Cartesian3_default.packedLength;
-Ellipsoid.pack = function(value, array, startingIndex) {
-  Check_default.typeOf.object("value", value);
-  Check_default.defined("array", array);
-  startingIndex = defaultValue_default(startingIndex, 0);
-  Cartesian3_default.pack(value._radii, array, startingIndex);
-  return array;
-};
-Ellipsoid.unpack = function(array, startingIndex, result) {
-  Check_default.defined("array", array);
-  startingIndex = defaultValue_default(startingIndex, 0);
-  const radii = Cartesian3_default.unpack(array, startingIndex);
-  return Ellipsoid.fromCartesian3(radii, result);
-};
-Ellipsoid.prototype.geocentricSurfaceNormal = Cartesian3_default.normalize;
-Ellipsoid.prototype.geodeticSurfaceNormalCartographic = function(cartographic, result) {
-  Check_default.typeOf.object("cartographic", cartographic);
-  const longitude = cartographic.longitude;
-  const latitude = cartographic.latitude;
-  const cosLatitude = Math.cos(latitude);
-  const x = cosLatitude * Math.cos(longitude);
-  const y = cosLatitude * Math.sin(longitude);
-  const z = Math.sin(latitude);
-  if (!defined_default(result)) {
-    result = new Cartesian3_default();
+    return new Cartesian4(x, y, z, w);
   }
   result.x = x;
   result.y = y;
   result.z = z;
-  return Cartesian3_default.normalize(result, result);
+  result.w = w;
+  return result;
 };
-Ellipsoid.prototype.geodeticSurfaceNormal = function(cartesian, result) {
-  if (Cartesian3_default.equalsEpsilon(cartesian, Cartesian3_default.ZERO, Math_default.EPSILON14)) {
+Cartesian4.fromColor = function(color, result) {
+  Check_default.typeOf.object("color", color);
+  if (!defined_default(result)) {
+    return new Cartesian4(color.red, color.green, color.blue, color.alpha);
+  }
+  result.x = color.red;
+  result.y = color.green;
+  result.z = color.blue;
+  result.w = color.alpha;
+  return result;
+};
+Cartesian4.clone = function(cartesian, result) {
+  if (!defined_default(cartesian)) {
     return void 0;
   }
   if (!defined_default(result)) {
-    result = new Cartesian3_default();
+    return new Cartesian4(cartesian.x, cartesian.y, cartesian.z, cartesian.w);
   }
-  result = Cartesian3_default.multiplyComponents(
-    cartesian,
-    this._oneOverRadiiSquared,
-    result
-  );
-  return Cartesian3_default.normalize(result, result);
-};
-var cartographicToCartesianNormal = new Cartesian3_default();
-var cartographicToCartesianK = new Cartesian3_default();
-Ellipsoid.prototype.cartographicToCartesian = function(cartographic, result) {
-  const n = cartographicToCartesianNormal;
-  const k = cartographicToCartesianK;
-  this.geodeticSurfaceNormalCartographic(cartographic, n);
-  Cartesian3_default.multiplyComponents(this._radiiSquared, n, k);
-  const gamma = Math.sqrt(Cartesian3_default.dot(n, k));
-  Cartesian3_default.divideByScalar(k, gamma, k);
-  Cartesian3_default.multiplyByScalar(n, cartographic.height, n);
-  if (!defined_default(result)) {
-    result = new Cartesian3_default();
-  }
-  return Cartesian3_default.add(k, n, result);
-};
-Ellipsoid.prototype.cartographicArrayToCartesianArray = function(cartographics, result) {
-  Check_default.defined("cartographics", cartographics);
-  const length = cartographics.length;
-  if (!defined_default(result)) {
-    result = new Array(length);
-  } else {
-    result.length = length;
-  }
-  for (let i = 0; i < length; i++) {
-    result[i] = this.cartographicToCartesian(cartographics[i], result[i]);
-  }
+  result.x = cartesian.x;
+  result.y = cartesian.y;
+  result.z = cartesian.z;
+  result.w = cartesian.w;
   return result;
 };
-var cartesianToCartographicN2 = new Cartesian3_default();
-var cartesianToCartographicP2 = new Cartesian3_default();
-var cartesianToCartographicH2 = new Cartesian3_default();
-Ellipsoid.prototype.cartesianToCartographic = function(cartesian, result) {
-  const p = this.scaleToGeodeticSurface(cartesian, cartesianToCartographicP2);
-  if (!defined_default(p)) {
-    return void 0;
-  }
-  const n = this.geodeticSurfaceNormal(p, cartesianToCartographicN2);
-  const h = Cartesian3_default.subtract(cartesian, p, cartesianToCartographicH2);
-  const longitude = Math.atan2(n.y, n.x);
-  const latitude = Math.asin(n.z);
-  const height = Math_default.sign(Cartesian3_default.dot(h, cartesian)) * Cartesian3_default.magnitude(h);
+Cartesian4.packedLength = 4;
+Cartesian4.pack = function(value, array, startingIndex) {
+  Check_default.typeOf.object("value", value);
+  Check_default.defined("array", array);
+  startingIndex = defaultValue_default(startingIndex, 0);
+  array[startingIndex++] = value.x;
+  array[startingIndex++] = value.y;
+  array[startingIndex++] = value.z;
+  array[startingIndex] = value.w;
+  return array;
+};
+Cartesian4.unpack = function(array, startingIndex, result) {
+  Check_default.defined("array", array);
+  startingIndex = defaultValue_default(startingIndex, 0);
   if (!defined_default(result)) {
-    return new Cartographic_default(longitude, latitude, height);
+    result = new Cartesian4();
   }
-  result.longitude = longitude;
-  result.latitude = latitude;
-  result.height = height;
+  result.x = array[startingIndex++];
+  result.y = array[startingIndex++];
+  result.z = array[startingIndex++];
+  result.w = array[startingIndex];
   return result;
 };
-Ellipsoid.prototype.cartesianArrayToCartographicArray = function(cartesians, result) {
-  Check_default.defined("cartesians", cartesians);
-  const length = cartesians.length;
+Cartesian4.packArray = function(array, result) {
+  Check_default.defined("array", array);
+  const length = array.length;
+  const resultLength = length * 4;
   if (!defined_default(result)) {
-    result = new Array(length);
-  } else {
-    result.length = length;
+    result = new Array(resultLength);
+  } else if (!Array.isArray(result) && result.length !== resultLength) {
+    throw new DeveloperError_default(
+      "If result is a typed array, it must have exactly array.length * 4 elements"
+    );
+  } else if (result.length !== resultLength) {
+    result.length = resultLength;
   }
   for (let i = 0; i < length; ++i) {
-    result[i] = this.cartesianToCartographic(cartesians[i], result[i]);
+    Cartesian4.pack(array[i], result, i * 4);
   }
   return result;
 };
-Ellipsoid.prototype.scaleToGeodeticSurface = function(cartesian, result) {
-  return scaleToGeodeticSurface_default(
-    cartesian,
-    this._oneOverRadii,
-    this._oneOverRadiiSquared,
-    this._centerToleranceSquared,
-    result
-  );
-};
-Ellipsoid.prototype.scaleToGeocentricSurface = function(cartesian, result) {
-  Check_default.typeOf.object("cartesian", cartesian);
-  if (!defined_default(result)) {
-    result = new Cartesian3_default();
-  }
-  const positionX = cartesian.x;
-  const positionY = cartesian.y;
-  const positionZ = cartesian.z;
-  const oneOverRadiiSquared = this._oneOverRadiiSquared;
-  const beta = 1 / Math.sqrt(
-    positionX * positionX * oneOverRadiiSquared.x + positionY * positionY * oneOverRadiiSquared.y + positionZ * positionZ * oneOverRadiiSquared.z
-  );
-  return Cartesian3_default.multiplyByScalar(cartesian, beta, result);
-};
-Ellipsoid.prototype.transformPositionToScaledSpace = function(position, result) {
-  if (!defined_default(result)) {
-    result = new Cartesian3_default();
-  }
-  return Cartesian3_default.multiplyComponents(position, this._oneOverRadii, result);
-};
-Ellipsoid.prototype.transformPositionFromScaledSpace = function(position, result) {
-  if (!defined_default(result)) {
-    result = new Cartesian3_default();
-  }
-  return Cartesian3_default.multiplyComponents(position, this._radii, result);
-};
-Ellipsoid.prototype.equals = function(right) {
-  return this === right || defined_default(right) && Cartesian3_default.equals(this._radii, right._radii);
-};
-Ellipsoid.prototype.toString = function() {
-  return this._radii.toString();
-};
-Ellipsoid.prototype.getSurfaceNormalIntersectionWithZAxis = function(position, buffer, result) {
-  Check_default.typeOf.object("position", position);
-  if (!Math_default.equalsEpsilon(
-    this._radii.x,
-    this._radii.y,
-    Math_default.EPSILON15
-  )) {
-    throw new DeveloperError_default(
-      "Ellipsoid must be an ellipsoid of revolution (radii.x == radii.y)"
-    );
-  }
-  Check_default.typeOf.number.greaterThan("Ellipsoid.radii.z", this._radii.z, 0);
-  buffer = defaultValue_default(buffer, 0);
-  const squaredXOverSquaredZ = this._squaredXOverSquaredZ;
-  if (!defined_default(result)) {
-    result = new Cartesian3_default();
-  }
-  result.x = 0;
-  result.y = 0;
-  result.z = position.z * (1 - squaredXOverSquaredZ);
-  if (Math.abs(result.z) >= this._radii.z - buffer) {
-    return void 0;
-  }
-  return result;
-};
-var abscissas = [
-  0.14887433898163,
-  0.43339539412925,
-  0.67940956829902,
-  0.86506336668898,
-  0.97390652851717,
-  0
-];
-var weights = [
-  0.29552422471475,
-  0.26926671930999,
-  0.21908636251598,
-  0.14945134915058,
-  0.066671344308684,
-  0
-];
-function gaussLegendreQuadrature(a3, b, func) {
-  Check_default.typeOf.number("a", a3);
-  Check_default.typeOf.number("b", b);
-  Check_default.typeOf.func("func", func);
-  const xMean = 0.5 * (b + a3);
-  const xRange = 0.5 * (b - a3);
-  let sum = 0;
-  for (let i = 0; i < 5; i++) {
-    const dx = xRange * abscissas[i];
-    sum += weights[i] * (func(xMean + dx) + func(xMean - dx));
-  }
-  sum *= xRange;
-  return sum;
-}
-Ellipsoid.prototype.surfaceArea = function(rectangle) {
-  Check_default.typeOf.object("rectangle", rectangle);
-  const minLongitude = rectangle.west;
-  let maxLongitude = rectangle.east;
-  const minLatitude = rectangle.south;
-  const maxLatitude = rectangle.north;
-  while (maxLongitude < minLongitude) {
-    maxLongitude += Math_default.TWO_PI;
-  }
-  const radiiSquared = this._radiiSquared;
-  const a22 = radiiSquared.x;
-  const b2 = radiiSquared.y;
-  const c2 = radiiSquared.z;
-  const a2b2 = a22 * b2;
-  return gaussLegendreQuadrature(minLatitude, maxLatitude, function(lat) {
-    const sinPhi = Math.cos(lat);
-    const cosPhi = Math.sin(lat);
-    return Math.cos(lat) * gaussLegendreQuadrature(minLongitude, maxLongitude, function(lon) {
-      const cosTheta = Math.cos(lon);
-      const sinTheta = Math.sin(lon);
-      return Math.sqrt(
-        a2b2 * cosPhi * cosPhi + c2 * (b2 * cosTheta * cosTheta + a22 * sinTheta * sinTheta) * sinPhi * sinPhi
-      );
-    });
-  });
-};
-var Ellipsoid_default = Ellipsoid;
-
-// packages/engine/Source/Core/Rectangle.js
-function Rectangle(west, south, east, north) {
-  this.west = defaultValue_default(west, 0);
-  this.south = defaultValue_default(south, 0);
-  this.east = defaultValue_default(east, 0);
-  this.north = defaultValue_default(north, 0);
-}
-Object.defineProperties(Rectangle.prototype, {
-  /**
-   * Gets the width of the rectangle in radians.
-   * @memberof Rectangle.prototype
-   * @type {number}
-   * @readonly
-   */
-  width: {
-    get: function() {
-      return Rectangle.computeWidth(this);
-    }
-  },
-  /**
-   * Gets the height of the rectangle in radians.
-   * @memberof Rectangle.prototype
-   * @type {number}
-   * @readonly
-   */
-  height: {
-    get: function() {
-      return Rectangle.computeHeight(this);
-    }
-  }
-});
-Rectangle.packedLength = 4;
-Rectangle.pack = function(value, array, startingIndex) {
-  Check_default.typeOf.object("value", value);
+Cartesian4.unpackArray = function(array, result) {
   Check_default.defined("array", array);
-  startingIndex = defaultValue_default(startingIndex, 0);
-  array[startingIndex++] = value.west;
-  array[startingIndex++] = value.south;
-  array[startingIndex++] = value.east;
-  array[startingIndex] = value.north;
-  return array;
-};
-Rectangle.unpack = function(array, startingIndex, result) {
-  Check_default.defined("array", array);
-  startingIndex = defaultValue_default(startingIndex, 0);
+  Check_default.typeOf.number.greaterThanOrEquals("array.length", array.length, 4);
+  if (array.length % 4 !== 0) {
+    throw new DeveloperError_default("array length must be a multiple of 4.");
+  }
+  const length = array.length;
   if (!defined_default(result)) {
-    result = new Rectangle();
-  }
-  result.west = array[startingIndex++];
-  result.south = array[startingIndex++];
-  result.east = array[startingIndex++];
-  result.north = array[startingIndex];
-  return result;
-};
-Rectangle.computeWidth = function(rectangle) {
-  Check_default.typeOf.object("rectangle", rectangle);
-  let east = rectangle.east;
-  const west = rectangle.west;
-  if (east < west) {
-    east += Math_default.TWO_PI;
-  }
-  return east - west;
-};
-Rectangle.computeHeight = function(rectangle) {
-  Check_default.typeOf.object("rectangle", rectangle);
-  return rectangle.north - rectangle.south;
-};
-Rectangle.fromDegrees = function(west, south, east, north, result) {
-  west = Math_default.toRadians(defaultValue_default(west, 0));
-  south = Math_default.toRadians(defaultValue_default(south, 0));
-  east = Math_default.toRadians(defaultValue_default(east, 0));
-  north = Math_default.toRadians(defaultValue_default(north, 0));
-  if (!defined_default(result)) {
-    return new Rectangle(west, south, east, north);
-  }
-  result.west = west;
-  result.south = south;
-  result.east = east;
-  result.north = north;
-  return result;
-};
-Rectangle.fromRadians = function(west, south, east, north, result) {
-  if (!defined_default(result)) {
-    return new Rectangle(west, south, east, north);
-  }
-  result.west = defaultValue_default(west, 0);
-  result.south = defaultValue_default(south, 0);
-  result.east = defaultValue_default(east, 0);
-  result.north = defaultValue_default(north, 0);
-  return result;
-};
-Rectangle.fromCartographicArray = function(cartographics, result) {
-  Check_default.defined("cartographics", cartographics);
-  let west = Number.MAX_VALUE;
-  let east = -Number.MAX_VALUE;
-  let westOverIDL = Number.MAX_VALUE;
-  let eastOverIDL = -Number.MAX_VALUE;
-  let south = Number.MAX_VALUE;
-  let north = -Number.MAX_VALUE;
-  for (let i = 0, len = cartographics.length; i < len; i++) {
-    const position = cartographics[i];
-    west = Math.min(west, position.longitude);
-    east = Math.max(east, position.longitude);
-    south = Math.min(south, position.latitude);
-    north = Math.max(north, position.latitude);
-    const lonAdjusted = position.longitude >= 0 ? position.longitude : position.longitude + Math_default.TWO_PI;
-    westOverIDL = Math.min(westOverIDL, lonAdjusted);
-    eastOverIDL = Math.max(eastOverIDL, lonAdjusted);
-  }
-  if (east - west > eastOverIDL - westOverIDL) {
-    west = westOverIDL;
-    east = eastOverIDL;
-    if (east > Math_default.PI) {
-      east = east - Math_default.TWO_PI;
-    }
-    if (west > Math_default.PI) {
-      west = west - Math_default.TWO_PI;
-    }
-  }
-  if (!defined_default(result)) {
-    return new Rectangle(west, south, east, north);
-  }
-  result.west = west;
-  result.south = south;
-  result.east = east;
-  result.north = north;
-  return result;
-};
-Rectangle.fromCartesianArray = function(cartesians, ellipsoid, result) {
-  Check_default.defined("cartesians", cartesians);
-  ellipsoid = defaultValue_default(ellipsoid, Ellipsoid_default.WGS84);
-  let west = Number.MAX_VALUE;
-  let east = -Number.MAX_VALUE;
-  let westOverIDL = Number.MAX_VALUE;
-  let eastOverIDL = -Number.MAX_VALUE;
-  let south = Number.MAX_VALUE;
-  let north = -Number.MAX_VALUE;
-  for (let i = 0, len = cartesians.length; i < len; i++) {
-    const position = ellipsoid.cartesianToCartographic(cartesians[i]);
-    west = Math.min(west, position.longitude);
-    east = Math.max(east, position.longitude);
-    south = Math.min(south, position.latitude);
-    north = Math.max(north, position.latitude);
-    const lonAdjusted = position.longitude >= 0 ? position.longitude : position.longitude + Math_default.TWO_PI;
-    westOverIDL = Math.min(westOverIDL, lonAdjusted);
-    eastOverIDL = Math.max(eastOverIDL, lonAdjusted);
-  }
-  if (east - west > eastOverIDL - westOverIDL) {
-    west = westOverIDL;
-    east = eastOverIDL;
-    if (east > Math_default.PI) {
-      east = east - Math_default.TWO_PI;
-    }
-    if (west > Math_default.PI) {
-      west = west - Math_default.TWO_PI;
-    }
-  }
-  if (!defined_default(result)) {
-    return new Rectangle(west, south, east, north);
-  }
-  result.west = west;
-  result.south = south;
-  result.east = east;
-  result.north = north;
-  return result;
-};
-Rectangle.clone = function(rectangle, result) {
-  if (!defined_default(rectangle)) {
-    return void 0;
-  }
-  if (!defined_default(result)) {
-    return new Rectangle(
-      rectangle.west,
-      rectangle.south,
-      rectangle.east,
-      rectangle.north
-    );
-  }
-  result.west = rectangle.west;
-  result.south = rectangle.south;
-  result.east = rectangle.east;
-  result.north = rectangle.north;
-  return result;
-};
-Rectangle.equalsEpsilon = function(left, right, absoluteEpsilon) {
-  absoluteEpsilon = defaultValue_default(absoluteEpsilon, 0);
-  return left === right || defined_default(left) && defined_default(right) && Math.abs(left.west - right.west) <= absoluteEpsilon && Math.abs(left.south - right.south) <= absoluteEpsilon && Math.abs(left.east - right.east) <= absoluteEpsilon && Math.abs(left.north - right.north) <= absoluteEpsilon;
-};
-Rectangle.prototype.clone = function(result) {
-  return Rectangle.clone(this, result);
-};
-Rectangle.prototype.equals = function(other) {
-  return Rectangle.equals(this, other);
-};
-Rectangle.equals = function(left, right) {
-  return left === right || defined_default(left) && defined_default(right) && left.west === right.west && left.south === right.south && left.east === right.east && left.north === right.north;
-};
-Rectangle.prototype.equalsEpsilon = function(other, epsilon) {
-  return Rectangle.equalsEpsilon(this, other, epsilon);
-};
-Rectangle.validate = function(rectangle) {
-  Check_default.typeOf.object("rectangle", rectangle);
-  const north = rectangle.north;
-  Check_default.typeOf.number.greaterThanOrEquals(
-    "north",
-    north,
-    -Math_default.PI_OVER_TWO
-  );
-  Check_default.typeOf.number.lessThanOrEquals("north", north, Math_default.PI_OVER_TWO);
-  const south = rectangle.south;
-  Check_default.typeOf.number.greaterThanOrEquals(
-    "south",
-    south,
-    -Math_default.PI_OVER_TWO
-  );
-  Check_default.typeOf.number.lessThanOrEquals("south", south, Math_default.PI_OVER_TWO);
-  const west = rectangle.west;
-  Check_default.typeOf.number.greaterThanOrEquals("west", west, -Math.PI);
-  Check_default.typeOf.number.lessThanOrEquals("west", west, Math.PI);
-  const east = rectangle.east;
-  Check_default.typeOf.number.greaterThanOrEquals("east", east, -Math.PI);
-  Check_default.typeOf.number.lessThanOrEquals("east", east, Math.PI);
-};
-Rectangle.southwest = function(rectangle, result) {
-  Check_default.typeOf.object("rectangle", rectangle);
-  if (!defined_default(result)) {
-    return new Cartographic_default(rectangle.west, rectangle.south);
-  }
-  result.longitude = rectangle.west;
-  result.latitude = rectangle.south;
-  result.height = 0;
-  return result;
-};
-Rectangle.northwest = function(rectangle, result) {
-  Check_default.typeOf.object("rectangle", rectangle);
-  if (!defined_default(result)) {
-    return new Cartographic_default(rectangle.west, rectangle.north);
-  }
-  result.longitude = rectangle.west;
-  result.latitude = rectangle.north;
-  result.height = 0;
-  return result;
-};
-Rectangle.northeast = function(rectangle, result) {
-  Check_default.typeOf.object("rectangle", rectangle);
-  if (!defined_default(result)) {
-    return new Cartographic_default(rectangle.east, rectangle.north);
-  }
-  result.longitude = rectangle.east;
-  result.latitude = rectangle.north;
-  result.height = 0;
-  return result;
-};
-Rectangle.southeast = function(rectangle, result) {
-  Check_default.typeOf.object("rectangle", rectangle);
-  if (!defined_default(result)) {
-    return new Cartographic_default(rectangle.east, rectangle.south);
-  }
-  result.longitude = rectangle.east;
-  result.latitude = rectangle.south;
-  result.height = 0;
-  return result;
-};
-Rectangle.center = function(rectangle, result) {
-  Check_default.typeOf.object("rectangle", rectangle);
-  let east = rectangle.east;
-  const west = rectangle.west;
-  if (east < west) {
-    east += Math_default.TWO_PI;
-  }
-  const longitude = Math_default.negativePiToPi((west + east) * 0.5);
-  const latitude = (rectangle.south + rectangle.north) * 0.5;
-  if (!defined_default(result)) {
-    return new Cartographic_default(longitude, latitude);
-  }
-  result.longitude = longitude;
-  result.latitude = latitude;
-  result.height = 0;
-  return result;
-};
-Rectangle.intersection = function(rectangle, otherRectangle, result) {
-  Check_default.typeOf.object("rectangle", rectangle);
-  Check_default.typeOf.object("otherRectangle", otherRectangle);
-  let rectangleEast = rectangle.east;
-  let rectangleWest = rectangle.west;
-  let otherRectangleEast = otherRectangle.east;
-  let otherRectangleWest = otherRectangle.west;
-  if (rectangleEast < rectangleWest && otherRectangleEast > 0) {
-    rectangleEast += Math_default.TWO_PI;
-  } else if (otherRectangleEast < otherRectangleWest && rectangleEast > 0) {
-    otherRectangleEast += Math_default.TWO_PI;
-  }
-  if (rectangleEast < rectangleWest && otherRectangleWest < 0) {
-    otherRectangleWest += Math_default.TWO_PI;
-  } else if (otherRectangleEast < otherRectangleWest && rectangleWest < 0) {
-    rectangleWest += Math_default.TWO_PI;
-  }
-  const west = Math_default.negativePiToPi(
-    Math.max(rectangleWest, otherRectangleWest)
-  );
-  const east = Math_default.negativePiToPi(
-    Math.min(rectangleEast, otherRectangleEast)
-  );
-  if ((rectangle.west < rectangle.east || otherRectangle.west < otherRectangle.east) && east <= west) {
-    return void 0;
-  }
-  const south = Math.max(rectangle.south, otherRectangle.south);
-  const north = Math.min(rectangle.north, otherRectangle.north);
-  if (south >= north) {
-    return void 0;
-  }
-  if (!defined_default(result)) {
-    return new Rectangle(west, south, east, north);
-  }
-  result.west = west;
-  result.south = south;
-  result.east = east;
-  result.north = north;
-  return result;
-};
-Rectangle.simpleIntersection = function(rectangle, otherRectangle, result) {
-  Check_default.typeOf.object("rectangle", rectangle);
-  Check_default.typeOf.object("otherRectangle", otherRectangle);
-  const west = Math.max(rectangle.west, otherRectangle.west);
-  const south = Math.max(rectangle.south, otherRectangle.south);
-  const east = Math.min(rectangle.east, otherRectangle.east);
-  const north = Math.min(rectangle.north, otherRectangle.north);
-  if (south >= north || west >= east) {
-    return void 0;
-  }
-  if (!defined_default(result)) {
-    return new Rectangle(west, south, east, north);
-  }
-  result.west = west;
-  result.south = south;
-  result.east = east;
-  result.north = north;
-  return result;
-};
-Rectangle.union = function(rectangle, otherRectangle, result) {
-  Check_default.typeOf.object("rectangle", rectangle);
-  Check_default.typeOf.object("otherRectangle", otherRectangle);
-  if (!defined_default(result)) {
-    result = new Rectangle();
-  }
-  let rectangleEast = rectangle.east;
-  let rectangleWest = rectangle.west;
-  let otherRectangleEast = otherRectangle.east;
-  let otherRectangleWest = otherRectangle.west;
-  if (rectangleEast < rectangleWest && otherRectangleEast > 0) {
-    rectangleEast += Math_default.TWO_PI;
-  } else if (otherRectangleEast < otherRectangleWest && rectangleEast > 0) {
-    otherRectangleEast += Math_default.TWO_PI;
-  }
-  if (rectangleEast < rectangleWest && otherRectangleWest < 0) {
-    otherRectangleWest += Math_default.TWO_PI;
-  } else if (otherRectangleEast < otherRectangleWest && rectangleWest < 0) {
-    rectangleWest += Math_default.TWO_PI;
-  }
-  const west = Math_default.negativePiToPi(
-    Math.min(rectangleWest, otherRectangleWest)
-  );
-  const east = Math_default.negativePiToPi(
-    Math.max(rectangleEast, otherRectangleEast)
-  );
-  result.west = west;
-  result.south = Math.min(rectangle.south, otherRectangle.south);
-  result.east = east;
-  result.north = Math.max(rectangle.north, otherRectangle.north);
-  return result;
-};
-Rectangle.expand = function(rectangle, cartographic, result) {
-  Check_default.typeOf.object("rectangle", rectangle);
-  Check_default.typeOf.object("cartographic", cartographic);
-  if (!defined_default(result)) {
-    result = new Rectangle();
-  }
-  result.west = Math.min(rectangle.west, cartographic.longitude);
-  result.south = Math.min(rectangle.south, cartographic.latitude);
-  result.east = Math.max(rectangle.east, cartographic.longitude);
-  result.north = Math.max(rectangle.north, cartographic.latitude);
-  return result;
-};
-Rectangle.contains = function(rectangle, cartographic) {
-  Check_default.typeOf.object("rectangle", rectangle);
-  Check_default.typeOf.object("cartographic", cartographic);
-  let longitude = cartographic.longitude;
-  const latitude = cartographic.latitude;
-  const west = rectangle.west;
-  let east = rectangle.east;
-  if (east < west) {
-    east += Math_default.TWO_PI;
-    if (longitude < 0) {
-      longitude += Math_default.TWO_PI;
-    }
-  }
-  return (longitude > west || Math_default.equalsEpsilon(longitude, west, Math_default.EPSILON14)) && (longitude < east || Math_default.equalsEpsilon(longitude, east, Math_default.EPSILON14)) && latitude >= rectangle.south && latitude <= rectangle.north;
-};
-var subsampleLlaScratch = new Cartographic_default();
-Rectangle.subsample = function(rectangle, ellipsoid, surfaceHeight, result) {
-  Check_default.typeOf.object("rectangle", rectangle);
-  ellipsoid = defaultValue_default(ellipsoid, Ellipsoid_default.WGS84);
-  surfaceHeight = defaultValue_default(surfaceHeight, 0);
-  if (!defined_default(result)) {
-    result = [];
-  }
-  let length = 0;
-  const north = rectangle.north;
-  const south = rectangle.south;
-  const east = rectangle.east;
-  const west = rectangle.west;
-  const lla = subsampleLlaScratch;
-  lla.height = surfaceHeight;
-  lla.longitude = west;
-  lla.latitude = north;
-  result[length] = ellipsoid.cartographicToCartesian(lla, result[length]);
-  length++;
-  lla.longitude = east;
-  result[length] = ellipsoid.cartographicToCartesian(lla, result[length]);
-  length++;
-  lla.latitude = south;
-  result[length] = ellipsoid.cartographicToCartesian(lla, result[length]);
-  length++;
-  lla.longitude = west;
-  result[length] = ellipsoid.cartographicToCartesian(lla, result[length]);
-  length++;
-  if (north < 0) {
-    lla.latitude = north;
-  } else if (south > 0) {
-    lla.latitude = south;
+    result = new Array(length / 4);
   } else {
-    lla.latitude = 0;
+    result.length = length / 4;
   }
-  for (let i = 1; i < 8; ++i) {
-    lla.longitude = -Math.PI + i * Math_default.PI_OVER_TWO;
-    if (Rectangle.contains(rectangle, lla)) {
-      result[length] = ellipsoid.cartographicToCartesian(lla, result[length]);
-      length++;
-    }
-  }
-  if (lla.latitude === 0) {
-    lla.longitude = west;
-    result[length] = ellipsoid.cartographicToCartesian(lla, result[length]);
-    length++;
-    lla.longitude = east;
-    result[length] = ellipsoid.cartographicToCartesian(lla, result[length]);
-    length++;
-  }
-  result.length = length;
-  return result;
-};
-Rectangle.subsection = function(rectangle, westLerp, southLerp, eastLerp, northLerp, result) {
-  Check_default.typeOf.object("rectangle", rectangle);
-  Check_default.typeOf.number.greaterThanOrEquals("westLerp", westLerp, 0);
-  Check_default.typeOf.number.lessThanOrEquals("westLerp", westLerp, 1);
-  Check_default.typeOf.number.greaterThanOrEquals("southLerp", southLerp, 0);
-  Check_default.typeOf.number.lessThanOrEquals("southLerp", southLerp, 1);
-  Check_default.typeOf.number.greaterThanOrEquals("eastLerp", eastLerp, 0);
-  Check_default.typeOf.number.lessThanOrEquals("eastLerp", eastLerp, 1);
-  Check_default.typeOf.number.greaterThanOrEquals("northLerp", northLerp, 0);
-  Check_default.typeOf.number.lessThanOrEquals("northLerp", northLerp, 1);
-  Check_default.typeOf.number.lessThanOrEquals("westLerp", westLerp, eastLerp);
-  Check_default.typeOf.number.lessThanOrEquals("southLerp", southLerp, northLerp);
-  if (!defined_default(result)) {
-    result = new Rectangle();
-  }
-  if (rectangle.west <= rectangle.east) {
-    const width = rectangle.east - rectangle.west;
-    result.west = rectangle.west + westLerp * width;
-    result.east = rectangle.west + eastLerp * width;
-  } else {
-    const width = Math_default.TWO_PI + rectangle.east - rectangle.west;
-    result.west = Math_default.negativePiToPi(rectangle.west + westLerp * width);
-    result.east = Math_default.negativePiToPi(rectangle.west + eastLerp * width);
-  }
-  const height = rectangle.north - rectangle.south;
-  result.south = rectangle.south + southLerp * height;
-  result.north = rectangle.south + northLerp * height;
-  if (westLerp === 1) {
-    result.west = rectangle.east;
-  }
-  if (eastLerp === 1) {
-    result.east = rectangle.east;
-  }
-  if (southLerp === 1) {
-    result.south = rectangle.north;
-  }
-  if (northLerp === 1) {
-    result.north = rectangle.north;
+  for (let i = 0; i < length; i += 4) {
+    const index = i / 4;
+    result[index] = Cartesian4.unpack(array, i, result[index]);
   }
   return result;
 };
-Rectangle.MAX_VALUE = Object.freeze(
-  new Rectangle(
-    -Math.PI,
-    -Math_default.PI_OVER_TWO,
-    Math.PI,
-    Math_default.PI_OVER_TWO
-  )
-);
-var Rectangle_default = Rectangle;
-
-// packages/engine/Source/Core/Fullscreen.js
-var _supportsFullscreen;
-var _names = {
-  requestFullscreen: void 0,
-  exitFullscreen: void 0,
-  fullscreenEnabled: void 0,
-  fullscreenElement: void 0,
-  fullscreenchange: void 0,
-  fullscreenerror: void 0
-};
-var Fullscreen = {};
-Object.defineProperties(Fullscreen, {
-  /**
-   * The element that is currently fullscreen, if any.  To simply check if the
-   * browser is in fullscreen mode or not, use {@link Fullscreen#fullscreen}.
-   * @memberof Fullscreen
-   * @type {object}
-   * @readonly
-   */
-  element: {
-    get: function() {
-      if (!Fullscreen.supportsFullscreen()) {
-        return void 0;
-      }
-      return document[_names.fullscreenElement];
-    }
-  },
-  /**
-   * The name of the event on the document that is fired when fullscreen is
-   * entered or exited.  This event name is intended for use with addEventListener.
-   * In your event handler, to determine if the browser is in fullscreen mode or not,
-   * use {@link Fullscreen#fullscreen}.
-   * @memberof Fullscreen
-   * @type {string}
-   * @readonly
-   */
-  changeEventName: {
-    get: function() {
-      if (!Fullscreen.supportsFullscreen()) {
-        return void 0;
-      }
-      return _names.fullscreenchange;
-    }
-  },
-  /**
-   * The name of the event that is fired when a fullscreen error
-   * occurs.  This event name is intended for use with addEventListener.
-   * @memberof Fullscreen
-   * @type {string}
-   * @readonly
-   */
-  errorEventName: {
-    get: function() {
-      if (!Fullscreen.supportsFullscreen()) {
-        return void 0;
-      }
-      return _names.fullscreenerror;
-    }
-  },
-  /**
-   * Determine whether the browser will allow an element to be made fullscreen, or not.
-   * For example, by default, iframes cannot go fullscreen unless the containing page
-   * adds an "allowfullscreen" attribute (or prefixed equivalent).
-   * @memberof Fullscreen
-   * @type {boolean}
-   * @readonly
-   */
-  enabled: {
-    get: function() {
-      if (!Fullscreen.supportsFullscreen()) {
-        return void 0;
-      }
-      return document[_names.fullscreenEnabled];
-    }
-  },
-  /**
-   * Determines if the browser is currently in fullscreen mode.
-   * @memberof Fullscreen
-   * @type {boolean}
-   * @readonly
-   */
-  fullscreen: {
-    get: function() {
-      if (!Fullscreen.supportsFullscreen()) {
-        return void 0;
-      }
-      return Fullscreen.element !== null;
-    }
-  }
-});
-Fullscreen.supportsFullscreen = function() {
-  if (defined_default(_supportsFullscreen)) {
-    return _supportsFullscreen;
-  }
-  _supportsFullscreen = false;
-  const body = document.body;
-  if (typeof body.requestFullscreen === "function") {
-    _names.requestFullscreen = "requestFullscreen";
-    _names.exitFullscreen = "exitFullscreen";
-    _names.fullscreenEnabled = "fullscreenEnabled";
-    _names.fullscreenElement = "fullscreenElement";
-    _names.fullscreenchange = "fullscreenchange";
-    _names.fullscreenerror = "fullscreenerror";
-    _supportsFullscreen = true;
-    return _supportsFullscreen;
-  }
-  const prefixes = ["webkit", "moz", "o", "ms", "khtml"];
-  let name;
-  for (let i = 0, len = prefixes.length; i < len; ++i) {
-    const prefix = prefixes[i];
-    name = `${prefix}RequestFullscreen`;
-    if (typeof body[name] === "function") {
-      _names.requestFullscreen = name;
-      _supportsFullscreen = true;
-    } else {
-      name = `${prefix}RequestFullScreen`;
-      if (typeof body[name] === "function") {
-        _names.requestFullscreen = name;
-        _supportsFullscreen = true;
-      }
-    }
-    name = `${prefix}ExitFullscreen`;
-    if (typeof document[name] === "function") {
-      _names.exitFullscreen = name;
-    } else {
-      name = `${prefix}CancelFullScreen`;
-      if (typeof document[name] === "function") {
-        _names.exitFullscreen = name;
-      }
-    }
-    name = `${prefix}FullscreenEnabled`;
-    if (document[name] !== void 0) {
-      _names.fullscreenEnabled = name;
-    } else {
-      name = `${prefix}FullScreenEnabled`;
-      if (document[name] !== void 0) {
-        _names.fullscreenEnabled = name;
-      }
-    }
-    name = `${prefix}FullscreenElement`;
-    if (document[name] !== void 0) {
-      _names.fullscreenElement = name;
-    } else {
-      name = `${prefix}FullScreenElement`;
-      if (document[name] !== void 0) {
-        _names.fullscreenElement = name;
-      }
-    }
-    name = `${prefix}fullscreenchange`;
-    if (document[`on${name}`] !== void 0) {
-      if (prefix === "ms") {
-        name = "MSFullscreenChange";
-      }
-      _names.fullscreenchange = name;
-    }
-    name = `${prefix}fullscreenerror`;
-    if (document[`on${name}`] !== void 0) {
-      if (prefix === "ms") {
-        name = "MSFullscreenError";
-      }
-      _names.fullscreenerror = name;
-    }
-  }
-  return _supportsFullscreen;
-};
-Fullscreen.requestFullscreen = function(element, vrDevice) {
-  if (!Fullscreen.supportsFullscreen()) {
-    return;
-  }
-  element[_names.requestFullscreen]({ vrDisplay: vrDevice });
-};
-Fullscreen.exitFullscreen = function() {
-  if (!Fullscreen.supportsFullscreen()) {
-    return;
-  }
-  document[_names.exitFullscreen]();
-};
-Fullscreen._names = _names;
-var Fullscreen_default = Fullscreen;
-
-// packages/engine/Source/Core/FeatureDetection.js
-var theNavigator;
-if (typeof navigator !== "undefined") {
-  theNavigator = navigator;
-} else {
-  theNavigator = {};
-}
-function extractVersion(versionString) {
-  const parts = versionString.split(".");
-  for (let i = 0, len = parts.length; i < len; ++i) {
-    parts[i] = parseInt(parts[i], 10);
-  }
-  return parts;
-}
-var isChromeResult;
-var chromeVersionResult;
-function isChrome() {
-  if (!defined_default(isChromeResult)) {
-    isChromeResult = false;
-    if (!isEdge()) {
-      const fields = / Chrome\/([\.0-9]+)/.exec(theNavigator.userAgent);
-      if (fields !== null) {
-        isChromeResult = true;
-        chromeVersionResult = extractVersion(fields[1]);
-      }
-    }
-  }
-  return isChromeResult;
-}
-function chromeVersion() {
-  return isChrome() && chromeVersionResult;
-}
-var isSafariResult;
-var safariVersionResult;
-function isSafari() {
-  if (!defined_default(isSafariResult)) {
-    isSafariResult = false;
-    if (!isChrome() && !isEdge() && / Safari\/[\.0-9]+/.test(theNavigator.userAgent)) {
-      const fields = / Version\/([\.0-9]+)/.exec(theNavigator.userAgent);
-      if (fields !== null) {
-        isSafariResult = true;
-        safariVersionResult = extractVersion(fields[1]);
-      }
-    }
-  }
-  return isSafariResult;
-}
-function safariVersion() {
-  return isSafari() && safariVersionResult;
-}
-var isWebkitResult;
-var webkitVersionResult;
-function isWebkit() {
-  if (!defined_default(isWebkitResult)) {
-    isWebkitResult = false;
-    const fields = / AppleWebKit\/([\.0-9]+)(\+?)/.exec(theNavigator.userAgent);
-    if (fields !== null) {
-      isWebkitResult = true;
-      webkitVersionResult = extractVersion(fields[1]);
-      webkitVersionResult.isNightly = !!fields[2];
-    }
-  }
-  return isWebkitResult;
-}
-function webkitVersion() {
-  return isWebkit() && webkitVersionResult;
-}
-var isInternetExplorerResult;
-var internetExplorerVersionResult;
-function isInternetExplorer() {
-  if (!defined_default(isInternetExplorerResult)) {
-    isInternetExplorerResult = false;
-    let fields;
-    if (theNavigator.appName === "Microsoft Internet Explorer") {
-      fields = /MSIE ([0-9]{1,}[\.0-9]{0,})/.exec(theNavigator.userAgent);
-      if (fields !== null) {
-        isInternetExplorerResult = true;
-        internetExplorerVersionResult = extractVersion(fields[1]);
-      }
-    } else if (theNavigator.appName === "Netscape") {
-      fields = /Trident\/.*rv:([0-9]{1,}[\.0-9]{0,})/.exec(
-        theNavigator.userAgent
-      );
-      if (fields !== null) {
-        isInternetExplorerResult = true;
-        internetExplorerVersionResult = extractVersion(fields[1]);
-      }
-    }
-  }
-  return isInternetExplorerResult;
-}
-function internetExplorerVersion() {
-  return isInternetExplorer() && internetExplorerVersionResult;
-}
-var isEdgeResult;
-var edgeVersionResult;
-function isEdge() {
-  if (!defined_default(isEdgeResult)) {
-    isEdgeResult = false;
-    const fields = / Edg\/([\.0-9]+)/.exec(theNavigator.userAgent);
-    if (fields !== null) {
-      isEdgeResult = true;
-      edgeVersionResult = extractVersion(fields[1]);
-    }
-  }
-  return isEdgeResult;
-}
-function edgeVersion() {
-  return isEdge() && edgeVersionResult;
-}
-var isFirefoxResult;
-var firefoxVersionResult;
-function isFirefox() {
-  if (!defined_default(isFirefoxResult)) {
-    isFirefoxResult = false;
-    const fields = /Firefox\/([\.0-9]+)/.exec(theNavigator.userAgent);
-    if (fields !== null) {
-      isFirefoxResult = true;
-      firefoxVersionResult = extractVersion(fields[1]);
-    }
-  }
-  return isFirefoxResult;
-}
-var isWindowsResult;
-function isWindows() {
-  if (!defined_default(isWindowsResult)) {
-    isWindowsResult = /Windows/i.test(theNavigator.appVersion);
-  }
-  return isWindowsResult;
-}
-var isIPadOrIOSResult;
-function isIPadOrIOS() {
-  if (!defined_default(isIPadOrIOSResult)) {
-    isIPadOrIOSResult = navigator.platform === "iPhone" || navigator.platform === "iPod" || navigator.platform === "iPad";
-  }
-  return isIPadOrIOSResult;
-}
-function firefoxVersion() {
-  return isFirefox() && firefoxVersionResult;
-}
-var hasPointerEvents;
-function supportsPointerEvents() {
-  if (!defined_default(hasPointerEvents)) {
-    hasPointerEvents = !isFirefox() && typeof PointerEvent !== "undefined" && (!defined_default(theNavigator.pointerEnabled) || theNavigator.pointerEnabled);
-  }
-  return hasPointerEvents;
-}
-var imageRenderingValueResult;
-var supportsImageRenderingPixelatedResult;
-function supportsImageRenderingPixelated() {
-  if (!defined_default(supportsImageRenderingPixelatedResult)) {
-    const canvas = document.createElement("canvas");
-    canvas.setAttribute(
-      "style",
-      "image-rendering: -moz-crisp-edges;image-rendering: pixelated;"
-    );
-    const tmp = canvas.style.imageRendering;
-    supportsImageRenderingPixelatedResult = defined_default(tmp) && tmp !== "";
-    if (supportsImageRenderingPixelatedResult) {
-      imageRenderingValueResult = tmp;
-    }
-  }
-  return supportsImageRenderingPixelatedResult;
-}
-function imageRenderingValue() {
-  return supportsImageRenderingPixelated() ? imageRenderingValueResult : void 0;
-}
-function supportsWebP() {
-  if (!supportsWebP.initialized) {
-    throw new DeveloperError_default(
-      "You must call FeatureDetection.supportsWebP.initialize and wait for the promise to resolve before calling FeatureDetection.supportsWebP"
-    );
-  }
-  return supportsWebP._result;
-}
-supportsWebP._promise = void 0;
-supportsWebP._result = void 0;
-supportsWebP.initialize = function() {
-  if (defined_default(supportsWebP._promise)) {
-    return supportsWebP._promise;
-  }
-  supportsWebP._promise = new Promise((resolve) => {
-    const image = new Image();
-    image.onload = function() {
-      supportsWebP._result = image.width > 0 && image.height > 0;
-      resolve(supportsWebP._result);
-    };
-    image.onerror = function() {
-      supportsWebP._result = false;
-      resolve(supportsWebP._result);
-    };
-    image.src = "data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA";
-  });
-  return supportsWebP._promise;
-};
-Object.defineProperties(supportsWebP, {
-  initialized: {
-    get: function() {
-      return defined_default(supportsWebP._result);
-    }
-  }
-});
-var typedArrayTypes = [];
-if (typeof ArrayBuffer !== "undefined") {
-  typedArrayTypes.push(
-    Int8Array,
-    Uint8Array,
-    Int16Array,
-    Uint16Array,
-    Int32Array,
-    Uint32Array,
-    Float32Array,
-    Float64Array
-  );
-  if (typeof Uint8ClampedArray !== "undefined") {
-    typedArrayTypes.push(Uint8ClampedArray);
-  }
-  if (typeof Uint8ClampedArray !== "undefined") {
-    typedArrayTypes.push(Uint8ClampedArray);
-  }
-  if (typeof BigInt64Array !== "undefined") {
-    typedArrayTypes.push(BigInt64Array);
-  }
-  if (typeof BigUint64Array !== "undefined") {
-    typedArrayTypes.push(BigUint64Array);
-  }
-}
-var FeatureDetection = {
-  isChrome,
-  chromeVersion,
-  isSafari,
-  safariVersion,
-  isWebkit,
-  webkitVersion,
-  isInternetExplorer,
-  internetExplorerVersion,
-  isEdge,
-  edgeVersion,
-  isFirefox,
-  firefoxVersion,
-  isWindows,
-  isIPadOrIOS,
-  hardwareConcurrency: defaultValue_default(theNavigator.hardwareConcurrency, 3),
-  supportsPointerEvents,
-  supportsImageRenderingPixelated,
-  supportsWebP,
-  imageRenderingValue,
-  typedArrayTypes
-};
-FeatureDetection.supportsBasis = function(scene) {
-  return FeatureDetection.supportsWebAssembly() && scene.context.supportsBasis;
-};
-FeatureDetection.supportsFullscreen = function() {
-  return Fullscreen_default.supportsFullscreen();
-};
-FeatureDetection.supportsTypedArrays = function() {
-  return typeof ArrayBuffer !== "undefined";
-};
-FeatureDetection.supportsBigInt64Array = function() {
-  return typeof BigInt64Array !== "undefined";
-};
-FeatureDetection.supportsBigUint64Array = function() {
-  return typeof BigUint64Array !== "undefined";
-};
-FeatureDetection.supportsBigInt = function() {
-  return typeof BigInt !== "undefined";
-};
-FeatureDetection.supportsWebWorkers = function() {
-  return typeof Worker !== "undefined";
-};
-FeatureDetection.supportsWebAssembly = function() {
-  return typeof WebAssembly !== "undefined";
-};
-FeatureDetection.supportsWebgl2 = function(scene) {
-  Check_default.defined("scene", scene);
-  return scene.context.webgl2;
-};
-FeatureDetection.supportsEsmWebWorkers = function() {
-  return !isFirefox() || parseInt(firefoxVersionResult) >= 114;
-};
-var FeatureDetection_default = FeatureDetection;
-
-// packages/engine/Source/Core/Color.js
-function hue2rgb(m1, m2, h) {
-  if (h < 0) {
-    h += 1;
-  }
-  if (h > 1) {
-    h -= 1;
-  }
-  if (h * 6 < 1) {
-    return m1 + (m2 - m1) * 6 * h;
-  }
-  if (h * 2 < 1) {
-    return m2;
-  }
-  if (h * 3 < 2) {
-    return m1 + (m2 - m1) * (2 / 3 - h) * 6;
-  }
-  return m1;
-}
-function Color(red, green, blue, alpha) {
-  this.red = defaultValue_default(red, 1);
-  this.green = defaultValue_default(green, 1);
-  this.blue = defaultValue_default(blue, 1);
-  this.alpha = defaultValue_default(alpha, 1);
-}
-Color.fromCartesian4 = function(cartesian, result) {
+Cartesian4.fromArray = Cartesian4.unpack;
+Cartesian4.maximumComponent = function(cartesian) {
   Check_default.typeOf.object("cartesian", cartesian);
-  if (!defined_default(result)) {
-    return new Color(cartesian.x, cartesian.y, cartesian.z, cartesian.w);
-  }
-  result.red = cartesian.x;
-  result.green = cartesian.y;
-  result.blue = cartesian.z;
-  result.alpha = cartesian.w;
+  return Math.max(cartesian.x, cartesian.y, cartesian.z, cartesian.w);
+};
+Cartesian4.minimumComponent = function(cartesian) {
+  Check_default.typeOf.object("cartesian", cartesian);
+  return Math.min(cartesian.x, cartesian.y, cartesian.z, cartesian.w);
+};
+Cartesian4.minimumByComponent = function(first, second, result) {
+  Check_default.typeOf.object("first", first);
+  Check_default.typeOf.object("second", second);
+  Check_default.typeOf.object("result", result);
+  result.x = Math.min(first.x, second.x);
+  result.y = Math.min(first.y, second.y);
+  result.z = Math.min(first.z, second.z);
+  result.w = Math.min(first.w, second.w);
   return result;
 };
-Color.fromBytes = function(red, green, blue, alpha, result) {
-  red = Color.byteToFloat(defaultValue_default(red, 255));
-  green = Color.byteToFloat(defaultValue_default(green, 255));
-  blue = Color.byteToFloat(defaultValue_default(blue, 255));
-  alpha = Color.byteToFloat(defaultValue_default(alpha, 255));
-  if (!defined_default(result)) {
-    return new Color(red, green, blue, alpha);
-  }
-  result.red = red;
-  result.green = green;
-  result.blue = blue;
-  result.alpha = alpha;
+Cartesian4.maximumByComponent = function(first, second, result) {
+  Check_default.typeOf.object("first", first);
+  Check_default.typeOf.object("second", second);
+  Check_default.typeOf.object("result", result);
+  result.x = Math.max(first.x, second.x);
+  result.y = Math.max(first.y, second.y);
+  result.z = Math.max(first.z, second.z);
+  result.w = Math.max(first.w, second.w);
   return result;
 };
-Color.fromAlpha = function(color, alpha, result) {
-  Check_default.typeOf.object("color", color);
-  Check_default.typeOf.number("alpha", alpha);
-  if (!defined_default(result)) {
-    return new Color(color.red, color.green, color.blue, alpha);
-  }
-  result.red = color.red;
-  result.green = color.green;
-  result.blue = color.blue;
-  result.alpha = alpha;
-  return result;
-};
-var scratchArrayBuffer;
-var scratchUint32Array;
-var scratchUint8Array;
-if (FeatureDetection_default.supportsTypedArrays()) {
-  scratchArrayBuffer = new ArrayBuffer(4);
-  scratchUint32Array = new Uint32Array(scratchArrayBuffer);
-  scratchUint8Array = new Uint8Array(scratchArrayBuffer);
-}
-Color.fromRgba = function(rgba, result) {
-  scratchUint32Array[0] = rgba;
-  return Color.fromBytes(
-    scratchUint8Array[0],
-    scratchUint8Array[1],
-    scratchUint8Array[2],
-    scratchUint8Array[3],
-    result
-  );
-};
-Color.fromHsl = function(hue, saturation, lightness, alpha, result) {
-  hue = defaultValue_default(hue, 0) % 1;
-  saturation = defaultValue_default(saturation, 0);
-  lightness = defaultValue_default(lightness, 0);
-  alpha = defaultValue_default(alpha, 1);
-  let red = lightness;
-  let green = lightness;
-  let blue = lightness;
-  if (saturation !== 0) {
-    let m2;
-    if (lightness < 0.5) {
-      m2 = lightness * (1 + saturation);
-    } else {
-      m2 = lightness + saturation - lightness * saturation;
-    }
-    const m1 = 2 * lightness - m2;
-    red = hue2rgb(m1, m2, hue + 1 / 3);
-    green = hue2rgb(m1, m2, hue);
-    blue = hue2rgb(m1, m2, hue - 1 / 3);
-  }
-  if (!defined_default(result)) {
-    return new Color(red, green, blue, alpha);
-  }
-  result.red = red;
-  result.green = green;
-  result.blue = blue;
-  result.alpha = alpha;
-  return result;
-};
-Color.fromRandom = function(options, result) {
-  options = defaultValue_default(options, defaultValue_default.EMPTY_OBJECT);
-  let red = options.red;
-  if (!defined_default(red)) {
-    const minimumRed = defaultValue_default(options.minimumRed, 0);
-    const maximumRed = defaultValue_default(options.maximumRed, 1);
-    Check_default.typeOf.number.lessThanOrEquals("minimumRed", minimumRed, maximumRed);
-    red = minimumRed + Math_default.nextRandomNumber() * (maximumRed - minimumRed);
-  }
-  let green = options.green;
-  if (!defined_default(green)) {
-    const minimumGreen = defaultValue_default(options.minimumGreen, 0);
-    const maximumGreen = defaultValue_default(options.maximumGreen, 1);
-    Check_default.typeOf.number.lessThanOrEquals(
-      "minimumGreen",
-      minimumGreen,
-      maximumGreen
-    );
-    green = minimumGreen + Math_default.nextRandomNumber() * (maximumGreen - minimumGreen);
-  }
-  let blue = options.blue;
-  if (!defined_default(blue)) {
-    const minimumBlue = defaultValue_default(options.minimumBlue, 0);
-    const maximumBlue = defaultValue_default(options.maximumBlue, 1);
-    Check_default.typeOf.number.lessThanOrEquals(
-      "minimumBlue",
-      minimumBlue,
-      maximumBlue
-    );
-    blue = minimumBlue + Math_default.nextRandomNumber() * (maximumBlue - minimumBlue);
-  }
-  let alpha = options.alpha;
-  if (!defined_default(alpha)) {
-    const minimumAlpha = defaultValue_default(options.minimumAlpha, 0);
-    const maximumAlpha = defaultValue_default(options.maximumAlpha, 1);
-    Check_default.typeOf.number.lessThanOrEquals(
-      "minumumAlpha",
-      minimumAlpha,
-      maximumAlpha
-    );
-    alpha = minimumAlpha + Math_default.nextRandomNumber() * (maximumAlpha - minimumAlpha);
-  }
-  if (!defined_default(result)) {
-    return new Color(red, green, blue, alpha);
-  }
-  result.red = red;
-  result.green = green;
-  result.blue = blue;
-  result.alpha = alpha;
-  return result;
-};
-var rgbaMatcher = /^#([0-9a-f])([0-9a-f])([0-9a-f])([0-9a-f])?$/i;
-var rrggbbaaMatcher = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})?$/i;
-var rgbParenthesesMatcher = /^rgba?\s*\(\s*([0-9.]+%?)\s*[,\s]+\s*([0-9.]+%?)\s*[,\s]+\s*([0-9.]+%?)(?:\s*[,\s/]+\s*([0-9.]+))?\s*\)$/i;
-var hslParenthesesMatcher = /^hsla?\s*\(\s*([0-9.]+)\s*[,\s]+\s*([0-9.]+%)\s*[,\s]+\s*([0-9.]+%)(?:\s*[,\s/]+\s*([0-9.]+))?\s*\)$/i;
-Color.fromCssColorString = function(color, result) {
-  Check_default.typeOf.string("color", color);
-  if (!defined_default(result)) {
-    result = new Color();
-  }
-  color = color.trim();
-  const namedColor = Color[color.toUpperCase()];
-  if (defined_default(namedColor)) {
-    Color.clone(namedColor, result);
-    return result;
-  }
-  let matches = rgbaMatcher.exec(color);
-  if (matches !== null) {
-    result.red = parseInt(matches[1], 16) / 15;
-    result.green = parseInt(matches[2], 16) / 15;
-    result.blue = parseInt(matches[3], 16) / 15;
-    result.alpha = parseInt(defaultValue_default(matches[4], "f"), 16) / 15;
-    return result;
-  }
-  matches = rrggbbaaMatcher.exec(color);
-  if (matches !== null) {
-    result.red = parseInt(matches[1], 16) / 255;
-    result.green = parseInt(matches[2], 16) / 255;
-    result.blue = parseInt(matches[3], 16) / 255;
-    result.alpha = parseInt(defaultValue_default(matches[4], "ff"), 16) / 255;
-    return result;
-  }
-  matches = rgbParenthesesMatcher.exec(color);
-  if (matches !== null) {
-    result.red = parseFloat(matches[1]) / ("%" === matches[1].substr(-1) ? 100 : 255);
-    result.green = parseFloat(matches[2]) / ("%" === matches[2].substr(-1) ? 100 : 255);
-    result.blue = parseFloat(matches[3]) / ("%" === matches[3].substr(-1) ? 100 : 255);
-    result.alpha = parseFloat(defaultValue_default(matches[4], "1.0"));
-    return result;
-  }
-  matches = hslParenthesesMatcher.exec(color);
-  if (matches !== null) {
-    return Color.fromHsl(
-      parseFloat(matches[1]) / 360,
-      parseFloat(matches[2]) / 100,
-      parseFloat(matches[3]) / 100,
-      parseFloat(defaultValue_default(matches[4], "1.0")),
-      result
-    );
-  }
-  result = void 0;
-  return result;
-};
-Color.packedLength = 4;
-Color.pack = function(value, array, startingIndex) {
+Cartesian4.clamp = function(value, min, max, result) {
   Check_default.typeOf.object("value", value);
-  Check_default.defined("array", array);
-  startingIndex = defaultValue_default(startingIndex, 0);
-  array[startingIndex++] = value.red;
-  array[startingIndex++] = value.green;
-  array[startingIndex++] = value.blue;
-  array[startingIndex] = value.alpha;
-  return array;
-};
-Color.unpack = function(array, startingIndex, result) {
-  Check_default.defined("array", array);
-  startingIndex = defaultValue_default(startingIndex, 0);
-  if (!defined_default(result)) {
-    result = new Color();
-  }
-  result.red = array[startingIndex++];
-  result.green = array[startingIndex++];
-  result.blue = array[startingIndex++];
-  result.alpha = array[startingIndex];
-  return result;
-};
-Color.byteToFloat = function(number) {
-  return number / 255;
-};
-Color.floatToByte = function(number) {
-  return number === 1 ? 255 : number * 256 | 0;
-};
-Color.clone = function(color, result) {
-  if (!defined_default(color)) {
-    return void 0;
-  }
-  if (!defined_default(result)) {
-    return new Color(color.red, color.green, color.blue, color.alpha);
-  }
-  result.red = color.red;
-  result.green = color.green;
-  result.blue = color.blue;
-  result.alpha = color.alpha;
-  return result;
-};
-Color.equals = function(left, right) {
-  return left === right || //
-  defined_default(left) && //
-  defined_default(right) && //
-  left.red === right.red && //
-  left.green === right.green && //
-  left.blue === right.blue && //
-  left.alpha === right.alpha;
-};
-Color.equalsArray = function(color, array, offset) {
-  return color.red === array[offset] && color.green === array[offset + 1] && color.blue === array[offset + 2] && color.alpha === array[offset + 3];
-};
-Color.prototype.clone = function(result) {
-  return Color.clone(this, result);
-};
-Color.prototype.equals = function(other) {
-  return Color.equals(this, other);
-};
-Color.prototype.equalsEpsilon = function(other, epsilon) {
-  return this === other || //
-  defined_default(other) && //
-  Math.abs(this.red - other.red) <= epsilon && //
-  Math.abs(this.green - other.green) <= epsilon && //
-  Math.abs(this.blue - other.blue) <= epsilon && //
-  Math.abs(this.alpha - other.alpha) <= epsilon;
-};
-Color.prototype.toString = function() {
-  return `(${this.red}, ${this.green}, ${this.blue}, ${this.alpha})`;
-};
-Color.prototype.toCssColorString = function() {
-  const red = Color.floatToByte(this.red);
-  const green = Color.floatToByte(this.green);
-  const blue = Color.floatToByte(this.blue);
-  if (this.alpha === 1) {
-    return `rgb(${red},${green},${blue})`;
-  }
-  return `rgba(${red},${green},${blue},${this.alpha})`;
-};
-Color.prototype.toCssHexString = function() {
-  let r = Color.floatToByte(this.red).toString(16);
-  if (r.length < 2) {
-    r = `0${r}`;
-  }
-  let g = Color.floatToByte(this.green).toString(16);
-  if (g.length < 2) {
-    g = `0${g}`;
-  }
-  let b = Color.floatToByte(this.blue).toString(16);
-  if (b.length < 2) {
-    b = `0${b}`;
-  }
-  if (this.alpha < 1) {
-    let hexAlpha = Color.floatToByte(this.alpha).toString(16);
-    if (hexAlpha.length < 2) {
-      hexAlpha = `0${hexAlpha}`;
-    }
-    return `#${r}${g}${b}${hexAlpha}`;
-  }
-  return `#${r}${g}${b}`;
-};
-Color.prototype.toBytes = function(result) {
-  const red = Color.floatToByte(this.red);
-  const green = Color.floatToByte(this.green);
-  const blue = Color.floatToByte(this.blue);
-  const alpha = Color.floatToByte(this.alpha);
-  if (!defined_default(result)) {
-    return [red, green, blue, alpha];
-  }
-  result[0] = red;
-  result[1] = green;
-  result[2] = blue;
-  result[3] = alpha;
-  return result;
-};
-Color.prototype.toRgba = function() {
-  scratchUint8Array[0] = Color.floatToByte(this.red);
-  scratchUint8Array[1] = Color.floatToByte(this.green);
-  scratchUint8Array[2] = Color.floatToByte(this.blue);
-  scratchUint8Array[3] = Color.floatToByte(this.alpha);
-  return scratchUint32Array[0];
-};
-Color.prototype.brighten = function(magnitude, result) {
-  Check_default.typeOf.number("magnitude", magnitude);
-  Check_default.typeOf.number.greaterThanOrEquals("magnitude", magnitude, 0);
+  Check_default.typeOf.object("min", min);
+  Check_default.typeOf.object("max", max);
   Check_default.typeOf.object("result", result);
-  magnitude = 1 - magnitude;
-  result.red = 1 - (1 - this.red) * magnitude;
-  result.green = 1 - (1 - this.green) * magnitude;
-  result.blue = 1 - (1 - this.blue) * magnitude;
-  result.alpha = this.alpha;
+  const x = Math_default.clamp(value.x, min.x, max.x);
+  const y = Math_default.clamp(value.y, min.y, max.y);
+  const z = Math_default.clamp(value.z, min.z, max.z);
+  const w = Math_default.clamp(value.w, min.w, max.w);
+  result.x = x;
+  result.y = y;
+  result.z = z;
+  result.w = w;
   return result;
 };
-Color.prototype.darken = function(magnitude, result) {
-  Check_default.typeOf.number("magnitude", magnitude);
-  Check_default.typeOf.number.greaterThanOrEquals("magnitude", magnitude, 0);
+Cartesian4.magnitudeSquared = function(cartesian) {
+  Check_default.typeOf.object("cartesian", cartesian);
+  return cartesian.x * cartesian.x + cartesian.y * cartesian.y + cartesian.z * cartesian.z + cartesian.w * cartesian.w;
+};
+Cartesian4.magnitude = function(cartesian) {
+  return Math.sqrt(Cartesian4.magnitudeSquared(cartesian));
+};
+var distanceScratch2 = new Cartesian4();
+Cartesian4.distance = function(left, right) {
+  Check_default.typeOf.object("left", left);
+  Check_default.typeOf.object("right", right);
+  Cartesian4.subtract(left, right, distanceScratch2);
+  return Cartesian4.magnitude(distanceScratch2);
+};
+Cartesian4.distanceSquared = function(left, right) {
+  Check_default.typeOf.object("left", left);
+  Check_default.typeOf.object("right", right);
+  Cartesian4.subtract(left, right, distanceScratch2);
+  return Cartesian4.magnitudeSquared(distanceScratch2);
+};
+Cartesian4.normalize = function(cartesian, result) {
+  Check_default.typeOf.object("cartesian", cartesian);
   Check_default.typeOf.object("result", result);
-  magnitude = 1 - magnitude;
-  result.red = this.red * magnitude;
-  result.green = this.green * magnitude;
-  result.blue = this.blue * magnitude;
-  result.alpha = this.alpha;
+  const magnitude = Cartesian4.magnitude(cartesian);
+  result.x = cartesian.x / magnitude;
+  result.y = cartesian.y / magnitude;
+  result.z = cartesian.z / magnitude;
+  result.w = cartesian.w / magnitude;
+  if (isNaN(result.x) || isNaN(result.y) || isNaN(result.z) || isNaN(result.w)) {
+    throw new DeveloperError_default("normalized result is not a number");
+  }
   return result;
 };
-Color.prototype.withAlpha = function(alpha, result) {
-  return Color.fromAlpha(this, alpha, result);
+Cartesian4.dot = function(left, right) {
+  Check_default.typeOf.object("left", left);
+  Check_default.typeOf.object("right", right);
+  return left.x * right.x + left.y * right.y + left.z * right.z + left.w * right.w;
 };
-Color.add = function(left, right, result) {
+Cartesian4.multiplyComponents = function(left, right, result) {
   Check_default.typeOf.object("left", left);
   Check_default.typeOf.object("right", right);
   Check_default.typeOf.object("result", result);
-  result.red = left.red + right.red;
-  result.green = left.green + right.green;
-  result.blue = left.blue + right.blue;
-  result.alpha = left.alpha + right.alpha;
+  result.x = left.x * right.x;
+  result.y = left.y * right.y;
+  result.z = left.z * right.z;
+  result.w = left.w * right.w;
   return result;
 };
-Color.subtract = function(left, right, result) {
+Cartesian4.divideComponents = function(left, right, result) {
   Check_default.typeOf.object("left", left);
   Check_default.typeOf.object("right", right);
   Check_default.typeOf.object("result", result);
-  result.red = left.red - right.red;
-  result.green = left.green - right.green;
-  result.blue = left.blue - right.blue;
-  result.alpha = left.alpha - right.alpha;
+  result.x = left.x / right.x;
+  result.y = left.y / right.y;
+  result.z = left.z / right.z;
+  result.w = left.w / right.w;
   return result;
 };
-Color.multiply = function(left, right, result) {
+Cartesian4.add = function(left, right, result) {
   Check_default.typeOf.object("left", left);
   Check_default.typeOf.object("right", right);
   Check_default.typeOf.object("result", result);
-  result.red = left.red * right.red;
-  result.green = left.green * right.green;
-  result.blue = left.blue * right.blue;
-  result.alpha = left.alpha * right.alpha;
+  result.x = left.x + right.x;
+  result.y = left.y + right.y;
+  result.z = left.z + right.z;
+  result.w = left.w + right.w;
   return result;
 };
-Color.divide = function(left, right, result) {
+Cartesian4.subtract = function(left, right, result) {
   Check_default.typeOf.object("left", left);
   Check_default.typeOf.object("right", right);
   Check_default.typeOf.object("result", result);
-  result.red = left.red / right.red;
-  result.green = left.green / right.green;
-  result.blue = left.blue / right.blue;
-  result.alpha = left.alpha / right.alpha;
+  result.x = left.x - right.x;
+  result.y = left.y - right.y;
+  result.z = left.z - right.z;
+  result.w = left.w - right.w;
   return result;
 };
-Color.mod = function(left, right, result) {
-  Check_default.typeOf.object("left", left);
-  Check_default.typeOf.object("right", right);
+Cartesian4.multiplyByScalar = function(cartesian, scalar, result) {
+  Check_default.typeOf.object("cartesian", cartesian);
+  Check_default.typeOf.number("scalar", scalar);
   Check_default.typeOf.object("result", result);
-  result.red = left.red % right.red;
-  result.green = left.green % right.green;
-  result.blue = left.blue % right.blue;
-  result.alpha = left.alpha % right.alpha;
+  result.x = cartesian.x * scalar;
+  result.y = cartesian.y * scalar;
+  result.z = cartesian.z * scalar;
+  result.w = cartesian.w * scalar;
   return result;
 };
-Color.lerp = function(start, end, t, result) {
+Cartesian4.divideByScalar = function(cartesian, scalar, result) {
+  Check_default.typeOf.object("cartesian", cartesian);
+  Check_default.typeOf.number("scalar", scalar);
+  Check_default.typeOf.object("result", result);
+  result.x = cartesian.x / scalar;
+  result.y = cartesian.y / scalar;
+  result.z = cartesian.z / scalar;
+  result.w = cartesian.w / scalar;
+  return result;
+};
+Cartesian4.negate = function(cartesian, result) {
+  Check_default.typeOf.object("cartesian", cartesian);
+  Check_default.typeOf.object("result", result);
+  result.x = -cartesian.x;
+  result.y = -cartesian.y;
+  result.z = -cartesian.z;
+  result.w = -cartesian.w;
+  return result;
+};
+Cartesian4.abs = function(cartesian, result) {
+  Check_default.typeOf.object("cartesian", cartesian);
+  Check_default.typeOf.object("result", result);
+  result.x = Math.abs(cartesian.x);
+  result.y = Math.abs(cartesian.y);
+  result.z = Math.abs(cartesian.z);
+  result.w = Math.abs(cartesian.w);
+  return result;
+};
+var lerpScratch2 = new Cartesian4();
+Cartesian4.lerp = function(start, end, t, result) {
   Check_default.typeOf.object("start", start);
   Check_default.typeOf.object("end", end);
   Check_default.typeOf.number("t", t);
   Check_default.typeOf.object("result", result);
-  result.red = Math_default.lerp(start.red, end.red, t);
-  result.green = Math_default.lerp(start.green, end.green, t);
-  result.blue = Math_default.lerp(start.blue, end.blue, t);
-  result.alpha = Math_default.lerp(start.alpha, end.alpha, t);
-  return result;
+  Cartesian4.multiplyByScalar(end, t, lerpScratch2);
+  result = Cartesian4.multiplyByScalar(start, 1 - t, result);
+  return Cartesian4.add(lerpScratch2, result, result);
 };
-Color.multiplyByScalar = function(color, scalar, result) {
-  Check_default.typeOf.object("color", color);
-  Check_default.typeOf.number("scalar", scalar);
+var mostOrthogonalAxisScratch2 = new Cartesian4();
+Cartesian4.mostOrthogonalAxis = function(cartesian, result) {
+  Check_default.typeOf.object("cartesian", cartesian);
   Check_default.typeOf.object("result", result);
-  result.red = color.red * scalar;
-  result.green = color.green * scalar;
-  result.blue = color.blue * scalar;
-  result.alpha = color.alpha * scalar;
-  return result;
-};
-Color.divideByScalar = function(color, scalar, result) {
-  Check_default.typeOf.object("color", color);
-  Check_default.typeOf.number("scalar", scalar);
-  Check_default.typeOf.object("result", result);
-  result.red = color.red / scalar;
-  result.green = color.green / scalar;
-  result.blue = color.blue / scalar;
-  result.alpha = color.alpha / scalar;
-  return result;
-};
-Color.ALICEBLUE = Object.freeze(Color.fromCssColorString("#F0F8FF"));
-Color.ANTIQUEWHITE = Object.freeze(Color.fromCssColorString("#FAEBD7"));
-Color.AQUA = Object.freeze(Color.fromCssColorString("#00FFFF"));
-Color.AQUAMARINE = Object.freeze(Color.fromCssColorString("#7FFFD4"));
-Color.AZURE = Object.freeze(Color.fromCssColorString("#F0FFFF"));
-Color.BEIGE = Object.freeze(Color.fromCssColorString("#F5F5DC"));
-Color.BISQUE = Object.freeze(Color.fromCssColorString("#FFE4C4"));
-Color.BLACK = Object.freeze(Color.fromCssColorString("#000000"));
-Color.BLANCHEDALMOND = Object.freeze(Color.fromCssColorString("#FFEBCD"));
-Color.BLUE = Object.freeze(Color.fromCssColorString("#0000FF"));
-Color.BLUEVIOLET = Object.freeze(Color.fromCssColorString("#8A2BE2"));
-Color.BROWN = Object.freeze(Color.fromCssColorString("#A52A2A"));
-Color.BURLYWOOD = Object.freeze(Color.fromCssColorString("#DEB887"));
-Color.CADETBLUE = Object.freeze(Color.fromCssColorString("#5F9EA0"));
-Color.CHARTREUSE = Object.freeze(Color.fromCssColorString("#7FFF00"));
-Color.CHOCOLATE = Object.freeze(Color.fromCssColorString("#D2691E"));
-Color.CORAL = Object.freeze(Color.fromCssColorString("#FF7F50"));
-Color.CORNFLOWERBLUE = Object.freeze(Color.fromCssColorString("#6495ED"));
-Color.CORNSILK = Object.freeze(Color.fromCssColorString("#FFF8DC"));
-Color.CRIMSON = Object.freeze(Color.fromCssColorString("#DC143C"));
-Color.CYAN = Object.freeze(Color.fromCssColorString("#00FFFF"));
-Color.DARKBLUE = Object.freeze(Color.fromCssColorString("#00008B"));
-Color.DARKCYAN = Object.freeze(Color.fromCssColorString("#008B8B"));
-Color.DARKGOLDENROD = Object.freeze(Color.fromCssColorString("#B8860B"));
-Color.DARKGRAY = Object.freeze(Color.fromCssColorString("#A9A9A9"));
-Color.DARKGREEN = Object.freeze(Color.fromCssColorString("#006400"));
-Color.DARKGREY = Color.DARKGRAY;
-Color.DARKKHAKI = Object.freeze(Color.fromCssColorString("#BDB76B"));
-Color.DARKMAGENTA = Object.freeze(Color.fromCssColorString("#8B008B"));
-Color.DARKOLIVEGREEN = Object.freeze(Color.fromCssColorString("#556B2F"));
-Color.DARKORANGE = Object.freeze(Color.fromCssColorString("#FF8C00"));
-Color.DARKORCHID = Object.freeze(Color.fromCssColorString("#9932CC"));
-Color.DARKRED = Object.freeze(Color.fromCssColorString("#8B0000"));
-Color.DARKSALMON = Object.freeze(Color.fromCssColorString("#E9967A"));
-Color.DARKSEAGREEN = Object.freeze(Color.fromCssColorString("#8FBC8F"));
-Color.DARKSLATEBLUE = Object.freeze(Color.fromCssColorString("#483D8B"));
-Color.DARKSLATEGRAY = Object.freeze(Color.fromCssColorString("#2F4F4F"));
-Color.DARKSLATEGREY = Color.DARKSLATEGRAY;
-Color.DARKTURQUOISE = Object.freeze(Color.fromCssColorString("#00CED1"));
-Color.DARKVIOLET = Object.freeze(Color.fromCssColorString("#9400D3"));
-Color.DEEPPINK = Object.freeze(Color.fromCssColorString("#FF1493"));
-Color.DEEPSKYBLUE = Object.freeze(Color.fromCssColorString("#00BFFF"));
-Color.DIMGRAY = Object.freeze(Color.fromCssColorString("#696969"));
-Color.DIMGREY = Color.DIMGRAY;
-Color.DODGERBLUE = Object.freeze(Color.fromCssColorString("#1E90FF"));
-Color.FIREBRICK = Object.freeze(Color.fromCssColorString("#B22222"));
-Color.FLORALWHITE = Object.freeze(Color.fromCssColorString("#FFFAF0"));
-Color.FORESTGREEN = Object.freeze(Color.fromCssColorString("#228B22"));
-Color.FUCHSIA = Object.freeze(Color.fromCssColorString("#FF00FF"));
-Color.GAINSBORO = Object.freeze(Color.fromCssColorString("#DCDCDC"));
-Color.GHOSTWHITE = Object.freeze(Color.fromCssColorString("#F8F8FF"));
-Color.GOLD = Object.freeze(Color.fromCssColorString("#FFD700"));
-Color.GOLDENROD = Object.freeze(Color.fromCssColorString("#DAA520"));
-Color.GRAY = Object.freeze(Color.fromCssColorString("#808080"));
-Color.GREEN = Object.freeze(Color.fromCssColorString("#008000"));
-Color.GREENYELLOW = Object.freeze(Color.fromCssColorString("#ADFF2F"));
-Color.GREY = Color.GRAY;
-Color.HONEYDEW = Object.freeze(Color.fromCssColorString("#F0FFF0"));
-Color.HOTPINK = Object.freeze(Color.fromCssColorString("#FF69B4"));
-Color.INDIANRED = Object.freeze(Color.fromCssColorString("#CD5C5C"));
-Color.INDIGO = Object.freeze(Color.fromCssColorString("#4B0082"));
-Color.IVORY = Object.freeze(Color.fromCssColorString("#FFFFF0"));
-Color.KHAKI = Object.freeze(Color.fromCssColorString("#F0E68C"));
-Color.LAVENDER = Object.freeze(Color.fromCssColorString("#E6E6FA"));
-Color.LAVENDAR_BLUSH = Object.freeze(Color.fromCssColorString("#FFF0F5"));
-Color.LAWNGREEN = Object.freeze(Color.fromCssColorString("#7CFC00"));
-Color.LEMONCHIFFON = Object.freeze(Color.fromCssColorString("#FFFACD"));
-Color.LIGHTBLUE = Object.freeze(Color.fromCssColorString("#ADD8E6"));
-Color.LIGHTCORAL = Object.freeze(Color.fromCssColorString("#F08080"));
-Color.LIGHTCYAN = Object.freeze(Color.fromCssColorString("#E0FFFF"));
-Color.LIGHTGOLDENRODYELLOW = Object.freeze(Color.fromCssColorString("#FAFAD2"));
-Color.LIGHTGRAY = Object.freeze(Color.fromCssColorString("#D3D3D3"));
-Color.LIGHTGREEN = Object.freeze(Color.fromCssColorString("#90EE90"));
-Color.LIGHTGREY = Color.LIGHTGRAY;
-Color.LIGHTPINK = Object.freeze(Color.fromCssColorString("#FFB6C1"));
-Color.LIGHTSEAGREEN = Object.freeze(Color.fromCssColorString("#20B2AA"));
-Color.LIGHTSKYBLUE = Object.freeze(Color.fromCssColorString("#87CEFA"));
-Color.LIGHTSLATEGRAY = Object.freeze(Color.fromCssColorString("#778899"));
-Color.LIGHTSLATEGREY = Color.LIGHTSLATEGRAY;
-Color.LIGHTSTEELBLUE = Object.freeze(Color.fromCssColorString("#B0C4DE"));
-Color.LIGHTYELLOW = Object.freeze(Color.fromCssColorString("#FFFFE0"));
-Color.LIME = Object.freeze(Color.fromCssColorString("#00FF00"));
-Color.LIMEGREEN = Object.freeze(Color.fromCssColorString("#32CD32"));
-Color.LINEN = Object.freeze(Color.fromCssColorString("#FAF0E6"));
-Color.MAGENTA = Object.freeze(Color.fromCssColorString("#FF00FF"));
-Color.MAROON = Object.freeze(Color.fromCssColorString("#800000"));
-Color.MEDIUMAQUAMARINE = Object.freeze(Color.fromCssColorString("#66CDAA"));
-Color.MEDIUMBLUE = Object.freeze(Color.fromCssColorString("#0000CD"));
-Color.MEDIUMORCHID = Object.freeze(Color.fromCssColorString("#BA55D3"));
-Color.MEDIUMPURPLE = Object.freeze(Color.fromCssColorString("#9370DB"));
-Color.MEDIUMSEAGREEN = Object.freeze(Color.fromCssColorString("#3CB371"));
-Color.MEDIUMSLATEBLUE = Object.freeze(Color.fromCssColorString("#7B68EE"));
-Color.MEDIUMSPRINGGREEN = Object.freeze(Color.fromCssColorString("#00FA9A"));
-Color.MEDIUMTURQUOISE = Object.freeze(Color.fromCssColorString("#48D1CC"));
-Color.MEDIUMVIOLETRED = Object.freeze(Color.fromCssColorString("#C71585"));
-Color.MIDNIGHTBLUE = Object.freeze(Color.fromCssColorString("#191970"));
-Color.MINTCREAM = Object.freeze(Color.fromCssColorString("#F5FFFA"));
-Color.MISTYROSE = Object.freeze(Color.fromCssColorString("#FFE4E1"));
-Color.MOCCASIN = Object.freeze(Color.fromCssColorString("#FFE4B5"));
-Color.NAVAJOWHITE = Object.freeze(Color.fromCssColorString("#FFDEAD"));
-Color.NAVY = Object.freeze(Color.fromCssColorString("#000080"));
-Color.OLDLACE = Object.freeze(Color.fromCssColorString("#FDF5E6"));
-Color.OLIVE = Object.freeze(Color.fromCssColorString("#808000"));
-Color.OLIVEDRAB = Object.freeze(Color.fromCssColorString("#6B8E23"));
-Color.ORANGE = Object.freeze(Color.fromCssColorString("#FFA500"));
-Color.ORANGERED = Object.freeze(Color.fromCssColorString("#FF4500"));
-Color.ORCHID = Object.freeze(Color.fromCssColorString("#DA70D6"));
-Color.PALEGOLDENROD = Object.freeze(Color.fromCssColorString("#EEE8AA"));
-Color.PALEGREEN = Object.freeze(Color.fromCssColorString("#98FB98"));
-Color.PALETURQUOISE = Object.freeze(Color.fromCssColorString("#AFEEEE"));
-Color.PALEVIOLETRED = Object.freeze(Color.fromCssColorString("#DB7093"));
-Color.PAPAYAWHIP = Object.freeze(Color.fromCssColorString("#FFEFD5"));
-Color.PEACHPUFF = Object.freeze(Color.fromCssColorString("#FFDAB9"));
-Color.PERU = Object.freeze(Color.fromCssColorString("#CD853F"));
-Color.PINK = Object.freeze(Color.fromCssColorString("#FFC0CB"));
-Color.PLUM = Object.freeze(Color.fromCssColorString("#DDA0DD"));
-Color.POWDERBLUE = Object.freeze(Color.fromCssColorString("#B0E0E6"));
-Color.PURPLE = Object.freeze(Color.fromCssColorString("#800080"));
-Color.RED = Object.freeze(Color.fromCssColorString("#FF0000"));
-Color.ROSYBROWN = Object.freeze(Color.fromCssColorString("#BC8F8F"));
-Color.ROYALBLUE = Object.freeze(Color.fromCssColorString("#4169E1"));
-Color.SADDLEBROWN = Object.freeze(Color.fromCssColorString("#8B4513"));
-Color.SALMON = Object.freeze(Color.fromCssColorString("#FA8072"));
-Color.SANDYBROWN = Object.freeze(Color.fromCssColorString("#F4A460"));
-Color.SEAGREEN = Object.freeze(Color.fromCssColorString("#2E8B57"));
-Color.SEASHELL = Object.freeze(Color.fromCssColorString("#FFF5EE"));
-Color.SIENNA = Object.freeze(Color.fromCssColorString("#A0522D"));
-Color.SILVER = Object.freeze(Color.fromCssColorString("#C0C0C0"));
-Color.SKYBLUE = Object.freeze(Color.fromCssColorString("#87CEEB"));
-Color.SLATEBLUE = Object.freeze(Color.fromCssColorString("#6A5ACD"));
-Color.SLATEGRAY = Object.freeze(Color.fromCssColorString("#708090"));
-Color.SLATEGREY = Color.SLATEGRAY;
-Color.SNOW = Object.freeze(Color.fromCssColorString("#FFFAFA"));
-Color.SPRINGGREEN = Object.freeze(Color.fromCssColorString("#00FF7F"));
-Color.STEELBLUE = Object.freeze(Color.fromCssColorString("#4682B4"));
-Color.TAN = Object.freeze(Color.fromCssColorString("#D2B48C"));
-Color.TEAL = Object.freeze(Color.fromCssColorString("#008080"));
-Color.THISTLE = Object.freeze(Color.fromCssColorString("#D8BFD8"));
-Color.TOMATO = Object.freeze(Color.fromCssColorString("#FF6347"));
-Color.TURQUOISE = Object.freeze(Color.fromCssColorString("#40E0D0"));
-Color.VIOLET = Object.freeze(Color.fromCssColorString("#EE82EE"));
-Color.WHEAT = Object.freeze(Color.fromCssColorString("#F5DEB3"));
-Color.WHITE = Object.freeze(Color.fromCssColorString("#FFFFFF"));
-Color.WHITESMOKE = Object.freeze(Color.fromCssColorString("#F5F5F5"));
-Color.YELLOW = Object.freeze(Color.fromCssColorString("#FFFF00"));
-Color.YELLOWGREEN = Object.freeze(Color.fromCssColorString("#9ACD32"));
-Color.TRANSPARENT = Object.freeze(new Color(0, 0, 0, 0));
-var Color_default = Color;
-
-// packages/engine/Source/Core/destroyObject.js
-function returnTrue() {
-  return true;
-}
-function destroyObject(object, message) {
-  message = defaultValue_default(
-    message,
-    "This object was destroyed, i.e., destroy() was called."
-  );
-  function throwOnDestroyed() {
-    throw new DeveloperError_default(message);
-  }
-  for (const key in object) {
-    if (typeof object[key] === "function") {
-      object[key] = throwOnDestroyed;
+  const f = Cartesian4.normalize(cartesian, mostOrthogonalAxisScratch2);
+  Cartesian4.abs(f, f);
+  if (f.x <= f.y) {
+    if (f.x <= f.z) {
+      if (f.x <= f.w) {
+        result = Cartesian4.clone(Cartesian4.UNIT_X, result);
+      } else {
+        result = Cartesian4.clone(Cartesian4.UNIT_W, result);
+      }
+    } else if (f.z <= f.w) {
+      result = Cartesian4.clone(Cartesian4.UNIT_Z, result);
+    } else {
+      result = Cartesian4.clone(Cartesian4.UNIT_W, result);
     }
+  } else if (f.y <= f.z) {
+    if (f.y <= f.w) {
+      result = Cartesian4.clone(Cartesian4.UNIT_Y, result);
+    } else {
+      result = Cartesian4.clone(Cartesian4.UNIT_W, result);
+    }
+  } else if (f.z <= f.w) {
+    result = Cartesian4.clone(Cartesian4.UNIT_Z, result);
+  } else {
+    result = Cartesian4.clone(Cartesian4.UNIT_W, result);
   }
-  object.isDestroyed = returnTrue;
-  return void 0;
-}
-var destroyObject_default = destroyObject;
+  return result;
+};
+Cartesian4.equals = function(left, right) {
+  return left === right || defined_default(left) && defined_default(right) && left.x === right.x && left.y === right.y && left.z === right.z && left.w === right.w;
+};
+Cartesian4.equalsArray = function(cartesian, array, offset) {
+  return cartesian.x === array[offset] && cartesian.y === array[offset + 1] && cartesian.z === array[offset + 2] && cartesian.w === array[offset + 3];
+};
+Cartesian4.equalsEpsilon = function(left, right, relativeEpsilon, absoluteEpsilon) {
+  return left === right || defined_default(left) && defined_default(right) && Math_default.equalsEpsilon(
+    left.x,
+    right.x,
+    relativeEpsilon,
+    absoluteEpsilon
+  ) && Math_default.equalsEpsilon(
+    left.y,
+    right.y,
+    relativeEpsilon,
+    absoluteEpsilon
+  ) && Math_default.equalsEpsilon(
+    left.z,
+    right.z,
+    relativeEpsilon,
+    absoluteEpsilon
+  ) && Math_default.equalsEpsilon(
+    left.w,
+    right.w,
+    relativeEpsilon,
+    absoluteEpsilon
+  );
+};
+Cartesian4.ZERO = Object.freeze(new Cartesian4(0, 0, 0, 0));
+Cartesian4.ONE = Object.freeze(new Cartesian4(1, 1, 1, 1));
+Cartesian4.UNIT_X = Object.freeze(new Cartesian4(1, 0, 0, 0));
+Cartesian4.UNIT_Y = Object.freeze(new Cartesian4(0, 1, 0, 0));
+Cartesian4.UNIT_Z = Object.freeze(new Cartesian4(0, 0, 1, 0));
+Cartesian4.UNIT_W = Object.freeze(new Cartesian4(0, 0, 0, 1));
+Cartesian4.prototype.clone = function(result) {
+  return Cartesian4.clone(this, result);
+};
+Cartesian4.prototype.equals = function(right) {
+  return Cartesian4.equals(this, right);
+};
+Cartesian4.prototype.equalsEpsilon = function(right, relativeEpsilon, absoluteEpsilon) {
+  return Cartesian4.equalsEpsilon(
+    this,
+    right,
+    relativeEpsilon,
+    absoluteEpsilon
+  );
+};
+Cartesian4.prototype.toString = function() {
+  return `(${this.x}, ${this.y}, ${this.z}, ${this.w})`;
+};
+var scratchF32Array = new Float32Array(1);
+var scratchU8Array = new Uint8Array(scratchF32Array.buffer);
+var testU32 = new Uint32Array([287454020]);
+var testU8 = new Uint8Array(testU32.buffer);
+var littleEndian = testU8[0] === 68;
+Cartesian4.packFloat = function(value, result) {
+  Check_default.typeOf.number("value", value);
+  if (!defined_default(result)) {
+    result = new Cartesian4();
+  }
+  scratchF32Array[0] = value;
+  if (littleEndian) {
+    result.x = scratchU8Array[0];
+    result.y = scratchU8Array[1];
+    result.z = scratchU8Array[2];
+    result.w = scratchU8Array[3];
+  } else {
+    result.x = scratchU8Array[3];
+    result.y = scratchU8Array[2];
+    result.z = scratchU8Array[1];
+    result.w = scratchU8Array[0];
+  }
+  return result;
+};
+Cartesian4.unpackFloat = function(packedFloat) {
+  Check_default.typeOf.object("packedFloat", packedFloat);
+  if (littleEndian) {
+    scratchU8Array[0] = packedFloat.x;
+    scratchU8Array[1] = packedFloat.y;
+    scratchU8Array[2] = packedFloat.z;
+    scratchU8Array[3] = packedFloat.w;
+  } else {
+    scratchU8Array[0] = packedFloat.w;
+    scratchU8Array[1] = packedFloat.z;
+    scratchU8Array[2] = packedFloat.y;
+    scratchU8Array[3] = packedFloat.x;
+  }
+  return scratchF32Array[0];
+};
+var Cartesian4_default = Cartesian4;
 
 // packages/engine/Source/Core/Matrix3.js
 function Matrix3(column0Row0, column1Row0, column2Row0, column0Row1, column1Row1, column2Row1, column0Row2, column1Row2, column2Row2) {
@@ -7009,400 +4848,6 @@ Matrix3.prototype.toString = function() {
 (${this[2]}, ${this[5]}, ${this[8]})`;
 };
 var Matrix3_default = Matrix3;
-
-// packages/engine/Source/Core/Cartesian4.js
-function Cartesian4(x, y, z, w) {
-  this.x = defaultValue_default(x, 0);
-  this.y = defaultValue_default(y, 0);
-  this.z = defaultValue_default(z, 0);
-  this.w = defaultValue_default(w, 0);
-}
-Cartesian4.fromElements = function(x, y, z, w, result) {
-  if (!defined_default(result)) {
-    return new Cartesian4(x, y, z, w);
-  }
-  result.x = x;
-  result.y = y;
-  result.z = z;
-  result.w = w;
-  return result;
-};
-Cartesian4.fromColor = function(color, result) {
-  Check_default.typeOf.object("color", color);
-  if (!defined_default(result)) {
-    return new Cartesian4(color.red, color.green, color.blue, color.alpha);
-  }
-  result.x = color.red;
-  result.y = color.green;
-  result.z = color.blue;
-  result.w = color.alpha;
-  return result;
-};
-Cartesian4.clone = function(cartesian, result) {
-  if (!defined_default(cartesian)) {
-    return void 0;
-  }
-  if (!defined_default(result)) {
-    return new Cartesian4(cartesian.x, cartesian.y, cartesian.z, cartesian.w);
-  }
-  result.x = cartesian.x;
-  result.y = cartesian.y;
-  result.z = cartesian.z;
-  result.w = cartesian.w;
-  return result;
-};
-Cartesian4.packedLength = 4;
-Cartesian4.pack = function(value, array, startingIndex) {
-  Check_default.typeOf.object("value", value);
-  Check_default.defined("array", array);
-  startingIndex = defaultValue_default(startingIndex, 0);
-  array[startingIndex++] = value.x;
-  array[startingIndex++] = value.y;
-  array[startingIndex++] = value.z;
-  array[startingIndex] = value.w;
-  return array;
-};
-Cartesian4.unpack = function(array, startingIndex, result) {
-  Check_default.defined("array", array);
-  startingIndex = defaultValue_default(startingIndex, 0);
-  if (!defined_default(result)) {
-    result = new Cartesian4();
-  }
-  result.x = array[startingIndex++];
-  result.y = array[startingIndex++];
-  result.z = array[startingIndex++];
-  result.w = array[startingIndex];
-  return result;
-};
-Cartesian4.packArray = function(array, result) {
-  Check_default.defined("array", array);
-  const length = array.length;
-  const resultLength = length * 4;
-  if (!defined_default(result)) {
-    result = new Array(resultLength);
-  } else if (!Array.isArray(result) && result.length !== resultLength) {
-    throw new DeveloperError_default(
-      "If result is a typed array, it must have exactly array.length * 4 elements"
-    );
-  } else if (result.length !== resultLength) {
-    result.length = resultLength;
-  }
-  for (let i = 0; i < length; ++i) {
-    Cartesian4.pack(array[i], result, i * 4);
-  }
-  return result;
-};
-Cartesian4.unpackArray = function(array, result) {
-  Check_default.defined("array", array);
-  Check_default.typeOf.number.greaterThanOrEquals("array.length", array.length, 4);
-  if (array.length % 4 !== 0) {
-    throw new DeveloperError_default("array length must be a multiple of 4.");
-  }
-  const length = array.length;
-  if (!defined_default(result)) {
-    result = new Array(length / 4);
-  } else {
-    result.length = length / 4;
-  }
-  for (let i = 0; i < length; i += 4) {
-    const index = i / 4;
-    result[index] = Cartesian4.unpack(array, i, result[index]);
-  }
-  return result;
-};
-Cartesian4.fromArray = Cartesian4.unpack;
-Cartesian4.maximumComponent = function(cartesian) {
-  Check_default.typeOf.object("cartesian", cartesian);
-  return Math.max(cartesian.x, cartesian.y, cartesian.z, cartesian.w);
-};
-Cartesian4.minimumComponent = function(cartesian) {
-  Check_default.typeOf.object("cartesian", cartesian);
-  return Math.min(cartesian.x, cartesian.y, cartesian.z, cartesian.w);
-};
-Cartesian4.minimumByComponent = function(first, second, result) {
-  Check_default.typeOf.object("first", first);
-  Check_default.typeOf.object("second", second);
-  Check_default.typeOf.object("result", result);
-  result.x = Math.min(first.x, second.x);
-  result.y = Math.min(first.y, second.y);
-  result.z = Math.min(first.z, second.z);
-  result.w = Math.min(first.w, second.w);
-  return result;
-};
-Cartesian4.maximumByComponent = function(first, second, result) {
-  Check_default.typeOf.object("first", first);
-  Check_default.typeOf.object("second", second);
-  Check_default.typeOf.object("result", result);
-  result.x = Math.max(first.x, second.x);
-  result.y = Math.max(first.y, second.y);
-  result.z = Math.max(first.z, second.z);
-  result.w = Math.max(first.w, second.w);
-  return result;
-};
-Cartesian4.clamp = function(value, min, max, result) {
-  Check_default.typeOf.object("value", value);
-  Check_default.typeOf.object("min", min);
-  Check_default.typeOf.object("max", max);
-  Check_default.typeOf.object("result", result);
-  const x = Math_default.clamp(value.x, min.x, max.x);
-  const y = Math_default.clamp(value.y, min.y, max.y);
-  const z = Math_default.clamp(value.z, min.z, max.z);
-  const w = Math_default.clamp(value.w, min.w, max.w);
-  result.x = x;
-  result.y = y;
-  result.z = z;
-  result.w = w;
-  return result;
-};
-Cartesian4.magnitudeSquared = function(cartesian) {
-  Check_default.typeOf.object("cartesian", cartesian);
-  return cartesian.x * cartesian.x + cartesian.y * cartesian.y + cartesian.z * cartesian.z + cartesian.w * cartesian.w;
-};
-Cartesian4.magnitude = function(cartesian) {
-  return Math.sqrt(Cartesian4.magnitudeSquared(cartesian));
-};
-var distanceScratch3 = new Cartesian4();
-Cartesian4.distance = function(left, right) {
-  Check_default.typeOf.object("left", left);
-  Check_default.typeOf.object("right", right);
-  Cartesian4.subtract(left, right, distanceScratch3);
-  return Cartesian4.magnitude(distanceScratch3);
-};
-Cartesian4.distanceSquared = function(left, right) {
-  Check_default.typeOf.object("left", left);
-  Check_default.typeOf.object("right", right);
-  Cartesian4.subtract(left, right, distanceScratch3);
-  return Cartesian4.magnitudeSquared(distanceScratch3);
-};
-Cartesian4.normalize = function(cartesian, result) {
-  Check_default.typeOf.object("cartesian", cartesian);
-  Check_default.typeOf.object("result", result);
-  const magnitude = Cartesian4.magnitude(cartesian);
-  result.x = cartesian.x / magnitude;
-  result.y = cartesian.y / magnitude;
-  result.z = cartesian.z / magnitude;
-  result.w = cartesian.w / magnitude;
-  if (isNaN(result.x) || isNaN(result.y) || isNaN(result.z) || isNaN(result.w)) {
-    throw new DeveloperError_default("normalized result is not a number");
-  }
-  return result;
-};
-Cartesian4.dot = function(left, right) {
-  Check_default.typeOf.object("left", left);
-  Check_default.typeOf.object("right", right);
-  return left.x * right.x + left.y * right.y + left.z * right.z + left.w * right.w;
-};
-Cartesian4.multiplyComponents = function(left, right, result) {
-  Check_default.typeOf.object("left", left);
-  Check_default.typeOf.object("right", right);
-  Check_default.typeOf.object("result", result);
-  result.x = left.x * right.x;
-  result.y = left.y * right.y;
-  result.z = left.z * right.z;
-  result.w = left.w * right.w;
-  return result;
-};
-Cartesian4.divideComponents = function(left, right, result) {
-  Check_default.typeOf.object("left", left);
-  Check_default.typeOf.object("right", right);
-  Check_default.typeOf.object("result", result);
-  result.x = left.x / right.x;
-  result.y = left.y / right.y;
-  result.z = left.z / right.z;
-  result.w = left.w / right.w;
-  return result;
-};
-Cartesian4.add = function(left, right, result) {
-  Check_default.typeOf.object("left", left);
-  Check_default.typeOf.object("right", right);
-  Check_default.typeOf.object("result", result);
-  result.x = left.x + right.x;
-  result.y = left.y + right.y;
-  result.z = left.z + right.z;
-  result.w = left.w + right.w;
-  return result;
-};
-Cartesian4.subtract = function(left, right, result) {
-  Check_default.typeOf.object("left", left);
-  Check_default.typeOf.object("right", right);
-  Check_default.typeOf.object("result", result);
-  result.x = left.x - right.x;
-  result.y = left.y - right.y;
-  result.z = left.z - right.z;
-  result.w = left.w - right.w;
-  return result;
-};
-Cartesian4.multiplyByScalar = function(cartesian, scalar, result) {
-  Check_default.typeOf.object("cartesian", cartesian);
-  Check_default.typeOf.number("scalar", scalar);
-  Check_default.typeOf.object("result", result);
-  result.x = cartesian.x * scalar;
-  result.y = cartesian.y * scalar;
-  result.z = cartesian.z * scalar;
-  result.w = cartesian.w * scalar;
-  return result;
-};
-Cartesian4.divideByScalar = function(cartesian, scalar, result) {
-  Check_default.typeOf.object("cartesian", cartesian);
-  Check_default.typeOf.number("scalar", scalar);
-  Check_default.typeOf.object("result", result);
-  result.x = cartesian.x / scalar;
-  result.y = cartesian.y / scalar;
-  result.z = cartesian.z / scalar;
-  result.w = cartesian.w / scalar;
-  return result;
-};
-Cartesian4.negate = function(cartesian, result) {
-  Check_default.typeOf.object("cartesian", cartesian);
-  Check_default.typeOf.object("result", result);
-  result.x = -cartesian.x;
-  result.y = -cartesian.y;
-  result.z = -cartesian.z;
-  result.w = -cartesian.w;
-  return result;
-};
-Cartesian4.abs = function(cartesian, result) {
-  Check_default.typeOf.object("cartesian", cartesian);
-  Check_default.typeOf.object("result", result);
-  result.x = Math.abs(cartesian.x);
-  result.y = Math.abs(cartesian.y);
-  result.z = Math.abs(cartesian.z);
-  result.w = Math.abs(cartesian.w);
-  return result;
-};
-var lerpScratch3 = new Cartesian4();
-Cartesian4.lerp = function(start, end, t, result) {
-  Check_default.typeOf.object("start", start);
-  Check_default.typeOf.object("end", end);
-  Check_default.typeOf.number("t", t);
-  Check_default.typeOf.object("result", result);
-  Cartesian4.multiplyByScalar(end, t, lerpScratch3);
-  result = Cartesian4.multiplyByScalar(start, 1 - t, result);
-  return Cartesian4.add(lerpScratch3, result, result);
-};
-var mostOrthogonalAxisScratch3 = new Cartesian4();
-Cartesian4.mostOrthogonalAxis = function(cartesian, result) {
-  Check_default.typeOf.object("cartesian", cartesian);
-  Check_default.typeOf.object("result", result);
-  const f = Cartesian4.normalize(cartesian, mostOrthogonalAxisScratch3);
-  Cartesian4.abs(f, f);
-  if (f.x <= f.y) {
-    if (f.x <= f.z) {
-      if (f.x <= f.w) {
-        result = Cartesian4.clone(Cartesian4.UNIT_X, result);
-      } else {
-        result = Cartesian4.clone(Cartesian4.UNIT_W, result);
-      }
-    } else if (f.z <= f.w) {
-      result = Cartesian4.clone(Cartesian4.UNIT_Z, result);
-    } else {
-      result = Cartesian4.clone(Cartesian4.UNIT_W, result);
-    }
-  } else if (f.y <= f.z) {
-    if (f.y <= f.w) {
-      result = Cartesian4.clone(Cartesian4.UNIT_Y, result);
-    } else {
-      result = Cartesian4.clone(Cartesian4.UNIT_W, result);
-    }
-  } else if (f.z <= f.w) {
-    result = Cartesian4.clone(Cartesian4.UNIT_Z, result);
-  } else {
-    result = Cartesian4.clone(Cartesian4.UNIT_W, result);
-  }
-  return result;
-};
-Cartesian4.equals = function(left, right) {
-  return left === right || defined_default(left) && defined_default(right) && left.x === right.x && left.y === right.y && left.z === right.z && left.w === right.w;
-};
-Cartesian4.equalsArray = function(cartesian, array, offset) {
-  return cartesian.x === array[offset] && cartesian.y === array[offset + 1] && cartesian.z === array[offset + 2] && cartesian.w === array[offset + 3];
-};
-Cartesian4.equalsEpsilon = function(left, right, relativeEpsilon, absoluteEpsilon) {
-  return left === right || defined_default(left) && defined_default(right) && Math_default.equalsEpsilon(
-    left.x,
-    right.x,
-    relativeEpsilon,
-    absoluteEpsilon
-  ) && Math_default.equalsEpsilon(
-    left.y,
-    right.y,
-    relativeEpsilon,
-    absoluteEpsilon
-  ) && Math_default.equalsEpsilon(
-    left.z,
-    right.z,
-    relativeEpsilon,
-    absoluteEpsilon
-  ) && Math_default.equalsEpsilon(
-    left.w,
-    right.w,
-    relativeEpsilon,
-    absoluteEpsilon
-  );
-};
-Cartesian4.ZERO = Object.freeze(new Cartesian4(0, 0, 0, 0));
-Cartesian4.ONE = Object.freeze(new Cartesian4(1, 1, 1, 1));
-Cartesian4.UNIT_X = Object.freeze(new Cartesian4(1, 0, 0, 0));
-Cartesian4.UNIT_Y = Object.freeze(new Cartesian4(0, 1, 0, 0));
-Cartesian4.UNIT_Z = Object.freeze(new Cartesian4(0, 0, 1, 0));
-Cartesian4.UNIT_W = Object.freeze(new Cartesian4(0, 0, 0, 1));
-Cartesian4.prototype.clone = function(result) {
-  return Cartesian4.clone(this, result);
-};
-Cartesian4.prototype.equals = function(right) {
-  return Cartesian4.equals(this, right);
-};
-Cartesian4.prototype.equalsEpsilon = function(right, relativeEpsilon, absoluteEpsilon) {
-  return Cartesian4.equalsEpsilon(
-    this,
-    right,
-    relativeEpsilon,
-    absoluteEpsilon
-  );
-};
-Cartesian4.prototype.toString = function() {
-  return `(${this.x}, ${this.y}, ${this.z}, ${this.w})`;
-};
-var scratchF32Array = new Float32Array(1);
-var scratchU8Array = new Uint8Array(scratchF32Array.buffer);
-var testU32 = new Uint32Array([287454020]);
-var testU8 = new Uint8Array(testU32.buffer);
-var littleEndian = testU8[0] === 68;
-Cartesian4.packFloat = function(value, result) {
-  Check_default.typeOf.number("value", value);
-  if (!defined_default(result)) {
-    result = new Cartesian4();
-  }
-  scratchF32Array[0] = value;
-  if (littleEndian) {
-    result.x = scratchU8Array[0];
-    result.y = scratchU8Array[1];
-    result.z = scratchU8Array[2];
-    result.w = scratchU8Array[3];
-  } else {
-    result.x = scratchU8Array[3];
-    result.y = scratchU8Array[2];
-    result.z = scratchU8Array[1];
-    result.w = scratchU8Array[0];
-  }
-  return result;
-};
-Cartesian4.unpackFloat = function(packedFloat) {
-  Check_default.typeOf.object("packedFloat", packedFloat);
-  if (littleEndian) {
-    scratchU8Array[0] = packedFloat.x;
-    scratchU8Array[1] = packedFloat.y;
-    scratchU8Array[2] = packedFloat.z;
-    scratchU8Array[3] = packedFloat.w;
-  } else {
-    scratchU8Array[0] = packedFloat.w;
-    scratchU8Array[1] = packedFloat.z;
-    scratchU8Array[2] = packedFloat.y;
-    scratchU8Array[3] = packedFloat.x;
-  }
-  return scratchF32Array[0];
-};
-var Cartesian4_default = Cartesian4;
 
 // packages/engine/Source/Core/RuntimeError.js
 function RuntimeError(message) {
@@ -9646,16 +7091,1581 @@ var WebGLConstants = {
 };
 var WebGLConstants_default = Object.freeze(WebGLConstants);
 
-// packages/engine/Source/Core/ComponentDatatype.js
-var ComponentDatatype = {
+// packages/engine/Source/Renderer/AutomaticUniforms.js
+var viewerPositionWCScratch = new Cartesian3_default();
+function AutomaticUniform(options) {
+  this._size = options.size;
+  this._datatype = options.datatype;
+  this.getValue = options.getValue;
+}
+var datatypeToGlsl = {};
+datatypeToGlsl[WebGLConstants_default.FLOAT] = "float";
+datatypeToGlsl[WebGLConstants_default.FLOAT_VEC2] = "vec2";
+datatypeToGlsl[WebGLConstants_default.FLOAT_VEC3] = "vec3";
+datatypeToGlsl[WebGLConstants_default.FLOAT_VEC4] = "vec4";
+datatypeToGlsl[WebGLConstants_default.INT] = "int";
+datatypeToGlsl[WebGLConstants_default.INT_VEC2] = "ivec2";
+datatypeToGlsl[WebGLConstants_default.INT_VEC3] = "ivec3";
+datatypeToGlsl[WebGLConstants_default.INT_VEC4] = "ivec4";
+datatypeToGlsl[WebGLConstants_default.BOOL] = "bool";
+datatypeToGlsl[WebGLConstants_default.BOOL_VEC2] = "bvec2";
+datatypeToGlsl[WebGLConstants_default.BOOL_VEC3] = "bvec3";
+datatypeToGlsl[WebGLConstants_default.BOOL_VEC4] = "bvec4";
+datatypeToGlsl[WebGLConstants_default.FLOAT_MAT2] = "mat2";
+datatypeToGlsl[WebGLConstants_default.FLOAT_MAT3] = "mat3";
+datatypeToGlsl[WebGLConstants_default.FLOAT_MAT4] = "mat4";
+datatypeToGlsl[WebGLConstants_default.SAMPLER_2D] = "sampler2D";
+datatypeToGlsl[WebGLConstants_default.SAMPLER_CUBE] = "samplerCube";
+AutomaticUniform.prototype.getDeclaration = function(name) {
+  let declaration = `uniform ${datatypeToGlsl[this._datatype]} ${name}`;
+  const size = this._size;
+  if (size === 1) {
+    declaration += ";";
+  } else {
+    declaration += `[${size.toString()}];`;
+  }
+  return declaration;
+};
+var AutomaticUniforms = {
   /**
-   * 8-bit signed byte corresponding to <code>gl.BYTE</code> and the type
-   * of an element in <code>Int8Array</code>.
+   * An automatic GLSL uniform containing the viewport's <code>x</code>, <code>y</code>, <code>width</code>,
+   * and <code>height</code> properties in an <code>vec4</code>'s <code>x</code>, <code>y</code>, <code>z</code>,
+   * and <code>w</code> components, respectively.
    *
-   * @type {number}
-   * @constant
+   * @example
+   * // GLSL declaration
+   * uniform vec4 czm_viewport;
+   *
+   * // Scale the window coordinate components to [0, 1] by dividing
+   * // by the viewport's width and height.
+   * vec2 v = gl_FragCoord.xy / czm_viewport.zw;
+   *
+   * @see Context#getViewport
    */
-  BYTE: WebGLConstants_default.BYTE,
+  czm_viewport: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_VEC4,
+    getValue: function(uniformState) {
+      return uniformState.viewportCartesian4;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 4x4 orthographic projection matrix that
+   * transforms window coordinates to clip coordinates.  Clip coordinates is the
+   * coordinate system for a vertex shader's <code>gl_Position</code> output.
+   * <br /><br />
+   * This transform is useful when a vertex shader inputs or manipulates window coordinates
+   * as done by {@link BillboardCollection}.
+   * <br /><br />
+   * Do not confuse {@link czm_viewportTransformation} with <code>czm_viewportOrthographic</code>.
+   * The former transforms from normalized device coordinates to window coordinates; the later transforms
+   * from window coordinates to clip coordinates, and is often used to assign to <code>gl_Position</code>.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat4 czm_viewportOrthographic;
+   *
+   * // Example
+   * gl_Position = czm_viewportOrthographic * vec4(windowPosition, 0.0, 1.0);
+   *
+   * @see UniformState#viewportOrthographic
+   * @see czm_viewport
+   * @see czm_viewportTransformation
+   * @see BillboardCollection
+   */
+  czm_viewportOrthographic: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT4,
+    getValue: function(uniformState) {
+      return uniformState.viewportOrthographic;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 4x4 transformation matrix that
+   * transforms normalized device coordinates to window coordinates.  The context's
+   * full viewport is used, and the depth range is assumed to be <code>near = 0</code>
+   * and <code>far = 1</code>.
+   * <br /><br />
+   * This transform is useful when there is a need to manipulate window coordinates
+   * in a vertex shader as done by {@link BillboardCollection}.  In many cases,
+   * this matrix will not be used directly; instead, {@link czm_modelToWindowCoordinates}
+   * will be used to transform directly from model to window coordinates.
+   * <br /><br />
+   * Do not confuse <code>czm_viewportTransformation</code> with {@link czm_viewportOrthographic}.
+   * The former transforms from normalized device coordinates to window coordinates; the later transforms
+   * from window coordinates to clip coordinates, and is often used to assign to <code>gl_Position</code>.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat4 czm_viewportTransformation;
+   *
+   * // Use czm_viewportTransformation as part of the
+   * // transform from model to window coordinates.
+   * vec4 q = czm_modelViewProjection * positionMC;               // model to clip coordinates
+   * q.xyz /= q.w;                                                // clip to normalized device coordinates (ndc)
+   * q.xyz = (czm_viewportTransformation * vec4(q.xyz, 1.0)).xyz; // ndc to window coordinates
+   *
+   * @see UniformState#viewportTransformation
+   * @see czm_viewport
+   * @see czm_viewportOrthographic
+   * @see czm_modelToWindowCoordinates
+   * @see BillboardCollection
+   */
+  czm_viewportTransformation: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT4,
+    getValue: function(uniformState) {
+      return uniformState.viewportTransformation;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing the depth of the scene
+   * after the globe pass and then updated after the 3D Tiles pass.
+   * The depth is packed into an RGBA texture.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform sampler2D czm_globeDepthTexture;
+   *
+   * // Get the depth at the current fragment
+   * vec2 coords = gl_FragCoord.xy / czm_viewport.zw;
+   * float depth = czm_unpackDepth(texture(czm_globeDepthTexture, coords));
+   */
+  czm_globeDepthTexture: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.SAMPLER_2D,
+    getValue: function(uniformState) {
+      return uniformState.globeDepthTexture;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 4x4 model transformation matrix that
+   * transforms model coordinates to world coordinates.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat4 czm_model;
+   *
+   * // Example
+   * vec4 worldPosition = czm_model * modelPosition;
+   *
+   * @see UniformState#model
+   * @see czm_inverseModel
+   * @see czm_modelView
+   * @see czm_modelViewProjection
+   */
+  czm_model: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT4,
+    getValue: function(uniformState) {
+      return uniformState.model;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 4x4 model transformation matrix that
+   * transforms world coordinates to model coordinates.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat4 czm_inverseModel;
+   *
+   * // Example
+   * vec4 modelPosition = czm_inverseModel * worldPosition;
+   *
+   * @see UniformState#inverseModel
+   * @see czm_model
+   * @see czm_inverseModelView
+   */
+  czm_inverseModel: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT4,
+    getValue: function(uniformState) {
+      return uniformState.inverseModel;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 4x4 view transformation matrix that
+   * transforms world coordinates to eye coordinates.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat4 czm_view;
+   *
+   * // Example
+   * vec4 eyePosition = czm_view * worldPosition;
+   *
+   * @see UniformState#view
+   * @see czm_viewRotation
+   * @see czm_modelView
+   * @see czm_viewProjection
+   * @see czm_modelViewProjection
+   * @see czm_inverseView
+   */
+  czm_view: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT4,
+    getValue: function(uniformState) {
+      return uniformState.view;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 4x4 view transformation matrix that
+   * transforms 3D world coordinates to eye coordinates.  In 3D mode, this is identical to
+   * {@link czm_view}, but in 2D and Columbus View it represents the view matrix
+   * as if the camera were at an equivalent location in 3D mode.  This is useful for lighting
+   * 2D and Columbus View in the same way that 3D is lit.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat4 czm_view3D;
+   *
+   * // Example
+   * vec4 eyePosition3D = czm_view3D * worldPosition3D;
+   *
+   * @see UniformState#view3D
+   * @see czm_view
+   */
+  czm_view3D: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT4,
+    getValue: function(uniformState) {
+      return uniformState.view3D;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 3x3 view rotation matrix that
+   * transforms vectors in world coordinates to eye coordinates.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat3 czm_viewRotation;
+   *
+   * // Example
+   * vec3 eyeVector = czm_viewRotation * worldVector;
+   *
+   * @see UniformState#viewRotation
+   * @see czm_view
+   * @see czm_inverseView
+   * @see czm_inverseViewRotation
+   */
+  czm_viewRotation: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT3,
+    getValue: function(uniformState) {
+      return uniformState.viewRotation;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 3x3 view rotation matrix that
+   * transforms vectors in 3D world coordinates to eye coordinates.  In 3D mode, this is identical to
+   * {@link czm_viewRotation}, but in 2D and Columbus View it represents the view matrix
+   * as if the camera were at an equivalent location in 3D mode.  This is useful for lighting
+   * 2D and Columbus View in the same way that 3D is lit.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat3 czm_viewRotation3D;
+   *
+   * // Example
+   * vec3 eyeVector = czm_viewRotation3D * worldVector;
+   *
+   * @see UniformState#viewRotation3D
+   * @see czm_viewRotation
+   */
+  czm_viewRotation3D: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT3,
+    getValue: function(uniformState) {
+      return uniformState.viewRotation3D;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 4x4 transformation matrix that
+   * transforms from eye coordinates to world coordinates.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat4 czm_inverseView;
+   *
+   * // Example
+   * vec4 worldPosition = czm_inverseView * eyePosition;
+   *
+   * @see UniformState#inverseView
+   * @see czm_view
+   * @see czm_inverseNormal
+   */
+  czm_inverseView: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT4,
+    getValue: function(uniformState) {
+      return uniformState.inverseView;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 4x4 transformation matrix that
+   * transforms from 3D eye coordinates to world coordinates.  In 3D mode, this is identical to
+   * {@link czm_inverseView}, but in 2D and Columbus View it represents the inverse view matrix
+   * as if the camera were at an equivalent location in 3D mode.  This is useful for lighting
+   * 2D and Columbus View in the same way that 3D is lit.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat4 czm_inverseView3D;
+   *
+   * // Example
+   * vec4 worldPosition = czm_inverseView3D * eyePosition;
+   *
+   * @see UniformState#inverseView3D
+   * @see czm_inverseView
+   */
+  czm_inverseView3D: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT4,
+    getValue: function(uniformState) {
+      return uniformState.inverseView3D;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 3x3 rotation matrix that
+   * transforms vectors from eye coordinates to world coordinates.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat3 czm_inverseViewRotation;
+   *
+   * // Example
+   * vec4 worldVector = czm_inverseViewRotation * eyeVector;
+   *
+   * @see UniformState#inverseView
+   * @see czm_view
+   * @see czm_viewRotation
+   * @see czm_inverseViewRotation
+   */
+  czm_inverseViewRotation: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT3,
+    getValue: function(uniformState) {
+      return uniformState.inverseViewRotation;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 3x3 rotation matrix that
+   * transforms vectors from 3D eye coordinates to world coordinates.  In 3D mode, this is identical to
+   * {@link czm_inverseViewRotation}, but in 2D and Columbus View it represents the inverse view matrix
+   * as if the camera were at an equivalent location in 3D mode.  This is useful for lighting
+   * 2D and Columbus View in the same way that 3D is lit.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat3 czm_inverseViewRotation3D;
+   *
+   * // Example
+   * vec4 worldVector = czm_inverseViewRotation3D * eyeVector;
+   *
+   * @see UniformState#inverseView3D
+   * @see czm_inverseViewRotation
+   */
+  czm_inverseViewRotation3D: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT3,
+    getValue: function(uniformState) {
+      return uniformState.inverseViewRotation3D;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 4x4 projection transformation matrix that
+   * transforms eye coordinates to clip coordinates.  Clip coordinates is the
+   * coordinate system for a vertex shader's <code>gl_Position</code> output.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat4 czm_projection;
+   *
+   * // Example
+   * gl_Position = czm_projection * eyePosition;
+   *
+   * @see UniformState#projection
+   * @see czm_viewProjection
+   * @see czm_modelViewProjection
+   * @see czm_infiniteProjection
+   */
+  czm_projection: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT4,
+    getValue: function(uniformState) {
+      return uniformState.projection;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 4x4 inverse projection transformation matrix that
+   * transforms from clip coordinates to eye coordinates. Clip coordinates is the
+   * coordinate system for a vertex shader's <code>gl_Position</code> output.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat4 czm_inverseProjection;
+   *
+   * // Example
+   * vec4 eyePosition = czm_inverseProjection * clipPosition;
+   *
+   * @see UniformState#inverseProjection
+   * @see czm_projection
+   */
+  czm_inverseProjection: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT4,
+    getValue: function(uniformState) {
+      return uniformState.inverseProjection;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 4x4 projection transformation matrix with the far plane at infinity,
+   * that transforms eye coordinates to clip coordinates.  Clip coordinates is the
+   * coordinate system for a vertex shader's <code>gl_Position</code> output.  An infinite far plane is used
+   * in algorithms like shadow volumes and GPU ray casting with proxy geometry to ensure that triangles
+   * are not clipped by the far plane.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat4 czm_infiniteProjection;
+   *
+   * // Example
+   * gl_Position = czm_infiniteProjection * eyePosition;
+   *
+   * @see UniformState#infiniteProjection
+   * @see czm_projection
+   * @see czm_modelViewInfiniteProjection
+   */
+  czm_infiniteProjection: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT4,
+    getValue: function(uniformState) {
+      return uniformState.infiniteProjection;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 4x4 model-view transformation matrix that
+   * transforms model coordinates to eye coordinates.
+   * <br /><br />
+   * Positions should be transformed to eye coordinates using <code>czm_modelView</code> and
+   * normals should be transformed using {@link czm_normal}.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat4 czm_modelView;
+   *
+   * // Example
+   * vec4 eyePosition = czm_modelView * modelPosition;
+   *
+   * // The above is equivalent to, but more efficient than:
+   * vec4 eyePosition = czm_view * czm_model * modelPosition;
+   *
+   * @see UniformState#modelView
+   * @see czm_model
+   * @see czm_view
+   * @see czm_modelViewProjection
+   * @see czm_normal
+   */
+  czm_modelView: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT4,
+    getValue: function(uniformState) {
+      return uniformState.modelView;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 4x4 model-view transformation matrix that
+   * transforms 3D model coordinates to eye coordinates.  In 3D mode, this is identical to
+   * {@link czm_modelView}, but in 2D and Columbus View it represents the model-view matrix
+   * as if the camera were at an equivalent location in 3D mode.  This is useful for lighting
+   * 2D and Columbus View in the same way that 3D is lit.
+   * <br /><br />
+   * Positions should be transformed to eye coordinates using <code>czm_modelView3D</code> and
+   * normals should be transformed using {@link czm_normal3D}.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat4 czm_modelView3D;
+   *
+   * // Example
+   * vec4 eyePosition = czm_modelView3D * modelPosition;
+   *
+   * // The above is equivalent to, but more efficient than:
+   * vec4 eyePosition = czm_view3D * czm_model * modelPosition;
+   *
+   * @see UniformState#modelView3D
+   * @see czm_modelView
+   */
+  czm_modelView3D: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT4,
+    getValue: function(uniformState) {
+      return uniformState.modelView3D;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 4x4 model-view transformation matrix that
+   * transforms model coordinates, relative to the eye, to eye coordinates.  This is used
+   * in conjunction with {@link czm_translateRelativeToEye}.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat4 czm_modelViewRelativeToEye;
+   *
+   * // Example
+   * attribute vec3 positionHigh;
+   * attribute vec3 positionLow;
+   *
+   * void main()
+   * {
+   *   vec4 p = czm_translateRelativeToEye(positionHigh, positionLow);
+   *   gl_Position = czm_projection * (czm_modelViewRelativeToEye * p);
+   * }
+   *
+   * @see czm_modelViewProjectionRelativeToEye
+   * @see czm_translateRelativeToEye
+   * @see EncodedCartesian3
+   */
+  czm_modelViewRelativeToEye: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT4,
+    getValue: function(uniformState) {
+      return uniformState.modelViewRelativeToEye;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 4x4 transformation matrix that
+   * transforms from eye coordinates to model coordinates.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat4 czm_inverseModelView;
+   *
+   * // Example
+   * vec4 modelPosition = czm_inverseModelView * eyePosition;
+   *
+   * @see UniformState#inverseModelView
+   * @see czm_modelView
+   */
+  czm_inverseModelView: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT4,
+    getValue: function(uniformState) {
+      return uniformState.inverseModelView;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 4x4 transformation matrix that
+   * transforms from eye coordinates to 3D model coordinates.  In 3D mode, this is identical to
+   * {@link czm_inverseModelView}, but in 2D and Columbus View it represents the inverse model-view matrix
+   * as if the camera were at an equivalent location in 3D mode.  This is useful for lighting
+   * 2D and Columbus View in the same way that 3D is lit.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat4 czm_inverseModelView3D;
+   *
+   * // Example
+   * vec4 modelPosition = czm_inverseModelView3D * eyePosition;
+   *
+   * @see UniformState#inverseModelView
+   * @see czm_inverseModelView
+   * @see czm_modelView3D
+   */
+  czm_inverseModelView3D: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT4,
+    getValue: function(uniformState) {
+      return uniformState.inverseModelView3D;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 4x4 view-projection transformation matrix that
+   * transforms world coordinates to clip coordinates.  Clip coordinates is the
+   * coordinate system for a vertex shader's <code>gl_Position</code> output.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat4 czm_viewProjection;
+   *
+   * // Example
+   * vec4 gl_Position = czm_viewProjection * czm_model * modelPosition;
+   *
+   * // The above is equivalent to, but more efficient than:
+   * gl_Position = czm_projection * czm_view * czm_model * modelPosition;
+   *
+   * @see UniformState#viewProjection
+   * @see czm_view
+   * @see czm_projection
+   * @see czm_modelViewProjection
+   * @see czm_inverseViewProjection
+   */
+  czm_viewProjection: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT4,
+    getValue: function(uniformState) {
+      return uniformState.viewProjection;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 4x4 view-projection transformation matrix that
+   * transforms clip coordinates to world coordinates.  Clip coordinates is the
+   * coordinate system for a vertex shader's <code>gl_Position</code> output.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat4 czm_inverseViewProjection;
+   *
+   * // Example
+   * vec4 worldPosition = czm_inverseViewProjection * clipPosition;
+   *
+   * @see UniformState#inverseViewProjection
+   * @see czm_viewProjection
+   */
+  czm_inverseViewProjection: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT4,
+    getValue: function(uniformState) {
+      return uniformState.inverseViewProjection;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 4x4 model-view-projection transformation matrix that
+   * transforms model coordinates to clip coordinates.  Clip coordinates is the
+   * coordinate system for a vertex shader's <code>gl_Position</code> output.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat4 czm_modelViewProjection;
+   *
+   * // Example
+   * vec4 gl_Position = czm_modelViewProjection * modelPosition;
+   *
+   * // The above is equivalent to, but more efficient than:
+   * gl_Position = czm_projection * czm_view * czm_model * modelPosition;
+   *
+   * @see UniformState#modelViewProjection
+   * @see czm_model
+   * @see czm_view
+   * @see czm_projection
+   * @see czm_modelView
+   * @see czm_viewProjection
+   * @see czm_modelViewInfiniteProjection
+   * @see czm_inverseModelViewProjection
+   */
+  czm_modelViewProjection: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT4,
+    getValue: function(uniformState) {
+      return uniformState.modelViewProjection;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 4x4 inverse model-view-projection transformation matrix that
+   * transforms clip coordinates to model coordinates.  Clip coordinates is the
+   * coordinate system for a vertex shader's <code>gl_Position</code> output.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat4 czm_inverseModelViewProjection;
+   *
+   * // Example
+   * vec4 modelPosition = czm_inverseModelViewProjection * clipPosition;
+   *
+   * @see UniformState#modelViewProjection
+   * @see czm_modelViewProjection
+   */
+  czm_inverseModelViewProjection: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT4,
+    getValue: function(uniformState) {
+      return uniformState.inverseModelViewProjection;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 4x4 model-view-projection transformation matrix that
+   * transforms model coordinates, relative to the eye, to clip coordinates.  Clip coordinates is the
+   * coordinate system for a vertex shader's <code>gl_Position</code> output.  This is used in
+   * conjunction with {@link czm_translateRelativeToEye}.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat4 czm_modelViewProjectionRelativeToEye;
+   *
+   * // Example
+   * attribute vec3 positionHigh;
+   * attribute vec3 positionLow;
+   *
+   * void main()
+   * {
+   *   vec4 p = czm_translateRelativeToEye(positionHigh, positionLow);
+   *   gl_Position = czm_modelViewProjectionRelativeToEye * p;
+   * }
+   *
+   * @see czm_modelViewRelativeToEye
+   * @see czm_translateRelativeToEye
+   * @see EncodedCartesian3
+   */
+  czm_modelViewProjectionRelativeToEye: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT4,
+    getValue: function(uniformState) {
+      return uniformState.modelViewProjectionRelativeToEye;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 4x4 model-view-projection transformation matrix that
+   * transforms model coordinates to clip coordinates.  Clip coordinates is the
+   * coordinate system for a vertex shader's <code>gl_Position</code> output.  The projection matrix places
+   * the far plane at infinity.  This is useful in algorithms like shadow volumes and GPU ray casting with
+   * proxy geometry to ensure that triangles are not clipped by the far plane.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat4 czm_modelViewInfiniteProjection;
+   *
+   * // Example
+   * vec4 gl_Position = czm_modelViewInfiniteProjection * modelPosition;
+   *
+   * // The above is equivalent to, but more efficient than:
+   * gl_Position = czm_infiniteProjection * czm_view * czm_model * modelPosition;
+   *
+   * @see UniformState#modelViewInfiniteProjection
+   * @see czm_model
+   * @see czm_view
+   * @see czm_infiniteProjection
+   * @see czm_modelViewProjection
+   */
+  czm_modelViewInfiniteProjection: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT4,
+    getValue: function(uniformState) {
+      return uniformState.modelViewInfiniteProjection;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform that indicates if the current camera is orthographic in 3D.
+   *
+   * @see UniformState#orthographicIn3D
+   */
+  czm_orthographicIn3D: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT,
+    getValue: function(uniformState) {
+      return uniformState.orthographicIn3D ? 1 : 0;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 3x3 normal transformation matrix that
+   * transforms normal vectors in model coordinates to eye coordinates.
+   * <br /><br />
+   * Positions should be transformed to eye coordinates using {@link czm_modelView} and
+   * normals should be transformed using <code>czm_normal</code>.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat3 czm_normal;
+   *
+   * // Example
+   * vec3 eyeNormal = czm_normal * normal;
+   *
+   * @see UniformState#normal
+   * @see czm_inverseNormal
+   * @see czm_modelView
+   */
+  czm_normal: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT3,
+    getValue: function(uniformState) {
+      return uniformState.normal;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 3x3 normal transformation matrix that
+   * transforms normal vectors in 3D model coordinates to eye coordinates.
+   * In 3D mode, this is identical to
+   * {@link czm_normal}, but in 2D and Columbus View it represents the normal transformation
+   * matrix as if the camera were at an equivalent location in 3D mode.  This is useful for lighting
+   * 2D and Columbus View in the same way that 3D is lit.
+   * <br /><br />
+   * Positions should be transformed to eye coordinates using {@link czm_modelView3D} and
+   * normals should be transformed using <code>czm_normal3D</code>.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat3 czm_normal3D;
+   *
+   * // Example
+   * vec3 eyeNormal = czm_normal3D * normal;
+   *
+   * @see UniformState#normal3D
+   * @see czm_normal
+   */
+  czm_normal3D: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT3,
+    getValue: function(uniformState) {
+      return uniformState.normal3D;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 3x3 normal transformation matrix that
+   * transforms normal vectors in eye coordinates to model coordinates.  This is
+   * the opposite of the transform provided by {@link czm_normal}.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat3 czm_inverseNormal;
+   *
+   * // Example
+   * vec3 normalMC = czm_inverseNormal * normalEC;
+   *
+   * @see UniformState#inverseNormal
+   * @see czm_normal
+   * @see czm_modelView
+   * @see czm_inverseView
+   */
+  czm_inverseNormal: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT3,
+    getValue: function(uniformState) {
+      return uniformState.inverseNormal;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 3x3 normal transformation matrix that
+   * transforms normal vectors in eye coordinates to 3D model coordinates.  This is
+   * the opposite of the transform provided by {@link czm_normal}.
+   * In 3D mode, this is identical to
+   * {@link czm_inverseNormal}, but in 2D and Columbus View it represents the inverse normal transformation
+   * matrix as if the camera were at an equivalent location in 3D mode.  This is useful for lighting
+   * 2D and Columbus View in the same way that 3D is lit.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat3 czm_inverseNormal3D;
+   *
+   * // Example
+   * vec3 normalMC = czm_inverseNormal3D * normalEC;
+   *
+   * @see UniformState#inverseNormal3D
+   * @see czm_inverseNormal
+   */
+  czm_inverseNormal3D: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT3,
+    getValue: function(uniformState) {
+      return uniformState.inverseNormal3D;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform containing the height in meters of the
+   * eye (camera) above or below the ellipsoid.
+   *
+   * @see UniformState#eyeHeight
+   */
+  czm_eyeHeight: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT,
+    getValue: function(uniformState) {
+      return uniformState.eyeHeight;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform containing height (<code>x</code>) and height squared (<code>y</code>)
+   * in meters of the eye (camera) above the 2D world plane. This uniform is only valid
+   * when the {@link SceneMode} is <code>SCENE2D</code>.
+   *
+   * @see UniformState#eyeHeight2D
+   */
+  czm_eyeHeight2D: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_VEC2,
+    getValue: function(uniformState) {
+      return uniformState.eyeHeight2D;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform containing the near distance (<code>x</code>) and the far distance (<code>y</code>)
+   * of the frustum defined by the camera.  This is the largest possible frustum, not an individual
+   * frustum used for multi-frustum rendering.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform vec2 czm_entireFrustum;
+   *
+   * // Example
+   * float frustumLength = czm_entireFrustum.y - czm_entireFrustum.x;
+   *
+   * @see UniformState#entireFrustum
+   * @see czm_currentFrustum
+   */
+  czm_entireFrustum: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_VEC2,
+    getValue: function(uniformState) {
+      return uniformState.entireFrustum;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform containing the near distance (<code>x</code>) and the far distance (<code>y</code>)
+   * of the frustum defined by the camera.  This is the individual
+   * frustum used for multi-frustum rendering.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform vec2 czm_currentFrustum;
+   *
+   * // Example
+   * float frustumLength = czm_currentFrustum.y - czm_currentFrustum.x;
+   *
+   * @see UniformState#currentFrustum
+   * @see czm_entireFrustum
+   */
+  czm_currentFrustum: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_VEC2,
+    getValue: function(uniformState) {
+      return uniformState.currentFrustum;
+    }
+  }),
+  /**
+   * The distances to the frustum planes. The top, bottom, left and right distances are
+   * the x, y, z, and w components, respectively.
+   */
+  czm_frustumPlanes: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_VEC4,
+    getValue: function(uniformState) {
+      return uniformState.frustumPlanes;
+    }
+  }),
+  /**
+   * Gets the far plane's distance from the near plane, plus 1.0.
+   */
+  czm_farDepthFromNearPlusOne: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT,
+    getValue: function(uniformState) {
+      return uniformState.farDepthFromNearPlusOne;
+    }
+  }),
+  /**
+   * Gets the log2 of {@link AutomaticUniforms#czm_farDepthFromNearPlusOne}.
+   */
+  czm_log2FarDepthFromNearPlusOne: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT,
+    getValue: function(uniformState) {
+      return uniformState.log2FarDepthFromNearPlusOne;
+    }
+  }),
+  /**
+   * Gets 1.0 divided by {@link AutomaticUniforms#czm_log2FarDepthFromNearPlusOne}.
+   */
+  czm_oneOverLog2FarDepthFromNearPlusOne: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT,
+    getValue: function(uniformState) {
+      return uniformState.oneOverLog2FarDepthFromNearPlusOne;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing the sun position in world coordinates.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform vec3 czm_sunPositionWC;
+   *
+   * @see UniformState#sunPositionWC
+   * @see czm_sunPositionColumbusView
+   * @see czm_sunDirectionWC
+   */
+  czm_sunPositionWC: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_VEC3,
+    getValue: function(uniformState) {
+      return uniformState.sunPositionWC;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing the sun position in Columbus view world coordinates.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform vec3 czm_sunPositionColumbusView;
+   *
+   * @see UniformState#sunPositionColumbusView
+   * @see czm_sunPositionWC
+   */
+  czm_sunPositionColumbusView: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_VEC3,
+    getValue: function(uniformState) {
+      return uniformState.sunPositionColumbusView;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing the normalized direction to the sun in eye coordinates.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform vec3 czm_sunDirectionEC;
+   *
+   * // Example
+   * float diffuse = max(dot(czm_sunDirectionEC, normalEC), 0.0);
+   *
+   * @see UniformState#sunDirectionEC
+   * @see czm_moonDirectionEC
+   * @see czm_sunDirectionWC
+   */
+  czm_sunDirectionEC: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_VEC3,
+    getValue: function(uniformState) {
+      return uniformState.sunDirectionEC;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing the normalized direction to the sun in world coordinates.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform vec3 czm_sunDirectionWC;
+   *
+   * // Example
+   * float diffuse = max(dot(czm_sunDirectionWC, normalWC), 0.0);
+   *
+   * @see UniformState#sunDirectionWC
+   * @see czm_sunPositionWC
+   * @see czm_sunDirectionEC
+   */
+  czm_sunDirectionWC: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_VEC3,
+    getValue: function(uniformState) {
+      return uniformState.sunDirectionWC;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing the normalized direction to the moon in eye coordinates.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform vec3 czm_moonDirectionEC;
+   *
+   * // Example
+   * float diffuse = max(dot(czm_moonDirectionEC, normalEC), 0.0);
+   *
+   * @see UniformState#moonDirectionEC
+   * @see czm_sunDirectionEC
+   */
+  czm_moonDirectionEC: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_VEC3,
+    getValue: function(uniformState) {
+      return uniformState.moonDirectionEC;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing the normalized direction to the scene's light source in eye coordinates.
+   * This is commonly used for directional lighting computations.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform vec3 czm_lightDirectionEC;
+   *
+   * // Example
+   * float diffuse = max(dot(czm_lightDirectionEC, normalEC), 0.0);
+   *
+   * @see UniformState#lightDirectionEC
+   * @see czm_lightDirectionWC
+   */
+  czm_lightDirectionEC: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_VEC3,
+    getValue: function(uniformState) {
+      return uniformState.lightDirectionEC;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing the normalized direction to the scene's light source in world coordinates.
+   * This is commonly used for directional lighting computations.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform vec3 czm_lightDirectionWC;
+   *
+   * // Example
+   * float diffuse = max(dot(czm_lightDirectionWC, normalWC), 0.0);
+   *
+   * @see UniformState#lightDirectionWC
+   * @see czm_lightDirectionEC
+   */
+  czm_lightDirectionWC: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_VEC3,
+    getValue: function(uniformState) {
+      return uniformState.lightDirectionWC;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform that represents the color of light emitted by the scene's light source. This
+   * is equivalent to the light color multiplied by the light intensity limited to a maximum luminance of 1.0
+   * suitable for non-HDR lighting.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform vec3 czm_lightColor;
+   *
+   * // Example
+   * vec3 diffuseColor = czm_lightColor * max(dot(czm_lightDirectionWC, normalWC), 0.0);
+   *
+   * @see UniformState#lightColor
+   * @see czm_lightColorHdr
+   */
+  czm_lightColor: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_VEC3,
+    getValue: function(uniformState) {
+      return uniformState.lightColor;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform that represents the high dynamic range color of light emitted by the scene's light
+   * source. This is equivalent to the light color multiplied by the light intensity suitable for HDR lighting.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform vec3 czm_lightColorHdr;
+   *
+   * // Example
+   * vec3 diffuseColor = czm_lightColorHdr * max(dot(czm_lightDirectionWC, normalWC), 0.0);
+   *
+   * @see UniformState#lightColorHdr
+   * @see czm_lightColor
+   */
+  czm_lightColorHdr: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_VEC3,
+    getValue: function(uniformState) {
+      return uniformState.lightColorHdr;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing the high bits of the camera position in model
+   * coordinates.  This is used for GPU RTE to eliminate jittering artifacts when rendering
+   * as described in {@link http://help.agi.com/AGIComponents/html/BlogPrecisionsPrecisions.htm|Precisions, Precisions}.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform vec3 czm_encodedCameraPositionMCHigh;
+   *
+   * @see czm_encodedCameraPositionMCLow
+   * @see czm_modelViewRelativeToEye
+   * @see czm_modelViewProjectionRelativeToEye
+   */
+  czm_encodedCameraPositionMCHigh: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_VEC3,
+    getValue: function(uniformState) {
+      return uniformState.encodedCameraPositionMCHigh;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing the low bits of the camera position in model
+   * coordinates.  This is used for GPU RTE to eliminate jittering artifacts when rendering
+   * as described in {@linkhttp://help.agi.com/AGIComponents/html/BlogPrecisionsPrecisions.htm|Precisions, Precisions}.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform vec3 czm_encodedCameraPositionMCLow;
+   *
+   * @see czm_encodedCameraPositionMCHigh
+   * @see czm_modelViewRelativeToEye
+   * @see czm_modelViewProjectionRelativeToEye
+   */
+  czm_encodedCameraPositionMCLow: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_VEC3,
+    getValue: function(uniformState) {
+      return uniformState.encodedCameraPositionMCLow;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing the position of the viewer (camera) in world coordinates.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform vec3 czm_viewerPositionWC;
+   */
+  czm_viewerPositionWC: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_VEC3,
+    getValue: function(uniformState) {
+      return Matrix4_default.getTranslation(
+        uniformState.inverseView,
+        viewerPositionWCScratch
+      );
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing the frame number. This uniform is automatically incremented
+   * every frame.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform float czm_frameNumber;
+   */
+  czm_frameNumber: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT,
+    getValue: function(uniformState) {
+      return uniformState.frameState.frameNumber;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing the current morph transition time between
+   * 2D/Columbus View and 3D, with 0.0 being 2D or Columbus View and 1.0 being 3D.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform float czm_morphTime;
+   *
+   * // Example
+   * vec4 p = czm_columbusViewMorph(position2D, position3D, czm_morphTime);
+   */
+  czm_morphTime: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT,
+    getValue: function(uniformState) {
+      return uniformState.frameState.morphTime;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing the current {@link SceneMode}, expressed
+   * as a float.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform float czm_sceneMode;
+   *
+   * // Example
+   * if (czm_sceneMode == czm_sceneMode2D)
+   * {
+   *     eyeHeightSq = czm_eyeHeight2D.y;
+   * }
+   *
+   * @see czm_sceneMode2D
+   * @see czm_sceneModeColumbusView
+   * @see czm_sceneMode3D
+   * @see czm_sceneModeMorphing
+   */
+  czm_sceneMode: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT,
+    getValue: function(uniformState) {
+      return uniformState.frameState.mode;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing the current rendering pass.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform float czm_pass;
+   *
+   * // Example
+   * if ((czm_pass == czm_passTranslucent) && isOpaque())
+   * {
+   *     gl_Position *= 0.0; // Cull opaque geometry in the translucent pass
+   * }
+   */
+  czm_pass: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT,
+    getValue: function(uniformState) {
+      return uniformState.pass;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing the current scene background color.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform vec4 czm_backgroundColor;
+   *
+   * // Example: If the given color's RGB matches the background color, invert it.
+   * vec4 adjustColorForContrast(vec4 color)
+   * {
+   *     if (czm_backgroundColor.rgb == color.rgb)
+   *     {
+   *         color.rgb = vec3(1.0) - color.rgb;
+   *     }
+   *
+   *     return color;
+   * }
+   */
+  czm_backgroundColor: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_VEC4,
+    getValue: function(uniformState) {
+      return uniformState.backgroundColor;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform containing the BRDF look up texture used for image-based lighting computations.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform sampler2D czm_brdfLut;
+   *
+   * // Example: For a given roughness and NdotV value, find the material's BRDF information in the red and green channels
+   * float roughness = 0.5;
+   * float NdotV = dot(normal, view);
+   * vec2 brdfLut = texture(czm_brdfLut, vec2(NdotV, 1.0 - roughness)).rg;
+   */
+  czm_brdfLut: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.SAMPLER_2D,
+    getValue: function(uniformState) {
+      return uniformState.brdfLut;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform containing the environment map used within the scene.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform samplerCube czm_environmentMap;
+   *
+   * // Example: Create a perfect reflection of the environment map on a  model
+   * float reflected = reflect(view, normal);
+   * vec4 reflectedColor = texture(czm_environmentMap, reflected);
+   */
+  czm_environmentMap: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.SAMPLER_CUBE,
+    getValue: function(uniformState) {
+      return uniformState.environmentMap;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform containing the specular environment map atlas used within the scene.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform sampler2D czm_specularEnvironmentMaps;
+   */
+  czm_specularEnvironmentMaps: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.SAMPLER_2D,
+    getValue: function(uniformState) {
+      return uniformState.specularEnvironmentMaps;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform containing the size of the specular environment map atlas used within the scene.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform vec2 czm_specularEnvironmentMapSize;
+   */
+  czm_specularEnvironmentMapSize: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_VEC2,
+    getValue: function(uniformState) {
+      return uniformState.specularEnvironmentMapsDimensions;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform containing the maximum level-of-detail of the specular environment map atlas used within the scene.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform float czm_specularEnvironmentMapsMaximumLOD;
+   */
+  czm_specularEnvironmentMapsMaximumLOD: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT,
+    getValue: function(uniformState) {
+      return uniformState.specularEnvironmentMapsMaximumLOD;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform containing the spherical harmonic coefficients used within the scene.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform vec3[9] czm_sphericalHarmonicCoefficients;
+   */
+  czm_sphericalHarmonicCoefficients: new AutomaticUniform({
+    size: 9,
+    datatype: WebGLConstants_default.FLOAT_VEC3,
+    getValue: function(uniformState) {
+      return uniformState.sphericalHarmonicCoefficients;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing a 3x3 rotation matrix that transforms
+   * from True Equator Mean Equinox (TEME) axes to the pseudo-fixed axes at the current scene time.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform mat3 czm_temeToPseudoFixed;
+   *
+   * // Example
+   * vec3 pseudoFixed = czm_temeToPseudoFixed * teme;
+   *
+   * @see UniformState#temeToPseudoFixedMatrix
+   * @see Transforms.computeTemeToPseudoFixedMatrix
+   */
+  czm_temeToPseudoFixed: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_MAT3,
+    getValue: function(uniformState) {
+      return uniformState.temeToPseudoFixedMatrix;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing the ratio of canvas coordinate space to canvas pixel space.
+   *
+   * @example
+   * uniform float czm_pixelRatio;
+   */
+  czm_pixelRatio: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT,
+    getValue: function(uniformState) {
+      return uniformState.pixelRatio;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform scalar used to mix a color with the fog color based on the distance to the camera.
+   *
+   * @see czm_fog
+   */
+  czm_fogDensity: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT,
+    getValue: function(uniformState) {
+      return uniformState.fogDensity;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing the splitter position to use when rendering with a splitter.
+   * This will be in pixel coordinates relative to the canvas.
+   *
+   * @example
+   * // GLSL declaration
+   * uniform float czm_splitPosition;
+   */
+  czm_splitPosition: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT,
+    getValue: function(uniformState) {
+      return uniformState.splitPosition;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform scalar representing the geometric tolerance per meter
+   */
+  czm_geometricToleranceOverMeter: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT,
+    getValue: function(uniformState) {
+      return uniformState.geometricToleranceOverMeter;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform representing the distance from the camera at which to disable the depth test of billboards, labels and points
+   * to, for example, prevent clipping against terrain. When set to zero, the depth test should always be applied. When less than zero,
+   * the depth test should never be applied.
+   */
+  czm_minimumDisableDepthTestDistance: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT,
+    getValue: function(uniformState) {
+      return uniformState.minimumDisableDepthTestDistance;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform that will be the highlight color of unclassified 3D Tiles.
+   */
+  czm_invertClassificationColor: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_VEC4,
+    getValue: function(uniformState) {
+      return uniformState.invertClassificationColor;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform that is used for gamma correction.
+   */
+  czm_gamma: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT,
+    getValue: function(uniformState) {
+      return uniformState.gamma;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform that stores the ellipsoid radii.
+   */
+  czm_ellipsoidRadii: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_VEC3,
+    getValue: function(uniformState) {
+      return uniformState.ellipsoid.radii;
+    }
+  }),
+  /**
+   * An automatic GLSL uniform that stores the ellipsoid inverse radii.
+   */
+  czm_ellipsoidInverseRadii: new AutomaticUniform({
+    size: 1,
+    datatype: WebGLConstants_default.FLOAT_VEC3,
+    getValue: function(uniformState) {
+      return uniformState.ellipsoid.oneOverRadii;
+    }
+  })
+};
+var AutomaticUniforms_default = AutomaticUniforms;
+
+// packages/engine/Source/Core/createGuid.js
+function createGuid() {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v2 = c === "x" ? r : r & 3 | 8;
+    return v2.toString(16);
+  });
+}
+var createGuid_default = createGuid;
+
+// packages/engine/Source/Core/destroyObject.js
+function returnTrue() {
+  return true;
+}
+function destroyObject(object, message) {
+  message = defaultValue_default(
+    message,
+    "This object was destroyed, i.e., destroy() was called."
+  );
+  function throwOnDestroyed() {
+    throw new DeveloperError_default(message);
+  }
+  for (const key in object) {
+    if (typeof object[key] === "function") {
+      object[key] = throwOnDestroyed;
+    }
+  }
+  object.isDestroyed = returnTrue;
+  return void 0;
+}
+var destroyObject_default = destroyObject;
+
+// packages/engine/Source/Core/IndexDatatype.js
+var IndexDatatype = {
   /**
    * 8-bit unsigned byte corresponding to <code>UNSIGNED_BYTE</code> and the type
    * of an element in <code>Uint8Array</code>.
@@ -9665,14 +8675,6 @@ var ComponentDatatype = {
    */
   UNSIGNED_BYTE: WebGLConstants_default.UNSIGNED_BYTE,
   /**
-   * 16-bit signed short corresponding to <code>SHORT</code> and the type
-   * of an element in <code>Int16Array</code>.
-   *
-   * @type {number}
-   * @constant
-   */
-  SHORT: WebGLConstants_default.SHORT,
-  /**
    * 16-bit unsigned short corresponding to <code>UNSIGNED_SHORT</code> and the type
    * of an element in <code>Uint16Array</code>.
    *
@@ -9681,196 +8683,3709 @@ var ComponentDatatype = {
    */
   UNSIGNED_SHORT: WebGLConstants_default.UNSIGNED_SHORT,
   /**
-   * 32-bit signed int corresponding to <code>INT</code> and the type
-   * of an element in <code>Int32Array</code>.
-   *
-   * @memberOf ComponentDatatype
-   *
-   * @type {number}
-   * @constant
-   */
-  INT: WebGLConstants_default.INT,
-  /**
    * 32-bit unsigned int corresponding to <code>UNSIGNED_INT</code> and the type
    * of an element in <code>Uint32Array</code>.
    *
-   * @memberOf ComponentDatatype
-   *
    * @type {number}
    * @constant
    */
-  UNSIGNED_INT: WebGLConstants_default.UNSIGNED_INT,
-  /**
-   * 32-bit floating-point corresponding to <code>FLOAT</code> and the type
-   * of an element in <code>Float32Array</code>.
-   *
-   * @type {number}
-   * @constant
-   */
-  FLOAT: WebGLConstants_default.FLOAT,
-  /**
-   * 64-bit floating-point corresponding to <code>gl.DOUBLE</code> (in Desktop OpenGL;
-   * this is not supported in WebGL, and is emulated in Cesium via {@link GeometryPipeline.encodeAttribute})
-   * and the type of an element in <code>Float64Array</code>.
-   *
-   * @memberOf ComponentDatatype
-   *
-   * @type {number}
-   * @constant
-   * @default 0x140A
-   */
-  DOUBLE: WebGLConstants_default.DOUBLE
+  UNSIGNED_INT: WebGLConstants_default.UNSIGNED_INT
 };
-ComponentDatatype.getSizeInBytes = function(componentDatatype) {
-  if (!defined_default(componentDatatype)) {
-    throw new DeveloperError_default("value is required.");
-  }
-  switch (componentDatatype) {
-    case ComponentDatatype.BYTE:
-      return Int8Array.BYTES_PER_ELEMENT;
-    case ComponentDatatype.UNSIGNED_BYTE:
+IndexDatatype.getSizeInBytes = function(indexDatatype) {
+  switch (indexDatatype) {
+    case IndexDatatype.UNSIGNED_BYTE:
       return Uint8Array.BYTES_PER_ELEMENT;
-    case ComponentDatatype.SHORT:
-      return Int16Array.BYTES_PER_ELEMENT;
-    case ComponentDatatype.UNSIGNED_SHORT:
+    case IndexDatatype.UNSIGNED_SHORT:
       return Uint16Array.BYTES_PER_ELEMENT;
-    case ComponentDatatype.INT:
-      return Int32Array.BYTES_PER_ELEMENT;
-    case ComponentDatatype.UNSIGNED_INT:
+    case IndexDatatype.UNSIGNED_INT:
       return Uint32Array.BYTES_PER_ELEMENT;
-    case ComponentDatatype.FLOAT:
-      return Float32Array.BYTES_PER_ELEMENT;
-    case ComponentDatatype.DOUBLE:
-      return Float64Array.BYTES_PER_ELEMENT;
-    default:
-      throw new DeveloperError_default("componentDatatype is not a valid value.");
-  }
-};
-ComponentDatatype.fromTypedArray = function(array) {
-  if (array instanceof Int8Array) {
-    return ComponentDatatype.BYTE;
-  }
-  if (array instanceof Uint8Array) {
-    return ComponentDatatype.UNSIGNED_BYTE;
-  }
-  if (array instanceof Int16Array) {
-    return ComponentDatatype.SHORT;
-  }
-  if (array instanceof Uint16Array) {
-    return ComponentDatatype.UNSIGNED_SHORT;
-  }
-  if (array instanceof Int32Array) {
-    return ComponentDatatype.INT;
-  }
-  if (array instanceof Uint32Array) {
-    return ComponentDatatype.UNSIGNED_INT;
-  }
-  if (array instanceof Float32Array) {
-    return ComponentDatatype.FLOAT;
-  }
-  if (array instanceof Float64Array) {
-    return ComponentDatatype.DOUBLE;
   }
   throw new DeveloperError_default(
-    "array must be an Int8Array, Uint8Array, Int16Array, Uint16Array, Int32Array, Uint32Array, Float32Array, or Float64Array."
+    "indexDatatype is required and must be a valid IndexDatatype constant."
   );
 };
-ComponentDatatype.validate = function(componentDatatype) {
-  return defined_default(componentDatatype) && (componentDatatype === ComponentDatatype.BYTE || componentDatatype === ComponentDatatype.UNSIGNED_BYTE || componentDatatype === ComponentDatatype.SHORT || componentDatatype === ComponentDatatype.UNSIGNED_SHORT || componentDatatype === ComponentDatatype.INT || componentDatatype === ComponentDatatype.UNSIGNED_INT || componentDatatype === ComponentDatatype.FLOAT || componentDatatype === ComponentDatatype.DOUBLE);
-};
-ComponentDatatype.createTypedArray = function(componentDatatype, valuesOrLength) {
-  if (!defined_default(componentDatatype)) {
-    throw new DeveloperError_default("componentDatatype is required.");
-  }
-  if (!defined_default(valuesOrLength)) {
-    throw new DeveloperError_default("valuesOrLength is required.");
-  }
-  switch (componentDatatype) {
-    case ComponentDatatype.BYTE:
-      return new Int8Array(valuesOrLength);
-    case ComponentDatatype.UNSIGNED_BYTE:
-      return new Uint8Array(valuesOrLength);
-    case ComponentDatatype.SHORT:
-      return new Int16Array(valuesOrLength);
-    case ComponentDatatype.UNSIGNED_SHORT:
-      return new Uint16Array(valuesOrLength);
-    case ComponentDatatype.INT:
-      return new Int32Array(valuesOrLength);
-    case ComponentDatatype.UNSIGNED_INT:
-      return new Uint32Array(valuesOrLength);
-    case ComponentDatatype.FLOAT:
-      return new Float32Array(valuesOrLength);
-    case ComponentDatatype.DOUBLE:
-      return new Float64Array(valuesOrLength);
+IndexDatatype.fromSizeInBytes = function(sizeInBytes) {
+  switch (sizeInBytes) {
+    case 2:
+      return IndexDatatype.UNSIGNED_SHORT;
+    case 4:
+      return IndexDatatype.UNSIGNED_INT;
+    case 1:
+      return IndexDatatype.UNSIGNED_BYTE;
     default:
-      throw new DeveloperError_default("componentDatatype is not a valid value.");
+      throw new DeveloperError_default(
+        "Size in bytes cannot be mapped to an IndexDatatype"
+      );
   }
 };
-ComponentDatatype.createArrayBufferView = function(componentDatatype, buffer, byteOffset, length) {
-  if (!defined_default(componentDatatype)) {
-    throw new DeveloperError_default("componentDatatype is required.");
+IndexDatatype.validate = function(indexDatatype) {
+  return defined_default(indexDatatype) && (indexDatatype === IndexDatatype.UNSIGNED_BYTE || indexDatatype === IndexDatatype.UNSIGNED_SHORT || indexDatatype === IndexDatatype.UNSIGNED_INT);
+};
+IndexDatatype.createTypedArray = function(numberOfVertices, indicesLengthOrArray) {
+  if (!defined_default(numberOfVertices)) {
+    throw new DeveloperError_default("numberOfVertices is required.");
   }
-  if (!defined_default(buffer)) {
-    throw new DeveloperError_default("buffer is required.");
+  if (numberOfVertices >= Math_default.SIXTY_FOUR_KILOBYTES) {
+    return new Uint32Array(indicesLengthOrArray);
   }
-  byteOffset = defaultValue_default(byteOffset, 0);
-  length = defaultValue_default(
-    length,
-    (buffer.byteLength - byteOffset) / ComponentDatatype.getSizeInBytes(componentDatatype)
+  return new Uint16Array(indicesLengthOrArray);
+};
+IndexDatatype.createTypedArrayFromArrayBuffer = function(numberOfVertices, sourceArray, byteOffset, length) {
+  if (!defined_default(numberOfVertices)) {
+    throw new DeveloperError_default("numberOfVertices is required.");
+  }
+  if (!defined_default(sourceArray)) {
+    throw new DeveloperError_default("sourceArray is required.");
+  }
+  if (!defined_default(byteOffset)) {
+    throw new DeveloperError_default("byteOffset is required.");
+  }
+  if (numberOfVertices >= Math_default.SIXTY_FOUR_KILOBYTES) {
+    return new Uint32Array(sourceArray, byteOffset, length);
+  }
+  return new Uint16Array(sourceArray, byteOffset, length);
+};
+IndexDatatype.fromTypedArray = function(array) {
+  if (array instanceof Uint8Array) {
+    return IndexDatatype.UNSIGNED_BYTE;
+  }
+  if (array instanceof Uint16Array) {
+    return IndexDatatype.UNSIGNED_SHORT;
+  }
+  if (array instanceof Uint32Array) {
+    return IndexDatatype.UNSIGNED_INT;
+  }
+  throw new DeveloperError_default(
+    "array must be a Uint8Array, Uint16Array, or Uint32Array."
   );
-  switch (componentDatatype) {
-    case ComponentDatatype.BYTE:
-      return new Int8Array(buffer, byteOffset, length);
-    case ComponentDatatype.UNSIGNED_BYTE:
-      return new Uint8Array(buffer, byteOffset, length);
-    case ComponentDatatype.SHORT:
-      return new Int16Array(buffer, byteOffset, length);
-    case ComponentDatatype.UNSIGNED_SHORT:
-      return new Uint16Array(buffer, byteOffset, length);
-    case ComponentDatatype.INT:
-      return new Int32Array(buffer, byteOffset, length);
-    case ComponentDatatype.UNSIGNED_INT:
-      return new Uint32Array(buffer, byteOffset, length);
-    case ComponentDatatype.FLOAT:
-      return new Float32Array(buffer, byteOffset, length);
-    case ComponentDatatype.DOUBLE:
-      return new Float64Array(buffer, byteOffset, length);
-    default:
-      throw new DeveloperError_default("componentDatatype is not a valid value.");
-  }
 };
-ComponentDatatype.fromName = function(name) {
-  switch (name) {
-    case "BYTE":
-      return ComponentDatatype.BYTE;
-    case "UNSIGNED_BYTE":
-      return ComponentDatatype.UNSIGNED_BYTE;
-    case "SHORT":
-      return ComponentDatatype.SHORT;
-    case "UNSIGNED_SHORT":
-      return ComponentDatatype.UNSIGNED_SHORT;
-    case "INT":
-      return ComponentDatatype.INT;
-    case "UNSIGNED_INT":
-      return ComponentDatatype.UNSIGNED_INT;
-    case "FLOAT":
-      return ComponentDatatype.FLOAT;
-    case "DOUBLE":
-      return ComponentDatatype.DOUBLE;
-    default:
-      throw new DeveloperError_default("name is not a valid value.");
-  }
-};
-var ComponentDatatype_default = Object.freeze(ComponentDatatype);
+var IndexDatatype_default = Object.freeze(IndexDatatype);
 
-// packages/engine/Source/Core/GeometryType.js
-var GeometryType = {
-  NONE: 0,
-  TRIANGLES: 1,
-  LINES: 2,
-  POLYLINES: 3
+// packages/engine/Source/Renderer/BufferUsage.js
+var BufferUsage = {
+  STREAM_DRAW: WebGLConstants_default.STREAM_DRAW,
+  STATIC_DRAW: WebGLConstants_default.STATIC_DRAW,
+  DYNAMIC_DRAW: WebGLConstants_default.DYNAMIC_DRAW,
+  validate: function(bufferUsage) {
+    return bufferUsage === BufferUsage.STREAM_DRAW || bufferUsage === BufferUsage.STATIC_DRAW || bufferUsage === BufferUsage.DYNAMIC_DRAW;
+  }
 };
-var GeometryType_default = Object.freeze(GeometryType);
+var BufferUsage_default = Object.freeze(BufferUsage);
+
+// packages/engine/Source/Renderer/Buffer.js
+function Buffer2(options) {
+  options = defaultValue_default(options, defaultValue_default.EMPTY_OBJECT);
+  Check_default.defined("options.context", options.context);
+  if (!defined_default(options.typedArray) && !defined_default(options.sizeInBytes)) {
+    throw new DeveloperError_default(
+      "Either options.sizeInBytes or options.typedArray is required."
+    );
+  }
+  if (defined_default(options.typedArray) && defined_default(options.sizeInBytes)) {
+    throw new DeveloperError_default(
+      "Cannot pass in both options.sizeInBytes and options.typedArray."
+    );
+  }
+  if (defined_default(options.typedArray)) {
+    Check_default.typeOf.object("options.typedArray", options.typedArray);
+    Check_default.typeOf.number(
+      "options.typedArray.byteLength",
+      options.typedArray.byteLength
+    );
+  }
+  if (!BufferUsage_default.validate(options.usage)) {
+    throw new DeveloperError_default("usage is invalid.");
+  }
+  const gl = options.context._gl;
+  const bufferTarget = options.bufferTarget;
+  const typedArray = options.typedArray;
+  let sizeInBytes = options.sizeInBytes;
+  const usage = options.usage;
+  const hasArray = defined_default(typedArray);
+  if (hasArray) {
+    sizeInBytes = typedArray.byteLength;
+  }
+  Check_default.typeOf.number.greaterThan("sizeInBytes", sizeInBytes, 0);
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(bufferTarget, buffer);
+  gl.bufferData(bufferTarget, hasArray ? typedArray : sizeInBytes, usage);
+  gl.bindBuffer(bufferTarget, null);
+  this._id = createGuid_default();
+  this._gl = gl;
+  this._webgl2 = options.context._webgl2;
+  this._bufferTarget = bufferTarget;
+  this._sizeInBytes = sizeInBytes;
+  this._usage = usage;
+  this._buffer = buffer;
+  this.vertexArrayDestroyable = true;
+}
+Buffer2.createVertexBuffer = function(options) {
+  Check_default.defined("options.context", options.context);
+  return new Buffer2({
+    context: options.context,
+    bufferTarget: WebGLConstants_default.ARRAY_BUFFER,
+    typedArray: options.typedArray,
+    sizeInBytes: options.sizeInBytes,
+    usage: options.usage
+  });
+};
+Buffer2.createIndexBuffer = function(options) {
+  Check_default.defined("options.context", options.context);
+  if (!IndexDatatype_default.validate(options.indexDatatype)) {
+    throw new DeveloperError_default("Invalid indexDatatype.");
+  }
+  if (options.indexDatatype === IndexDatatype_default.UNSIGNED_INT && !options.context.elementIndexUint) {
+    throw new DeveloperError_default(
+      "IndexDatatype.UNSIGNED_INT requires OES_element_index_uint, which is not supported on this system.  Check context.elementIndexUint."
+    );
+  }
+  const context = options.context;
+  const indexDatatype = options.indexDatatype;
+  const bytesPerIndex = IndexDatatype_default.getSizeInBytes(indexDatatype);
+  const buffer = new Buffer2({
+    context,
+    bufferTarget: WebGLConstants_default.ELEMENT_ARRAY_BUFFER,
+    typedArray: options.typedArray,
+    sizeInBytes: options.sizeInBytes,
+    usage: options.usage
+  });
+  const numberOfIndices = buffer.sizeInBytes / bytesPerIndex;
+  Object.defineProperties(buffer, {
+    indexDatatype: {
+      get: function() {
+        return indexDatatype;
+      }
+    },
+    bytesPerIndex: {
+      get: function() {
+        return bytesPerIndex;
+      }
+    },
+    numberOfIndices: {
+      get: function() {
+        return numberOfIndices;
+      }
+    }
+  });
+  return buffer;
+};
+Object.defineProperties(Buffer2.prototype, {
+  sizeInBytes: {
+    get: function() {
+      return this._sizeInBytes;
+    }
+  },
+  usage: {
+    get: function() {
+      return this._usage;
+    }
+  }
+});
+Buffer2.prototype._getBuffer = function() {
+  return this._buffer;
+};
+Buffer2.prototype.copyFromArrayView = function(arrayView, offsetInBytes) {
+  offsetInBytes = defaultValue_default(offsetInBytes, 0);
+  Check_default.defined("arrayView", arrayView);
+  Check_default.typeOf.number.lessThanOrEquals(
+    "offsetInBytes + arrayView.byteLength",
+    offsetInBytes + arrayView.byteLength,
+    this._sizeInBytes
+  );
+  const gl = this._gl;
+  const target = this._bufferTarget;
+  gl.bindBuffer(target, this._buffer);
+  gl.bufferSubData(target, offsetInBytes, arrayView);
+  gl.bindBuffer(target, null);
+};
+Buffer2.prototype.copyFromBuffer = function(readBuffer, readOffset, writeOffset, sizeInBytes) {
+  if (!this._webgl2) {
+    throw new DeveloperError_default("A WebGL 2 context is required.");
+  }
+  if (!defined_default(readBuffer)) {
+    throw new DeveloperError_default("readBuffer must be defined.");
+  }
+  if (!defined_default(sizeInBytes) || sizeInBytes <= 0) {
+    throw new DeveloperError_default(
+      "sizeInBytes must be defined and be greater than zero."
+    );
+  }
+  if (!defined_default(readOffset) || readOffset < 0 || readOffset + sizeInBytes > readBuffer._sizeInBytes) {
+    throw new DeveloperError_default(
+      "readOffset must be greater than or equal to zero and readOffset + sizeInBytes must be less than of equal to readBuffer.sizeInBytes."
+    );
+  }
+  if (!defined_default(writeOffset) || writeOffset < 0 || writeOffset + sizeInBytes > this._sizeInBytes) {
+    throw new DeveloperError_default(
+      "writeOffset must be greater than or equal to zero and writeOffset + sizeInBytes must be less than of equal to this.sizeInBytes."
+    );
+  }
+  if (this._buffer === readBuffer._buffer && (writeOffset >= readOffset && writeOffset < readOffset + sizeInBytes || readOffset > writeOffset && readOffset < writeOffset + sizeInBytes)) {
+    throw new DeveloperError_default(
+      "When readBuffer is equal to this, the ranges [readOffset + sizeInBytes) and [writeOffset, writeOffset + sizeInBytes) must not overlap."
+    );
+  }
+  if (this._bufferTarget === WebGLConstants_default.ELEMENT_ARRAY_BUFFER && readBuffer._bufferTarget !== WebGLConstants_default.ELEMENT_ARRAY_BUFFER || this._bufferTarget !== WebGLConstants_default.ELEMENT_ARRAY_BUFFER && readBuffer._bufferTarget === WebGLConstants_default.ELEMENT_ARRAY_BUFFER) {
+    throw new DeveloperError_default(
+      "Can not copy an index buffer into another buffer type."
+    );
+  }
+  const readTarget = WebGLConstants_default.COPY_READ_BUFFER;
+  const writeTarget = WebGLConstants_default.COPY_WRITE_BUFFER;
+  const gl = this._gl;
+  gl.bindBuffer(writeTarget, this._buffer);
+  gl.bindBuffer(readTarget, readBuffer._buffer);
+  gl.copyBufferSubData(
+    readTarget,
+    writeTarget,
+    readOffset,
+    writeOffset,
+    sizeInBytes
+  );
+  gl.bindBuffer(writeTarget, null);
+  gl.bindBuffer(readTarget, null);
+};
+Buffer2.prototype.getBufferData = function(arrayView, sourceOffset, destinationOffset, length) {
+  sourceOffset = defaultValue_default(sourceOffset, 0);
+  destinationOffset = defaultValue_default(destinationOffset, 0);
+  if (!this._webgl2) {
+    throw new DeveloperError_default("A WebGL 2 context is required.");
+  }
+  if (!defined_default(arrayView)) {
+    throw new DeveloperError_default("arrayView is required.");
+  }
+  let copyLength;
+  let elementSize;
+  let arrayLength = arrayView.byteLength;
+  if (!defined_default(length)) {
+    if (defined_default(arrayLength)) {
+      copyLength = arrayLength - destinationOffset;
+      elementSize = 1;
+    } else {
+      arrayLength = arrayView.length;
+      copyLength = arrayLength - destinationOffset;
+      elementSize = arrayView.BYTES_PER_ELEMENT;
+    }
+  } else {
+    copyLength = length;
+    if (defined_default(arrayLength)) {
+      elementSize = 1;
+    } else {
+      arrayLength = arrayView.length;
+      elementSize = arrayView.BYTES_PER_ELEMENT;
+    }
+  }
+  if (destinationOffset < 0 || destinationOffset > arrayLength) {
+    throw new DeveloperError_default(
+      "destinationOffset must be greater than zero and less than the arrayView length."
+    );
+  }
+  if (destinationOffset + copyLength > arrayLength) {
+    throw new DeveloperError_default(
+      "destinationOffset + length must be less than or equal to the arrayViewLength."
+    );
+  }
+  if (sourceOffset < 0 || sourceOffset > this._sizeInBytes) {
+    throw new DeveloperError_default(
+      "sourceOffset must be greater than zero and less than the buffers size."
+    );
+  }
+  if (sourceOffset + copyLength * elementSize > this._sizeInBytes) {
+    throw new DeveloperError_default(
+      "sourceOffset + length must be less than the buffers size."
+    );
+  }
+  const gl = this._gl;
+  const target = WebGLConstants_default.COPY_READ_BUFFER;
+  gl.bindBuffer(target, this._buffer);
+  gl.getBufferSubData(
+    target,
+    sourceOffset,
+    arrayView,
+    destinationOffset,
+    length
+  );
+  gl.bindBuffer(target, null);
+};
+Buffer2.prototype.isDestroyed = function() {
+  return false;
+};
+Buffer2.prototype.destroy = function() {
+  this._gl.deleteBuffer(this._buffer);
+  return destroyObject_default(this);
+};
+var Buffer_default = Buffer2;
+
+// packages/engine/Source/Core/Fullscreen.js
+var _supportsFullscreen;
+var _names = {
+  requestFullscreen: void 0,
+  exitFullscreen: void 0,
+  fullscreenEnabled: void 0,
+  fullscreenElement: void 0,
+  fullscreenchange: void 0,
+  fullscreenerror: void 0
+};
+var Fullscreen = {};
+Object.defineProperties(Fullscreen, {
+  /**
+   * The element that is currently fullscreen, if any.  To simply check if the
+   * browser is in fullscreen mode or not, use {@link Fullscreen#fullscreen}.
+   * @memberof Fullscreen
+   * @type {object}
+   * @readonly
+   */
+  element: {
+    get: function() {
+      if (!Fullscreen.supportsFullscreen()) {
+        return void 0;
+      }
+      return document[_names.fullscreenElement];
+    }
+  },
+  /**
+   * The name of the event on the document that is fired when fullscreen is
+   * entered or exited.  This event name is intended for use with addEventListener.
+   * In your event handler, to determine if the browser is in fullscreen mode or not,
+   * use {@link Fullscreen#fullscreen}.
+   * @memberof Fullscreen
+   * @type {string}
+   * @readonly
+   */
+  changeEventName: {
+    get: function() {
+      if (!Fullscreen.supportsFullscreen()) {
+        return void 0;
+      }
+      return _names.fullscreenchange;
+    }
+  },
+  /**
+   * The name of the event that is fired when a fullscreen error
+   * occurs.  This event name is intended for use with addEventListener.
+   * @memberof Fullscreen
+   * @type {string}
+   * @readonly
+   */
+  errorEventName: {
+    get: function() {
+      if (!Fullscreen.supportsFullscreen()) {
+        return void 0;
+      }
+      return _names.fullscreenerror;
+    }
+  },
+  /**
+   * Determine whether the browser will allow an element to be made fullscreen, or not.
+   * For example, by default, iframes cannot go fullscreen unless the containing page
+   * adds an "allowfullscreen" attribute (or prefixed equivalent).
+   * @memberof Fullscreen
+   * @type {boolean}
+   * @readonly
+   */
+  enabled: {
+    get: function() {
+      if (!Fullscreen.supportsFullscreen()) {
+        return void 0;
+      }
+      return document[_names.fullscreenEnabled];
+    }
+  },
+  /**
+   * Determines if the browser is currently in fullscreen mode.
+   * @memberof Fullscreen
+   * @type {boolean}
+   * @readonly
+   */
+  fullscreen: {
+    get: function() {
+      if (!Fullscreen.supportsFullscreen()) {
+        return void 0;
+      }
+      return Fullscreen.element !== null;
+    }
+  }
+});
+Fullscreen.supportsFullscreen = function() {
+  if (defined_default(_supportsFullscreen)) {
+    return _supportsFullscreen;
+  }
+  _supportsFullscreen = false;
+  const body = document.body;
+  if (typeof body.requestFullscreen === "function") {
+    _names.requestFullscreen = "requestFullscreen";
+    _names.exitFullscreen = "exitFullscreen";
+    _names.fullscreenEnabled = "fullscreenEnabled";
+    _names.fullscreenElement = "fullscreenElement";
+    _names.fullscreenchange = "fullscreenchange";
+    _names.fullscreenerror = "fullscreenerror";
+    _supportsFullscreen = true;
+    return _supportsFullscreen;
+  }
+  const prefixes = ["webkit", "moz", "o", "ms", "khtml"];
+  let name;
+  for (let i = 0, len = prefixes.length; i < len; ++i) {
+    const prefix = prefixes[i];
+    name = `${prefix}RequestFullscreen`;
+    if (typeof body[name] === "function") {
+      _names.requestFullscreen = name;
+      _supportsFullscreen = true;
+    } else {
+      name = `${prefix}RequestFullScreen`;
+      if (typeof body[name] === "function") {
+        _names.requestFullscreen = name;
+        _supportsFullscreen = true;
+      }
+    }
+    name = `${prefix}ExitFullscreen`;
+    if (typeof document[name] === "function") {
+      _names.exitFullscreen = name;
+    } else {
+      name = `${prefix}CancelFullScreen`;
+      if (typeof document[name] === "function") {
+        _names.exitFullscreen = name;
+      }
+    }
+    name = `${prefix}FullscreenEnabled`;
+    if (document[name] !== void 0) {
+      _names.fullscreenEnabled = name;
+    } else {
+      name = `${prefix}FullScreenEnabled`;
+      if (document[name] !== void 0) {
+        _names.fullscreenEnabled = name;
+      }
+    }
+    name = `${prefix}FullscreenElement`;
+    if (document[name] !== void 0) {
+      _names.fullscreenElement = name;
+    } else {
+      name = `${prefix}FullScreenElement`;
+      if (document[name] !== void 0) {
+        _names.fullscreenElement = name;
+      }
+    }
+    name = `${prefix}fullscreenchange`;
+    if (document[`on${name}`] !== void 0) {
+      if (prefix === "ms") {
+        name = "MSFullscreenChange";
+      }
+      _names.fullscreenchange = name;
+    }
+    name = `${prefix}fullscreenerror`;
+    if (document[`on${name}`] !== void 0) {
+      if (prefix === "ms") {
+        name = "MSFullscreenError";
+      }
+      _names.fullscreenerror = name;
+    }
+  }
+  return _supportsFullscreen;
+};
+Fullscreen.requestFullscreen = function(element, vrDevice) {
+  if (!Fullscreen.supportsFullscreen()) {
+    return;
+  }
+  element[_names.requestFullscreen]({ vrDisplay: vrDevice });
+};
+Fullscreen.exitFullscreen = function() {
+  if (!Fullscreen.supportsFullscreen()) {
+    return;
+  }
+  document[_names.exitFullscreen]();
+};
+Fullscreen._names = _names;
+var Fullscreen_default = Fullscreen;
+
+// packages/engine/Source/Core/FeatureDetection.js
+var theNavigator;
+if (typeof navigator !== "undefined") {
+  theNavigator = navigator;
+} else {
+  theNavigator = {};
+}
+function extractVersion(versionString) {
+  const parts = versionString.split(".");
+  for (let i = 0, len = parts.length; i < len; ++i) {
+    parts[i] = parseInt(parts[i], 10);
+  }
+  return parts;
+}
+var isChromeResult;
+var chromeVersionResult;
+function isChrome() {
+  if (!defined_default(isChromeResult)) {
+    isChromeResult = false;
+    if (!isEdge()) {
+      const fields = / Chrome\/([\.0-9]+)/.exec(theNavigator.userAgent);
+      if (fields !== null) {
+        isChromeResult = true;
+        chromeVersionResult = extractVersion(fields[1]);
+      }
+    }
+  }
+  return isChromeResult;
+}
+function chromeVersion() {
+  return isChrome() && chromeVersionResult;
+}
+var isSafariResult;
+var safariVersionResult;
+function isSafari() {
+  if (!defined_default(isSafariResult)) {
+    isSafariResult = false;
+    if (!isChrome() && !isEdge() && / Safari\/[\.0-9]+/.test(theNavigator.userAgent)) {
+      const fields = / Version\/([\.0-9]+)/.exec(theNavigator.userAgent);
+      if (fields !== null) {
+        isSafariResult = true;
+        safariVersionResult = extractVersion(fields[1]);
+      }
+    }
+  }
+  return isSafariResult;
+}
+function safariVersion() {
+  return isSafari() && safariVersionResult;
+}
+var isWebkitResult;
+var webkitVersionResult;
+function isWebkit() {
+  if (!defined_default(isWebkitResult)) {
+    isWebkitResult = false;
+    const fields = / AppleWebKit\/([\.0-9]+)(\+?)/.exec(theNavigator.userAgent);
+    if (fields !== null) {
+      isWebkitResult = true;
+      webkitVersionResult = extractVersion(fields[1]);
+      webkitVersionResult.isNightly = !!fields[2];
+    }
+  }
+  return isWebkitResult;
+}
+function webkitVersion() {
+  return isWebkit() && webkitVersionResult;
+}
+var isInternetExplorerResult;
+var internetExplorerVersionResult;
+function isInternetExplorer() {
+  if (!defined_default(isInternetExplorerResult)) {
+    isInternetExplorerResult = false;
+    let fields;
+    if (theNavigator.appName === "Microsoft Internet Explorer") {
+      fields = /MSIE ([0-9]{1,}[\.0-9]{0,})/.exec(theNavigator.userAgent);
+      if (fields !== null) {
+        isInternetExplorerResult = true;
+        internetExplorerVersionResult = extractVersion(fields[1]);
+      }
+    } else if (theNavigator.appName === "Netscape") {
+      fields = /Trident\/.*rv:([0-9]{1,}[\.0-9]{0,})/.exec(
+        theNavigator.userAgent
+      );
+      if (fields !== null) {
+        isInternetExplorerResult = true;
+        internetExplorerVersionResult = extractVersion(fields[1]);
+      }
+    }
+  }
+  return isInternetExplorerResult;
+}
+function internetExplorerVersion() {
+  return isInternetExplorer() && internetExplorerVersionResult;
+}
+var isEdgeResult;
+var edgeVersionResult;
+function isEdge() {
+  if (!defined_default(isEdgeResult)) {
+    isEdgeResult = false;
+    const fields = / Edg\/([\.0-9]+)/.exec(theNavigator.userAgent);
+    if (fields !== null) {
+      isEdgeResult = true;
+      edgeVersionResult = extractVersion(fields[1]);
+    }
+  }
+  return isEdgeResult;
+}
+function edgeVersion() {
+  return isEdge() && edgeVersionResult;
+}
+var isFirefoxResult;
+var firefoxVersionResult;
+function isFirefox() {
+  if (!defined_default(isFirefoxResult)) {
+    isFirefoxResult = false;
+    const fields = /Firefox\/([\.0-9]+)/.exec(theNavigator.userAgent);
+    if (fields !== null) {
+      isFirefoxResult = true;
+      firefoxVersionResult = extractVersion(fields[1]);
+    }
+  }
+  return isFirefoxResult;
+}
+var isWindowsResult;
+function isWindows() {
+  if (!defined_default(isWindowsResult)) {
+    isWindowsResult = /Windows/i.test(theNavigator.appVersion);
+  }
+  return isWindowsResult;
+}
+var isIPadOrIOSResult;
+function isIPadOrIOS() {
+  if (!defined_default(isIPadOrIOSResult)) {
+    isIPadOrIOSResult = navigator.platform === "iPhone" || navigator.platform === "iPod" || navigator.platform === "iPad";
+  }
+  return isIPadOrIOSResult;
+}
+function firefoxVersion() {
+  return isFirefox() && firefoxVersionResult;
+}
+var hasPointerEvents;
+function supportsPointerEvents() {
+  if (!defined_default(hasPointerEvents)) {
+    hasPointerEvents = !isFirefox() && typeof PointerEvent !== "undefined" && (!defined_default(theNavigator.pointerEnabled) || theNavigator.pointerEnabled);
+  }
+  return hasPointerEvents;
+}
+var imageRenderingValueResult;
+var supportsImageRenderingPixelatedResult;
+function supportsImageRenderingPixelated() {
+  if (!defined_default(supportsImageRenderingPixelatedResult)) {
+    const canvas = document.createElement("canvas");
+    canvas.setAttribute(
+      "style",
+      "image-rendering: -moz-crisp-edges;image-rendering: pixelated;"
+    );
+    const tmp = canvas.style.imageRendering;
+    supportsImageRenderingPixelatedResult = defined_default(tmp) && tmp !== "";
+    if (supportsImageRenderingPixelatedResult) {
+      imageRenderingValueResult = tmp;
+    }
+  }
+  return supportsImageRenderingPixelatedResult;
+}
+function imageRenderingValue() {
+  return supportsImageRenderingPixelated() ? imageRenderingValueResult : void 0;
+}
+function supportsWebP() {
+  if (!supportsWebP.initialized) {
+    throw new DeveloperError_default(
+      "You must call FeatureDetection.supportsWebP.initialize and wait for the promise to resolve before calling FeatureDetection.supportsWebP"
+    );
+  }
+  return supportsWebP._result;
+}
+supportsWebP._promise = void 0;
+supportsWebP._result = void 0;
+supportsWebP.initialize = function() {
+  if (defined_default(supportsWebP._promise)) {
+    return supportsWebP._promise;
+  }
+  supportsWebP._promise = new Promise((resolve) => {
+    const image = new Image();
+    image.onload = function() {
+      supportsWebP._result = image.width > 0 && image.height > 0;
+      resolve(supportsWebP._result);
+    };
+    image.onerror = function() {
+      supportsWebP._result = false;
+      resolve(supportsWebP._result);
+    };
+    image.src = "data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA";
+  });
+  return supportsWebP._promise;
+};
+Object.defineProperties(supportsWebP, {
+  initialized: {
+    get: function() {
+      return defined_default(supportsWebP._result);
+    }
+  }
+});
+var typedArrayTypes = [];
+if (typeof ArrayBuffer !== "undefined") {
+  typedArrayTypes.push(
+    Int8Array,
+    Uint8Array,
+    Int16Array,
+    Uint16Array,
+    Int32Array,
+    Uint32Array,
+    Float32Array,
+    Float64Array
+  );
+  if (typeof Uint8ClampedArray !== "undefined") {
+    typedArrayTypes.push(Uint8ClampedArray);
+  }
+  if (typeof Uint8ClampedArray !== "undefined") {
+    typedArrayTypes.push(Uint8ClampedArray);
+  }
+  if (typeof BigInt64Array !== "undefined") {
+    typedArrayTypes.push(BigInt64Array);
+  }
+  if (typeof BigUint64Array !== "undefined") {
+    typedArrayTypes.push(BigUint64Array);
+  }
+}
+var FeatureDetection = {
+  isChrome,
+  chromeVersion,
+  isSafari,
+  safariVersion,
+  isWebkit,
+  webkitVersion,
+  isInternetExplorer,
+  internetExplorerVersion,
+  isEdge,
+  edgeVersion,
+  isFirefox,
+  firefoxVersion,
+  isWindows,
+  isIPadOrIOS,
+  hardwareConcurrency: defaultValue_default(theNavigator.hardwareConcurrency, 3),
+  supportsPointerEvents,
+  supportsImageRenderingPixelated,
+  supportsWebP,
+  imageRenderingValue,
+  typedArrayTypes
+};
+FeatureDetection.supportsBasis = function(scene) {
+  return FeatureDetection.supportsWebAssembly() && scene.context.supportsBasis;
+};
+FeatureDetection.supportsFullscreen = function() {
+  return Fullscreen_default.supportsFullscreen();
+};
+FeatureDetection.supportsTypedArrays = function() {
+  return typeof ArrayBuffer !== "undefined";
+};
+FeatureDetection.supportsBigInt64Array = function() {
+  return typeof BigInt64Array !== "undefined";
+};
+FeatureDetection.supportsBigUint64Array = function() {
+  return typeof BigUint64Array !== "undefined";
+};
+FeatureDetection.supportsBigInt = function() {
+  return typeof BigInt !== "undefined";
+};
+FeatureDetection.supportsWebWorkers = function() {
+  return typeof Worker !== "undefined";
+};
+FeatureDetection.supportsWebAssembly = function() {
+  return typeof WebAssembly !== "undefined";
+};
+FeatureDetection.supportsWebgl2 = function(scene) {
+  Check_default.defined("scene", scene);
+  return scene.context.webgl2;
+};
+FeatureDetection.supportsEsmWebWorkers = function() {
+  return !isFirefox() || parseInt(firefoxVersionResult) >= 114;
+};
+var FeatureDetection_default = FeatureDetection;
+
+// packages/engine/Source/Core/Color.js
+function hue2rgb(m1, m2, h) {
+  if (h < 0) {
+    h += 1;
+  }
+  if (h > 1) {
+    h -= 1;
+  }
+  if (h * 6 < 1) {
+    return m1 + (m2 - m1) * 6 * h;
+  }
+  if (h * 2 < 1) {
+    return m2;
+  }
+  if (h * 3 < 2) {
+    return m1 + (m2 - m1) * (2 / 3 - h) * 6;
+  }
+  return m1;
+}
+function Color(red, green, blue, alpha) {
+  this.red = defaultValue_default(red, 1);
+  this.green = defaultValue_default(green, 1);
+  this.blue = defaultValue_default(blue, 1);
+  this.alpha = defaultValue_default(alpha, 1);
+}
+Color.fromCartesian4 = function(cartesian, result) {
+  Check_default.typeOf.object("cartesian", cartesian);
+  if (!defined_default(result)) {
+    return new Color(cartesian.x, cartesian.y, cartesian.z, cartesian.w);
+  }
+  result.red = cartesian.x;
+  result.green = cartesian.y;
+  result.blue = cartesian.z;
+  result.alpha = cartesian.w;
+  return result;
+};
+Color.fromBytes = function(red, green, blue, alpha, result) {
+  red = Color.byteToFloat(defaultValue_default(red, 255));
+  green = Color.byteToFloat(defaultValue_default(green, 255));
+  blue = Color.byteToFloat(defaultValue_default(blue, 255));
+  alpha = Color.byteToFloat(defaultValue_default(alpha, 255));
+  if (!defined_default(result)) {
+    return new Color(red, green, blue, alpha);
+  }
+  result.red = red;
+  result.green = green;
+  result.blue = blue;
+  result.alpha = alpha;
+  return result;
+};
+Color.fromAlpha = function(color, alpha, result) {
+  Check_default.typeOf.object("color", color);
+  Check_default.typeOf.number("alpha", alpha);
+  if (!defined_default(result)) {
+    return new Color(color.red, color.green, color.blue, alpha);
+  }
+  result.red = color.red;
+  result.green = color.green;
+  result.blue = color.blue;
+  result.alpha = alpha;
+  return result;
+};
+var scratchArrayBuffer;
+var scratchUint32Array;
+var scratchUint8Array;
+if (FeatureDetection_default.supportsTypedArrays()) {
+  scratchArrayBuffer = new ArrayBuffer(4);
+  scratchUint32Array = new Uint32Array(scratchArrayBuffer);
+  scratchUint8Array = new Uint8Array(scratchArrayBuffer);
+}
+Color.fromRgba = function(rgba, result) {
+  scratchUint32Array[0] = rgba;
+  return Color.fromBytes(
+    scratchUint8Array[0],
+    scratchUint8Array[1],
+    scratchUint8Array[2],
+    scratchUint8Array[3],
+    result
+  );
+};
+Color.fromHsl = function(hue, saturation, lightness, alpha, result) {
+  hue = defaultValue_default(hue, 0) % 1;
+  saturation = defaultValue_default(saturation, 0);
+  lightness = defaultValue_default(lightness, 0);
+  alpha = defaultValue_default(alpha, 1);
+  let red = lightness;
+  let green = lightness;
+  let blue = lightness;
+  if (saturation !== 0) {
+    let m2;
+    if (lightness < 0.5) {
+      m2 = lightness * (1 + saturation);
+    } else {
+      m2 = lightness + saturation - lightness * saturation;
+    }
+    const m1 = 2 * lightness - m2;
+    red = hue2rgb(m1, m2, hue + 1 / 3);
+    green = hue2rgb(m1, m2, hue);
+    blue = hue2rgb(m1, m2, hue - 1 / 3);
+  }
+  if (!defined_default(result)) {
+    return new Color(red, green, blue, alpha);
+  }
+  result.red = red;
+  result.green = green;
+  result.blue = blue;
+  result.alpha = alpha;
+  return result;
+};
+Color.fromRandom = function(options, result) {
+  options = defaultValue_default(options, defaultValue_default.EMPTY_OBJECT);
+  let red = options.red;
+  if (!defined_default(red)) {
+    const minimumRed = defaultValue_default(options.minimumRed, 0);
+    const maximumRed = defaultValue_default(options.maximumRed, 1);
+    Check_default.typeOf.number.lessThanOrEquals("minimumRed", minimumRed, maximumRed);
+    red = minimumRed + Math_default.nextRandomNumber() * (maximumRed - minimumRed);
+  }
+  let green = options.green;
+  if (!defined_default(green)) {
+    const minimumGreen = defaultValue_default(options.minimumGreen, 0);
+    const maximumGreen = defaultValue_default(options.maximumGreen, 1);
+    Check_default.typeOf.number.lessThanOrEquals(
+      "minimumGreen",
+      minimumGreen,
+      maximumGreen
+    );
+    green = minimumGreen + Math_default.nextRandomNumber() * (maximumGreen - minimumGreen);
+  }
+  let blue = options.blue;
+  if (!defined_default(blue)) {
+    const minimumBlue = defaultValue_default(options.minimumBlue, 0);
+    const maximumBlue = defaultValue_default(options.maximumBlue, 1);
+    Check_default.typeOf.number.lessThanOrEquals(
+      "minimumBlue",
+      minimumBlue,
+      maximumBlue
+    );
+    blue = minimumBlue + Math_default.nextRandomNumber() * (maximumBlue - minimumBlue);
+  }
+  let alpha = options.alpha;
+  if (!defined_default(alpha)) {
+    const minimumAlpha = defaultValue_default(options.minimumAlpha, 0);
+    const maximumAlpha = defaultValue_default(options.maximumAlpha, 1);
+    Check_default.typeOf.number.lessThanOrEquals(
+      "minumumAlpha",
+      minimumAlpha,
+      maximumAlpha
+    );
+    alpha = minimumAlpha + Math_default.nextRandomNumber() * (maximumAlpha - minimumAlpha);
+  }
+  if (!defined_default(result)) {
+    return new Color(red, green, blue, alpha);
+  }
+  result.red = red;
+  result.green = green;
+  result.blue = blue;
+  result.alpha = alpha;
+  return result;
+};
+var rgbaMatcher = /^#([0-9a-f])([0-9a-f])([0-9a-f])([0-9a-f])?$/i;
+var rrggbbaaMatcher = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})?$/i;
+var rgbParenthesesMatcher = /^rgba?\s*\(\s*([0-9.]+%?)\s*[,\s]+\s*([0-9.]+%?)\s*[,\s]+\s*([0-9.]+%?)(?:\s*[,\s/]+\s*([0-9.]+))?\s*\)$/i;
+var hslParenthesesMatcher = /^hsla?\s*\(\s*([0-9.]+)\s*[,\s]+\s*([0-9.]+%)\s*[,\s]+\s*([0-9.]+%)(?:\s*[,\s/]+\s*([0-9.]+))?\s*\)$/i;
+Color.fromCssColorString = function(color, result) {
+  Check_default.typeOf.string("color", color);
+  if (!defined_default(result)) {
+    result = new Color();
+  }
+  color = color.trim();
+  const namedColor = Color[color.toUpperCase()];
+  if (defined_default(namedColor)) {
+    Color.clone(namedColor, result);
+    return result;
+  }
+  let matches = rgbaMatcher.exec(color);
+  if (matches !== null) {
+    result.red = parseInt(matches[1], 16) / 15;
+    result.green = parseInt(matches[2], 16) / 15;
+    result.blue = parseInt(matches[3], 16) / 15;
+    result.alpha = parseInt(defaultValue_default(matches[4], "f"), 16) / 15;
+    return result;
+  }
+  matches = rrggbbaaMatcher.exec(color);
+  if (matches !== null) {
+    result.red = parseInt(matches[1], 16) / 255;
+    result.green = parseInt(matches[2], 16) / 255;
+    result.blue = parseInt(matches[3], 16) / 255;
+    result.alpha = parseInt(defaultValue_default(matches[4], "ff"), 16) / 255;
+    return result;
+  }
+  matches = rgbParenthesesMatcher.exec(color);
+  if (matches !== null) {
+    result.red = parseFloat(matches[1]) / ("%" === matches[1].substr(-1) ? 100 : 255);
+    result.green = parseFloat(matches[2]) / ("%" === matches[2].substr(-1) ? 100 : 255);
+    result.blue = parseFloat(matches[3]) / ("%" === matches[3].substr(-1) ? 100 : 255);
+    result.alpha = parseFloat(defaultValue_default(matches[4], "1.0"));
+    return result;
+  }
+  matches = hslParenthesesMatcher.exec(color);
+  if (matches !== null) {
+    return Color.fromHsl(
+      parseFloat(matches[1]) / 360,
+      parseFloat(matches[2]) / 100,
+      parseFloat(matches[3]) / 100,
+      parseFloat(defaultValue_default(matches[4], "1.0")),
+      result
+    );
+  }
+  result = void 0;
+  return result;
+};
+Color.packedLength = 4;
+Color.pack = function(value, array, startingIndex) {
+  Check_default.typeOf.object("value", value);
+  Check_default.defined("array", array);
+  startingIndex = defaultValue_default(startingIndex, 0);
+  array[startingIndex++] = value.red;
+  array[startingIndex++] = value.green;
+  array[startingIndex++] = value.blue;
+  array[startingIndex] = value.alpha;
+  return array;
+};
+Color.unpack = function(array, startingIndex, result) {
+  Check_default.defined("array", array);
+  startingIndex = defaultValue_default(startingIndex, 0);
+  if (!defined_default(result)) {
+    result = new Color();
+  }
+  result.red = array[startingIndex++];
+  result.green = array[startingIndex++];
+  result.blue = array[startingIndex++];
+  result.alpha = array[startingIndex];
+  return result;
+};
+Color.byteToFloat = function(number) {
+  return number / 255;
+};
+Color.floatToByte = function(number) {
+  return number === 1 ? 255 : number * 256 | 0;
+};
+Color.clone = function(color, result) {
+  if (!defined_default(color)) {
+    return void 0;
+  }
+  if (!defined_default(result)) {
+    return new Color(color.red, color.green, color.blue, color.alpha);
+  }
+  result.red = color.red;
+  result.green = color.green;
+  result.blue = color.blue;
+  result.alpha = color.alpha;
+  return result;
+};
+Color.equals = function(left, right) {
+  return left === right || //
+  defined_default(left) && //
+  defined_default(right) && //
+  left.red === right.red && //
+  left.green === right.green && //
+  left.blue === right.blue && //
+  left.alpha === right.alpha;
+};
+Color.equalsArray = function(color, array, offset) {
+  return color.red === array[offset] && color.green === array[offset + 1] && color.blue === array[offset + 2] && color.alpha === array[offset + 3];
+};
+Color.prototype.clone = function(result) {
+  return Color.clone(this, result);
+};
+Color.prototype.equals = function(other) {
+  return Color.equals(this, other);
+};
+Color.prototype.equalsEpsilon = function(other, epsilon) {
+  return this === other || //
+  defined_default(other) && //
+  Math.abs(this.red - other.red) <= epsilon && //
+  Math.abs(this.green - other.green) <= epsilon && //
+  Math.abs(this.blue - other.blue) <= epsilon && //
+  Math.abs(this.alpha - other.alpha) <= epsilon;
+};
+Color.prototype.toString = function() {
+  return `(${this.red}, ${this.green}, ${this.blue}, ${this.alpha})`;
+};
+Color.prototype.toCssColorString = function() {
+  const red = Color.floatToByte(this.red);
+  const green = Color.floatToByte(this.green);
+  const blue = Color.floatToByte(this.blue);
+  if (this.alpha === 1) {
+    return `rgb(${red},${green},${blue})`;
+  }
+  return `rgba(${red},${green},${blue},${this.alpha})`;
+};
+Color.prototype.toCssHexString = function() {
+  let r = Color.floatToByte(this.red).toString(16);
+  if (r.length < 2) {
+    r = `0${r}`;
+  }
+  let g = Color.floatToByte(this.green).toString(16);
+  if (g.length < 2) {
+    g = `0${g}`;
+  }
+  let b = Color.floatToByte(this.blue).toString(16);
+  if (b.length < 2) {
+    b = `0${b}`;
+  }
+  if (this.alpha < 1) {
+    let hexAlpha = Color.floatToByte(this.alpha).toString(16);
+    if (hexAlpha.length < 2) {
+      hexAlpha = `0${hexAlpha}`;
+    }
+    return `#${r}${g}${b}${hexAlpha}`;
+  }
+  return `#${r}${g}${b}`;
+};
+Color.prototype.toBytes = function(result) {
+  const red = Color.floatToByte(this.red);
+  const green = Color.floatToByte(this.green);
+  const blue = Color.floatToByte(this.blue);
+  const alpha = Color.floatToByte(this.alpha);
+  if (!defined_default(result)) {
+    return [red, green, blue, alpha];
+  }
+  result[0] = red;
+  result[1] = green;
+  result[2] = blue;
+  result[3] = alpha;
+  return result;
+};
+Color.prototype.toRgba = function() {
+  scratchUint8Array[0] = Color.floatToByte(this.red);
+  scratchUint8Array[1] = Color.floatToByte(this.green);
+  scratchUint8Array[2] = Color.floatToByte(this.blue);
+  scratchUint8Array[3] = Color.floatToByte(this.alpha);
+  return scratchUint32Array[0];
+};
+Color.prototype.brighten = function(magnitude, result) {
+  Check_default.typeOf.number("magnitude", magnitude);
+  Check_default.typeOf.number.greaterThanOrEquals("magnitude", magnitude, 0);
+  Check_default.typeOf.object("result", result);
+  magnitude = 1 - magnitude;
+  result.red = 1 - (1 - this.red) * magnitude;
+  result.green = 1 - (1 - this.green) * magnitude;
+  result.blue = 1 - (1 - this.blue) * magnitude;
+  result.alpha = this.alpha;
+  return result;
+};
+Color.prototype.darken = function(magnitude, result) {
+  Check_default.typeOf.number("magnitude", magnitude);
+  Check_default.typeOf.number.greaterThanOrEquals("magnitude", magnitude, 0);
+  Check_default.typeOf.object("result", result);
+  magnitude = 1 - magnitude;
+  result.red = this.red * magnitude;
+  result.green = this.green * magnitude;
+  result.blue = this.blue * magnitude;
+  result.alpha = this.alpha;
+  return result;
+};
+Color.prototype.withAlpha = function(alpha, result) {
+  return Color.fromAlpha(this, alpha, result);
+};
+Color.add = function(left, right, result) {
+  Check_default.typeOf.object("left", left);
+  Check_default.typeOf.object("right", right);
+  Check_default.typeOf.object("result", result);
+  result.red = left.red + right.red;
+  result.green = left.green + right.green;
+  result.blue = left.blue + right.blue;
+  result.alpha = left.alpha + right.alpha;
+  return result;
+};
+Color.subtract = function(left, right, result) {
+  Check_default.typeOf.object("left", left);
+  Check_default.typeOf.object("right", right);
+  Check_default.typeOf.object("result", result);
+  result.red = left.red - right.red;
+  result.green = left.green - right.green;
+  result.blue = left.blue - right.blue;
+  result.alpha = left.alpha - right.alpha;
+  return result;
+};
+Color.multiply = function(left, right, result) {
+  Check_default.typeOf.object("left", left);
+  Check_default.typeOf.object("right", right);
+  Check_default.typeOf.object("result", result);
+  result.red = left.red * right.red;
+  result.green = left.green * right.green;
+  result.blue = left.blue * right.blue;
+  result.alpha = left.alpha * right.alpha;
+  return result;
+};
+Color.divide = function(left, right, result) {
+  Check_default.typeOf.object("left", left);
+  Check_default.typeOf.object("right", right);
+  Check_default.typeOf.object("result", result);
+  result.red = left.red / right.red;
+  result.green = left.green / right.green;
+  result.blue = left.blue / right.blue;
+  result.alpha = left.alpha / right.alpha;
+  return result;
+};
+Color.mod = function(left, right, result) {
+  Check_default.typeOf.object("left", left);
+  Check_default.typeOf.object("right", right);
+  Check_default.typeOf.object("result", result);
+  result.red = left.red % right.red;
+  result.green = left.green % right.green;
+  result.blue = left.blue % right.blue;
+  result.alpha = left.alpha % right.alpha;
+  return result;
+};
+Color.lerp = function(start, end, t, result) {
+  Check_default.typeOf.object("start", start);
+  Check_default.typeOf.object("end", end);
+  Check_default.typeOf.number("t", t);
+  Check_default.typeOf.object("result", result);
+  result.red = Math_default.lerp(start.red, end.red, t);
+  result.green = Math_default.lerp(start.green, end.green, t);
+  result.blue = Math_default.lerp(start.blue, end.blue, t);
+  result.alpha = Math_default.lerp(start.alpha, end.alpha, t);
+  return result;
+};
+Color.multiplyByScalar = function(color, scalar, result) {
+  Check_default.typeOf.object("color", color);
+  Check_default.typeOf.number("scalar", scalar);
+  Check_default.typeOf.object("result", result);
+  result.red = color.red * scalar;
+  result.green = color.green * scalar;
+  result.blue = color.blue * scalar;
+  result.alpha = color.alpha * scalar;
+  return result;
+};
+Color.divideByScalar = function(color, scalar, result) {
+  Check_default.typeOf.object("color", color);
+  Check_default.typeOf.number("scalar", scalar);
+  Check_default.typeOf.object("result", result);
+  result.red = color.red / scalar;
+  result.green = color.green / scalar;
+  result.blue = color.blue / scalar;
+  result.alpha = color.alpha / scalar;
+  return result;
+};
+Color.ALICEBLUE = Object.freeze(Color.fromCssColorString("#F0F8FF"));
+Color.ANTIQUEWHITE = Object.freeze(Color.fromCssColorString("#FAEBD7"));
+Color.AQUA = Object.freeze(Color.fromCssColorString("#00FFFF"));
+Color.AQUAMARINE = Object.freeze(Color.fromCssColorString("#7FFFD4"));
+Color.AZURE = Object.freeze(Color.fromCssColorString("#F0FFFF"));
+Color.BEIGE = Object.freeze(Color.fromCssColorString("#F5F5DC"));
+Color.BISQUE = Object.freeze(Color.fromCssColorString("#FFE4C4"));
+Color.BLACK = Object.freeze(Color.fromCssColorString("#000000"));
+Color.BLANCHEDALMOND = Object.freeze(Color.fromCssColorString("#FFEBCD"));
+Color.BLUE = Object.freeze(Color.fromCssColorString("#0000FF"));
+Color.BLUEVIOLET = Object.freeze(Color.fromCssColorString("#8A2BE2"));
+Color.BROWN = Object.freeze(Color.fromCssColorString("#A52A2A"));
+Color.BURLYWOOD = Object.freeze(Color.fromCssColorString("#DEB887"));
+Color.CADETBLUE = Object.freeze(Color.fromCssColorString("#5F9EA0"));
+Color.CHARTREUSE = Object.freeze(Color.fromCssColorString("#7FFF00"));
+Color.CHOCOLATE = Object.freeze(Color.fromCssColorString("#D2691E"));
+Color.CORAL = Object.freeze(Color.fromCssColorString("#FF7F50"));
+Color.CORNFLOWERBLUE = Object.freeze(Color.fromCssColorString("#6495ED"));
+Color.CORNSILK = Object.freeze(Color.fromCssColorString("#FFF8DC"));
+Color.CRIMSON = Object.freeze(Color.fromCssColorString("#DC143C"));
+Color.CYAN = Object.freeze(Color.fromCssColorString("#00FFFF"));
+Color.DARKBLUE = Object.freeze(Color.fromCssColorString("#00008B"));
+Color.DARKCYAN = Object.freeze(Color.fromCssColorString("#008B8B"));
+Color.DARKGOLDENROD = Object.freeze(Color.fromCssColorString("#B8860B"));
+Color.DARKGRAY = Object.freeze(Color.fromCssColorString("#A9A9A9"));
+Color.DARKGREEN = Object.freeze(Color.fromCssColorString("#006400"));
+Color.DARKGREY = Color.DARKGRAY;
+Color.DARKKHAKI = Object.freeze(Color.fromCssColorString("#BDB76B"));
+Color.DARKMAGENTA = Object.freeze(Color.fromCssColorString("#8B008B"));
+Color.DARKOLIVEGREEN = Object.freeze(Color.fromCssColorString("#556B2F"));
+Color.DARKORANGE = Object.freeze(Color.fromCssColorString("#FF8C00"));
+Color.DARKORCHID = Object.freeze(Color.fromCssColorString("#9932CC"));
+Color.DARKRED = Object.freeze(Color.fromCssColorString("#8B0000"));
+Color.DARKSALMON = Object.freeze(Color.fromCssColorString("#E9967A"));
+Color.DARKSEAGREEN = Object.freeze(Color.fromCssColorString("#8FBC8F"));
+Color.DARKSLATEBLUE = Object.freeze(Color.fromCssColorString("#483D8B"));
+Color.DARKSLATEGRAY = Object.freeze(Color.fromCssColorString("#2F4F4F"));
+Color.DARKSLATEGREY = Color.DARKSLATEGRAY;
+Color.DARKTURQUOISE = Object.freeze(Color.fromCssColorString("#00CED1"));
+Color.DARKVIOLET = Object.freeze(Color.fromCssColorString("#9400D3"));
+Color.DEEPPINK = Object.freeze(Color.fromCssColorString("#FF1493"));
+Color.DEEPSKYBLUE = Object.freeze(Color.fromCssColorString("#00BFFF"));
+Color.DIMGRAY = Object.freeze(Color.fromCssColorString("#696969"));
+Color.DIMGREY = Color.DIMGRAY;
+Color.DODGERBLUE = Object.freeze(Color.fromCssColorString("#1E90FF"));
+Color.FIREBRICK = Object.freeze(Color.fromCssColorString("#B22222"));
+Color.FLORALWHITE = Object.freeze(Color.fromCssColorString("#FFFAF0"));
+Color.FORESTGREEN = Object.freeze(Color.fromCssColorString("#228B22"));
+Color.FUCHSIA = Object.freeze(Color.fromCssColorString("#FF00FF"));
+Color.GAINSBORO = Object.freeze(Color.fromCssColorString("#DCDCDC"));
+Color.GHOSTWHITE = Object.freeze(Color.fromCssColorString("#F8F8FF"));
+Color.GOLD = Object.freeze(Color.fromCssColorString("#FFD700"));
+Color.GOLDENROD = Object.freeze(Color.fromCssColorString("#DAA520"));
+Color.GRAY = Object.freeze(Color.fromCssColorString("#808080"));
+Color.GREEN = Object.freeze(Color.fromCssColorString("#008000"));
+Color.GREENYELLOW = Object.freeze(Color.fromCssColorString("#ADFF2F"));
+Color.GREY = Color.GRAY;
+Color.HONEYDEW = Object.freeze(Color.fromCssColorString("#F0FFF0"));
+Color.HOTPINK = Object.freeze(Color.fromCssColorString("#FF69B4"));
+Color.INDIANRED = Object.freeze(Color.fromCssColorString("#CD5C5C"));
+Color.INDIGO = Object.freeze(Color.fromCssColorString("#4B0082"));
+Color.IVORY = Object.freeze(Color.fromCssColorString("#FFFFF0"));
+Color.KHAKI = Object.freeze(Color.fromCssColorString("#F0E68C"));
+Color.LAVENDER = Object.freeze(Color.fromCssColorString("#E6E6FA"));
+Color.LAVENDAR_BLUSH = Object.freeze(Color.fromCssColorString("#FFF0F5"));
+Color.LAWNGREEN = Object.freeze(Color.fromCssColorString("#7CFC00"));
+Color.LEMONCHIFFON = Object.freeze(Color.fromCssColorString("#FFFACD"));
+Color.LIGHTBLUE = Object.freeze(Color.fromCssColorString("#ADD8E6"));
+Color.LIGHTCORAL = Object.freeze(Color.fromCssColorString("#F08080"));
+Color.LIGHTCYAN = Object.freeze(Color.fromCssColorString("#E0FFFF"));
+Color.LIGHTGOLDENRODYELLOW = Object.freeze(Color.fromCssColorString("#FAFAD2"));
+Color.LIGHTGRAY = Object.freeze(Color.fromCssColorString("#D3D3D3"));
+Color.LIGHTGREEN = Object.freeze(Color.fromCssColorString("#90EE90"));
+Color.LIGHTGREY = Color.LIGHTGRAY;
+Color.LIGHTPINK = Object.freeze(Color.fromCssColorString("#FFB6C1"));
+Color.LIGHTSEAGREEN = Object.freeze(Color.fromCssColorString("#20B2AA"));
+Color.LIGHTSKYBLUE = Object.freeze(Color.fromCssColorString("#87CEFA"));
+Color.LIGHTSLATEGRAY = Object.freeze(Color.fromCssColorString("#778899"));
+Color.LIGHTSLATEGREY = Color.LIGHTSLATEGRAY;
+Color.LIGHTSTEELBLUE = Object.freeze(Color.fromCssColorString("#B0C4DE"));
+Color.LIGHTYELLOW = Object.freeze(Color.fromCssColorString("#FFFFE0"));
+Color.LIME = Object.freeze(Color.fromCssColorString("#00FF00"));
+Color.LIMEGREEN = Object.freeze(Color.fromCssColorString("#32CD32"));
+Color.LINEN = Object.freeze(Color.fromCssColorString("#FAF0E6"));
+Color.MAGENTA = Object.freeze(Color.fromCssColorString("#FF00FF"));
+Color.MAROON = Object.freeze(Color.fromCssColorString("#800000"));
+Color.MEDIUMAQUAMARINE = Object.freeze(Color.fromCssColorString("#66CDAA"));
+Color.MEDIUMBLUE = Object.freeze(Color.fromCssColorString("#0000CD"));
+Color.MEDIUMORCHID = Object.freeze(Color.fromCssColorString("#BA55D3"));
+Color.MEDIUMPURPLE = Object.freeze(Color.fromCssColorString("#9370DB"));
+Color.MEDIUMSEAGREEN = Object.freeze(Color.fromCssColorString("#3CB371"));
+Color.MEDIUMSLATEBLUE = Object.freeze(Color.fromCssColorString("#7B68EE"));
+Color.MEDIUMSPRINGGREEN = Object.freeze(Color.fromCssColorString("#00FA9A"));
+Color.MEDIUMTURQUOISE = Object.freeze(Color.fromCssColorString("#48D1CC"));
+Color.MEDIUMVIOLETRED = Object.freeze(Color.fromCssColorString("#C71585"));
+Color.MIDNIGHTBLUE = Object.freeze(Color.fromCssColorString("#191970"));
+Color.MINTCREAM = Object.freeze(Color.fromCssColorString("#F5FFFA"));
+Color.MISTYROSE = Object.freeze(Color.fromCssColorString("#FFE4E1"));
+Color.MOCCASIN = Object.freeze(Color.fromCssColorString("#FFE4B5"));
+Color.NAVAJOWHITE = Object.freeze(Color.fromCssColorString("#FFDEAD"));
+Color.NAVY = Object.freeze(Color.fromCssColorString("#000080"));
+Color.OLDLACE = Object.freeze(Color.fromCssColorString("#FDF5E6"));
+Color.OLIVE = Object.freeze(Color.fromCssColorString("#808000"));
+Color.OLIVEDRAB = Object.freeze(Color.fromCssColorString("#6B8E23"));
+Color.ORANGE = Object.freeze(Color.fromCssColorString("#FFA500"));
+Color.ORANGERED = Object.freeze(Color.fromCssColorString("#FF4500"));
+Color.ORCHID = Object.freeze(Color.fromCssColorString("#DA70D6"));
+Color.PALEGOLDENROD = Object.freeze(Color.fromCssColorString("#EEE8AA"));
+Color.PALEGREEN = Object.freeze(Color.fromCssColorString("#98FB98"));
+Color.PALETURQUOISE = Object.freeze(Color.fromCssColorString("#AFEEEE"));
+Color.PALEVIOLETRED = Object.freeze(Color.fromCssColorString("#DB7093"));
+Color.PAPAYAWHIP = Object.freeze(Color.fromCssColorString("#FFEFD5"));
+Color.PEACHPUFF = Object.freeze(Color.fromCssColorString("#FFDAB9"));
+Color.PERU = Object.freeze(Color.fromCssColorString("#CD853F"));
+Color.PINK = Object.freeze(Color.fromCssColorString("#FFC0CB"));
+Color.PLUM = Object.freeze(Color.fromCssColorString("#DDA0DD"));
+Color.POWDERBLUE = Object.freeze(Color.fromCssColorString("#B0E0E6"));
+Color.PURPLE = Object.freeze(Color.fromCssColorString("#800080"));
+Color.RED = Object.freeze(Color.fromCssColorString("#FF0000"));
+Color.ROSYBROWN = Object.freeze(Color.fromCssColorString("#BC8F8F"));
+Color.ROYALBLUE = Object.freeze(Color.fromCssColorString("#4169E1"));
+Color.SADDLEBROWN = Object.freeze(Color.fromCssColorString("#8B4513"));
+Color.SALMON = Object.freeze(Color.fromCssColorString("#FA8072"));
+Color.SANDYBROWN = Object.freeze(Color.fromCssColorString("#F4A460"));
+Color.SEAGREEN = Object.freeze(Color.fromCssColorString("#2E8B57"));
+Color.SEASHELL = Object.freeze(Color.fromCssColorString("#FFF5EE"));
+Color.SIENNA = Object.freeze(Color.fromCssColorString("#A0522D"));
+Color.SILVER = Object.freeze(Color.fromCssColorString("#C0C0C0"));
+Color.SKYBLUE = Object.freeze(Color.fromCssColorString("#87CEEB"));
+Color.SLATEBLUE = Object.freeze(Color.fromCssColorString("#6A5ACD"));
+Color.SLATEGRAY = Object.freeze(Color.fromCssColorString("#708090"));
+Color.SLATEGREY = Color.SLATEGRAY;
+Color.SNOW = Object.freeze(Color.fromCssColorString("#FFFAFA"));
+Color.SPRINGGREEN = Object.freeze(Color.fromCssColorString("#00FF7F"));
+Color.STEELBLUE = Object.freeze(Color.fromCssColorString("#4682B4"));
+Color.TAN = Object.freeze(Color.fromCssColorString("#D2B48C"));
+Color.TEAL = Object.freeze(Color.fromCssColorString("#008080"));
+Color.THISTLE = Object.freeze(Color.fromCssColorString("#D8BFD8"));
+Color.TOMATO = Object.freeze(Color.fromCssColorString("#FF6347"));
+Color.TURQUOISE = Object.freeze(Color.fromCssColorString("#40E0D0"));
+Color.VIOLET = Object.freeze(Color.fromCssColorString("#EE82EE"));
+Color.WHEAT = Object.freeze(Color.fromCssColorString("#F5DEB3"));
+Color.WHITE = Object.freeze(Color.fromCssColorString("#FFFFFF"));
+Color.WHITESMOKE = Object.freeze(Color.fromCssColorString("#F5F5F5"));
+Color.YELLOW = Object.freeze(Color.fromCssColorString("#FFFF00"));
+Color.YELLOWGREEN = Object.freeze(Color.fromCssColorString("#9ACD32"));
+Color.TRANSPARENT = Object.freeze(new Color(0, 0, 0, 0));
+var Color_default = Color;
+
+// packages/engine/Source/Renderer/ClearCommand.js
+function ClearCommand(options) {
+  options = defaultValue_default(options, defaultValue_default.EMPTY_OBJECT);
+  this.color = options.color;
+  this.depth = options.depth;
+  this.stencil = options.stencil;
+  this.renderState = options.renderState;
+  this.framebuffer = options.framebuffer;
+  this.owner = options.owner;
+  this.pass = options.pass;
+}
+ClearCommand.ALL = Object.freeze(
+  new ClearCommand({
+    color: new Color_default(0, 0, 0, 0),
+    depth: 1,
+    stencil: 0
+  })
+);
+ClearCommand.prototype.execute = function(context, passState) {
+  context.clear(this, passState);
+};
+var ClearCommand_default = ClearCommand;
+
+// packages/engine/Source/Core/Cartesian2.js
+function Cartesian2(x, y) {
+  this.x = defaultValue_default(x, 0);
+  this.y = defaultValue_default(y, 0);
+}
+Cartesian2.fromElements = function(x, y, result) {
+  if (!defined_default(result)) {
+    return new Cartesian2(x, y);
+  }
+  result.x = x;
+  result.y = y;
+  return result;
+};
+Cartesian2.clone = function(cartesian, result) {
+  if (!defined_default(cartesian)) {
+    return void 0;
+  }
+  if (!defined_default(result)) {
+    return new Cartesian2(cartesian.x, cartesian.y);
+  }
+  result.x = cartesian.x;
+  result.y = cartesian.y;
+  return result;
+};
+Cartesian2.fromCartesian3 = Cartesian2.clone;
+Cartesian2.fromCartesian4 = Cartesian2.clone;
+Cartesian2.packedLength = 2;
+Cartesian2.pack = function(value, array, startingIndex) {
+  Check_default.typeOf.object("value", value);
+  Check_default.defined("array", array);
+  startingIndex = defaultValue_default(startingIndex, 0);
+  array[startingIndex++] = value.x;
+  array[startingIndex] = value.y;
+  return array;
+};
+Cartesian2.unpack = function(array, startingIndex, result) {
+  Check_default.defined("array", array);
+  startingIndex = defaultValue_default(startingIndex, 0);
+  if (!defined_default(result)) {
+    result = new Cartesian2();
+  }
+  result.x = array[startingIndex++];
+  result.y = array[startingIndex];
+  return result;
+};
+Cartesian2.packArray = function(array, result) {
+  Check_default.defined("array", array);
+  const length = array.length;
+  const resultLength = length * 2;
+  if (!defined_default(result)) {
+    result = new Array(resultLength);
+  } else if (!Array.isArray(result) && result.length !== resultLength) {
+    throw new DeveloperError_default(
+      "If result is a typed array, it must have exactly array.length * 2 elements"
+    );
+  } else if (result.length !== resultLength) {
+    result.length = resultLength;
+  }
+  for (let i = 0; i < length; ++i) {
+    Cartesian2.pack(array[i], result, i * 2);
+  }
+  return result;
+};
+Cartesian2.unpackArray = function(array, result) {
+  Check_default.defined("array", array);
+  Check_default.typeOf.number.greaterThanOrEquals("array.length", array.length, 2);
+  if (array.length % 2 !== 0) {
+    throw new DeveloperError_default("array length must be a multiple of 2.");
+  }
+  const length = array.length;
+  if (!defined_default(result)) {
+    result = new Array(length / 2);
+  } else {
+    result.length = length / 2;
+  }
+  for (let i = 0; i < length; i += 2) {
+    const index = i / 2;
+    result[index] = Cartesian2.unpack(array, i, result[index]);
+  }
+  return result;
+};
+Cartesian2.fromArray = Cartesian2.unpack;
+Cartesian2.maximumComponent = function(cartesian) {
+  Check_default.typeOf.object("cartesian", cartesian);
+  return Math.max(cartesian.x, cartesian.y);
+};
+Cartesian2.minimumComponent = function(cartesian) {
+  Check_default.typeOf.object("cartesian", cartesian);
+  return Math.min(cartesian.x, cartesian.y);
+};
+Cartesian2.minimumByComponent = function(first, second, result) {
+  Check_default.typeOf.object("first", first);
+  Check_default.typeOf.object("second", second);
+  Check_default.typeOf.object("result", result);
+  result.x = Math.min(first.x, second.x);
+  result.y = Math.min(first.y, second.y);
+  return result;
+};
+Cartesian2.maximumByComponent = function(first, second, result) {
+  Check_default.typeOf.object("first", first);
+  Check_default.typeOf.object("second", second);
+  Check_default.typeOf.object("result", result);
+  result.x = Math.max(first.x, second.x);
+  result.y = Math.max(first.y, second.y);
+  return result;
+};
+Cartesian2.clamp = function(value, min, max, result) {
+  Check_default.typeOf.object("value", value);
+  Check_default.typeOf.object("min", min);
+  Check_default.typeOf.object("max", max);
+  Check_default.typeOf.object("result", result);
+  const x = Math_default.clamp(value.x, min.x, max.x);
+  const y = Math_default.clamp(value.y, min.y, max.y);
+  result.x = x;
+  result.y = y;
+  return result;
+};
+Cartesian2.magnitudeSquared = function(cartesian) {
+  Check_default.typeOf.object("cartesian", cartesian);
+  return cartesian.x * cartesian.x + cartesian.y * cartesian.y;
+};
+Cartesian2.magnitude = function(cartesian) {
+  return Math.sqrt(Cartesian2.magnitudeSquared(cartesian));
+};
+var distanceScratch3 = new Cartesian2();
+Cartesian2.distance = function(left, right) {
+  Check_default.typeOf.object("left", left);
+  Check_default.typeOf.object("right", right);
+  Cartesian2.subtract(left, right, distanceScratch3);
+  return Cartesian2.magnitude(distanceScratch3);
+};
+Cartesian2.distanceSquared = function(left, right) {
+  Check_default.typeOf.object("left", left);
+  Check_default.typeOf.object("right", right);
+  Cartesian2.subtract(left, right, distanceScratch3);
+  return Cartesian2.magnitudeSquared(distanceScratch3);
+};
+Cartesian2.normalize = function(cartesian, result) {
+  Check_default.typeOf.object("cartesian", cartesian);
+  Check_default.typeOf.object("result", result);
+  const magnitude = Cartesian2.magnitude(cartesian);
+  result.x = cartesian.x / magnitude;
+  result.y = cartesian.y / magnitude;
+  if (isNaN(result.x) || isNaN(result.y)) {
+    throw new DeveloperError_default("normalized result is not a number");
+  }
+  return result;
+};
+Cartesian2.dot = function(left, right) {
+  Check_default.typeOf.object("left", left);
+  Check_default.typeOf.object("right", right);
+  return left.x * right.x + left.y * right.y;
+};
+Cartesian2.cross = function(left, right) {
+  Check_default.typeOf.object("left", left);
+  Check_default.typeOf.object("right", right);
+  return left.x * right.y - left.y * right.x;
+};
+Cartesian2.multiplyComponents = function(left, right, result) {
+  Check_default.typeOf.object("left", left);
+  Check_default.typeOf.object("right", right);
+  Check_default.typeOf.object("result", result);
+  result.x = left.x * right.x;
+  result.y = left.y * right.y;
+  return result;
+};
+Cartesian2.divideComponents = function(left, right, result) {
+  Check_default.typeOf.object("left", left);
+  Check_default.typeOf.object("right", right);
+  Check_default.typeOf.object("result", result);
+  result.x = left.x / right.x;
+  result.y = left.y / right.y;
+  return result;
+};
+Cartesian2.add = function(left, right, result) {
+  Check_default.typeOf.object("left", left);
+  Check_default.typeOf.object("right", right);
+  Check_default.typeOf.object("result", result);
+  result.x = left.x + right.x;
+  result.y = left.y + right.y;
+  return result;
+};
+Cartesian2.subtract = function(left, right, result) {
+  Check_default.typeOf.object("left", left);
+  Check_default.typeOf.object("right", right);
+  Check_default.typeOf.object("result", result);
+  result.x = left.x - right.x;
+  result.y = left.y - right.y;
+  return result;
+};
+Cartesian2.multiplyByScalar = function(cartesian, scalar, result) {
+  Check_default.typeOf.object("cartesian", cartesian);
+  Check_default.typeOf.number("scalar", scalar);
+  Check_default.typeOf.object("result", result);
+  result.x = cartesian.x * scalar;
+  result.y = cartesian.y * scalar;
+  return result;
+};
+Cartesian2.divideByScalar = function(cartesian, scalar, result) {
+  Check_default.typeOf.object("cartesian", cartesian);
+  Check_default.typeOf.number("scalar", scalar);
+  Check_default.typeOf.object("result", result);
+  result.x = cartesian.x / scalar;
+  result.y = cartesian.y / scalar;
+  return result;
+};
+Cartesian2.negate = function(cartesian, result) {
+  Check_default.typeOf.object("cartesian", cartesian);
+  Check_default.typeOf.object("result", result);
+  result.x = -cartesian.x;
+  result.y = -cartesian.y;
+  return result;
+};
+Cartesian2.abs = function(cartesian, result) {
+  Check_default.typeOf.object("cartesian", cartesian);
+  Check_default.typeOf.object("result", result);
+  result.x = Math.abs(cartesian.x);
+  result.y = Math.abs(cartesian.y);
+  return result;
+};
+var lerpScratch3 = new Cartesian2();
+Cartesian2.lerp = function(start, end, t, result) {
+  Check_default.typeOf.object("start", start);
+  Check_default.typeOf.object("end", end);
+  Check_default.typeOf.number("t", t);
+  Check_default.typeOf.object("result", result);
+  Cartesian2.multiplyByScalar(end, t, lerpScratch3);
+  result = Cartesian2.multiplyByScalar(start, 1 - t, result);
+  return Cartesian2.add(lerpScratch3, result, result);
+};
+var angleBetweenScratch3 = new Cartesian2();
+var angleBetweenScratch22 = new Cartesian2();
+Cartesian2.angleBetween = function(left, right) {
+  Check_default.typeOf.object("left", left);
+  Check_default.typeOf.object("right", right);
+  Cartesian2.normalize(left, angleBetweenScratch3);
+  Cartesian2.normalize(right, angleBetweenScratch22);
+  return Math_default.acosClamped(
+    Cartesian2.dot(angleBetweenScratch3, angleBetweenScratch22)
+  );
+};
+var mostOrthogonalAxisScratch3 = new Cartesian2();
+Cartesian2.mostOrthogonalAxis = function(cartesian, result) {
+  Check_default.typeOf.object("cartesian", cartesian);
+  Check_default.typeOf.object("result", result);
+  const f = Cartesian2.normalize(cartesian, mostOrthogonalAxisScratch3);
+  Cartesian2.abs(f, f);
+  if (f.x <= f.y) {
+    result = Cartesian2.clone(Cartesian2.UNIT_X, result);
+  } else {
+    result = Cartesian2.clone(Cartesian2.UNIT_Y, result);
+  }
+  return result;
+};
+Cartesian2.equals = function(left, right) {
+  return left === right || defined_default(left) && defined_default(right) && left.x === right.x && left.y === right.y;
+};
+Cartesian2.equalsArray = function(cartesian, array, offset) {
+  return cartesian.x === array[offset] && cartesian.y === array[offset + 1];
+};
+Cartesian2.equalsEpsilon = function(left, right, relativeEpsilon, absoluteEpsilon) {
+  return left === right || defined_default(left) && defined_default(right) && Math_default.equalsEpsilon(
+    left.x,
+    right.x,
+    relativeEpsilon,
+    absoluteEpsilon
+  ) && Math_default.equalsEpsilon(
+    left.y,
+    right.y,
+    relativeEpsilon,
+    absoluteEpsilon
+  );
+};
+Cartesian2.ZERO = Object.freeze(new Cartesian2(0, 0));
+Cartesian2.ONE = Object.freeze(new Cartesian2(1, 1));
+Cartesian2.UNIT_X = Object.freeze(new Cartesian2(1, 0));
+Cartesian2.UNIT_Y = Object.freeze(new Cartesian2(0, 1));
+Cartesian2.prototype.clone = function(result) {
+  return Cartesian2.clone(this, result);
+};
+Cartesian2.prototype.equals = function(right) {
+  return Cartesian2.equals(this, right);
+};
+Cartesian2.prototype.equalsEpsilon = function(right, relativeEpsilon, absoluteEpsilon) {
+  return Cartesian2.equalsEpsilon(
+    this,
+    right,
+    relativeEpsilon,
+    absoluteEpsilon
+  );
+};
+Cartesian2.prototype.toString = function() {
+  return `(${this.x}, ${this.y})`;
+};
+var Cartesian2_default = Cartesian2;
+
+// packages/engine/Source/Core/scaleToGeodeticSurface.js
+var scaleToGeodeticSurfaceIntersection = new Cartesian3_default();
+var scaleToGeodeticSurfaceGradient = new Cartesian3_default();
+function scaleToGeodeticSurface(cartesian, oneOverRadii, oneOverRadiiSquared, centerToleranceSquared, result) {
+  if (!defined_default(cartesian)) {
+    throw new DeveloperError_default("cartesian is required.");
+  }
+  if (!defined_default(oneOverRadii)) {
+    throw new DeveloperError_default("oneOverRadii is required.");
+  }
+  if (!defined_default(oneOverRadiiSquared)) {
+    throw new DeveloperError_default("oneOverRadiiSquared is required.");
+  }
+  if (!defined_default(centerToleranceSquared)) {
+    throw new DeveloperError_default("centerToleranceSquared is required.");
+  }
+  const positionX = cartesian.x;
+  const positionY = cartesian.y;
+  const positionZ = cartesian.z;
+  const oneOverRadiiX = oneOverRadii.x;
+  const oneOverRadiiY = oneOverRadii.y;
+  const oneOverRadiiZ = oneOverRadii.z;
+  const x2 = positionX * positionX * oneOverRadiiX * oneOverRadiiX;
+  const y2 = positionY * positionY * oneOverRadiiY * oneOverRadiiY;
+  const z2 = positionZ * positionZ * oneOverRadiiZ * oneOverRadiiZ;
+  const squaredNorm = x2 + y2 + z2;
+  const ratio = Math.sqrt(1 / squaredNorm);
+  const intersection = Cartesian3_default.multiplyByScalar(
+    cartesian,
+    ratio,
+    scaleToGeodeticSurfaceIntersection
+  );
+  if (squaredNorm < centerToleranceSquared) {
+    return !isFinite(ratio) ? void 0 : Cartesian3_default.clone(intersection, result);
+  }
+  const oneOverRadiiSquaredX = oneOverRadiiSquared.x;
+  const oneOverRadiiSquaredY = oneOverRadiiSquared.y;
+  const oneOverRadiiSquaredZ = oneOverRadiiSquared.z;
+  const gradient = scaleToGeodeticSurfaceGradient;
+  gradient.x = intersection.x * oneOverRadiiSquaredX * 2;
+  gradient.y = intersection.y * oneOverRadiiSquaredY * 2;
+  gradient.z = intersection.z * oneOverRadiiSquaredZ * 2;
+  let lambda = (1 - ratio) * Cartesian3_default.magnitude(cartesian) / (0.5 * Cartesian3_default.magnitude(gradient));
+  let correction = 0;
+  let func;
+  let denominator;
+  let xMultiplier;
+  let yMultiplier;
+  let zMultiplier;
+  let xMultiplier2;
+  let yMultiplier2;
+  let zMultiplier2;
+  let xMultiplier3;
+  let yMultiplier3;
+  let zMultiplier3;
+  do {
+    lambda -= correction;
+    xMultiplier = 1 / (1 + lambda * oneOverRadiiSquaredX);
+    yMultiplier = 1 / (1 + lambda * oneOverRadiiSquaredY);
+    zMultiplier = 1 / (1 + lambda * oneOverRadiiSquaredZ);
+    xMultiplier2 = xMultiplier * xMultiplier;
+    yMultiplier2 = yMultiplier * yMultiplier;
+    zMultiplier2 = zMultiplier * zMultiplier;
+    xMultiplier3 = xMultiplier2 * xMultiplier;
+    yMultiplier3 = yMultiplier2 * yMultiplier;
+    zMultiplier3 = zMultiplier2 * zMultiplier;
+    func = x2 * xMultiplier2 + y2 * yMultiplier2 + z2 * zMultiplier2 - 1;
+    denominator = x2 * xMultiplier3 * oneOverRadiiSquaredX + y2 * yMultiplier3 * oneOverRadiiSquaredY + z2 * zMultiplier3 * oneOverRadiiSquaredZ;
+    const derivative = -2 * denominator;
+    correction = func / derivative;
+  } while (Math.abs(func) > Math_default.EPSILON12);
+  if (!defined_default(result)) {
+    return new Cartesian3_default(
+      positionX * xMultiplier,
+      positionY * yMultiplier,
+      positionZ * zMultiplier
+    );
+  }
+  result.x = positionX * xMultiplier;
+  result.y = positionY * yMultiplier;
+  result.z = positionZ * zMultiplier;
+  return result;
+}
+var scaleToGeodeticSurface_default = scaleToGeodeticSurface;
+
+// packages/engine/Source/Core/Cartographic.js
+function Cartographic(longitude, latitude, height) {
+  this.longitude = defaultValue_default(longitude, 0);
+  this.latitude = defaultValue_default(latitude, 0);
+  this.height = defaultValue_default(height, 0);
+}
+Cartographic.fromRadians = function(longitude, latitude, height, result) {
+  Check_default.typeOf.number("longitude", longitude);
+  Check_default.typeOf.number("latitude", latitude);
+  height = defaultValue_default(height, 0);
+  if (!defined_default(result)) {
+    return new Cartographic(longitude, latitude, height);
+  }
+  result.longitude = longitude;
+  result.latitude = latitude;
+  result.height = height;
+  return result;
+};
+Cartographic.fromDegrees = function(longitude, latitude, height, result) {
+  Check_default.typeOf.number("longitude", longitude);
+  Check_default.typeOf.number("latitude", latitude);
+  longitude = Math_default.toRadians(longitude);
+  latitude = Math_default.toRadians(latitude);
+  return Cartographic.fromRadians(longitude, latitude, height, result);
+};
+var cartesianToCartographicN = new Cartesian3_default();
+var cartesianToCartographicP = new Cartesian3_default();
+var cartesianToCartographicH = new Cartesian3_default();
+var wgs84OneOverRadii = new Cartesian3_default(
+  1 / 6378137,
+  1 / 6378137,
+  1 / 6356752314245179e-9
+);
+var wgs84OneOverRadiiSquared = new Cartesian3_default(
+  1 / (6378137 * 6378137),
+  1 / (6378137 * 6378137),
+  1 / (6356752314245179e-9 * 6356752314245179e-9)
+);
+var wgs84CenterToleranceSquared = Math_default.EPSILON1;
+Cartographic.fromCartesian = function(cartesian, ellipsoid, result) {
+  const oneOverRadii = defined_default(ellipsoid) ? ellipsoid.oneOverRadii : wgs84OneOverRadii;
+  const oneOverRadiiSquared = defined_default(ellipsoid) ? ellipsoid.oneOverRadiiSquared : wgs84OneOverRadiiSquared;
+  const centerToleranceSquared = defined_default(ellipsoid) ? ellipsoid._centerToleranceSquared : wgs84CenterToleranceSquared;
+  const p = scaleToGeodeticSurface_default(
+    cartesian,
+    oneOverRadii,
+    oneOverRadiiSquared,
+    centerToleranceSquared,
+    cartesianToCartographicP
+  );
+  if (!defined_default(p)) {
+    return void 0;
+  }
+  let n = Cartesian3_default.multiplyComponents(
+    p,
+    oneOverRadiiSquared,
+    cartesianToCartographicN
+  );
+  n = Cartesian3_default.normalize(n, n);
+  const h = Cartesian3_default.subtract(cartesian, p, cartesianToCartographicH);
+  const longitude = Math.atan2(n.y, n.x);
+  const latitude = Math.asin(n.z);
+  const height = Math_default.sign(Cartesian3_default.dot(h, cartesian)) * Cartesian3_default.magnitude(h);
+  if (!defined_default(result)) {
+    return new Cartographic(longitude, latitude, height);
+  }
+  result.longitude = longitude;
+  result.latitude = latitude;
+  result.height = height;
+  return result;
+};
+Cartographic.toCartesian = function(cartographic, ellipsoid, result) {
+  Check_default.defined("cartographic", cartographic);
+  return Cartesian3_default.fromRadians(
+    cartographic.longitude,
+    cartographic.latitude,
+    cartographic.height,
+    ellipsoid,
+    result
+  );
+};
+Cartographic.clone = function(cartographic, result) {
+  if (!defined_default(cartographic)) {
+    return void 0;
+  }
+  if (!defined_default(result)) {
+    return new Cartographic(
+      cartographic.longitude,
+      cartographic.latitude,
+      cartographic.height
+    );
+  }
+  result.longitude = cartographic.longitude;
+  result.latitude = cartographic.latitude;
+  result.height = cartographic.height;
+  return result;
+};
+Cartographic.equals = function(left, right) {
+  return left === right || defined_default(left) && defined_default(right) && left.longitude === right.longitude && left.latitude === right.latitude && left.height === right.height;
+};
+Cartographic.equalsEpsilon = function(left, right, epsilon) {
+  epsilon = defaultValue_default(epsilon, 0);
+  return left === right || defined_default(left) && defined_default(right) && Math.abs(left.longitude - right.longitude) <= epsilon && Math.abs(left.latitude - right.latitude) <= epsilon && Math.abs(left.height - right.height) <= epsilon;
+};
+Cartographic.ZERO = Object.freeze(new Cartographic(0, 0, 0));
+Cartographic.prototype.clone = function(result) {
+  return Cartographic.clone(this, result);
+};
+Cartographic.prototype.equals = function(right) {
+  return Cartographic.equals(this, right);
+};
+Cartographic.prototype.equalsEpsilon = function(right, epsilon) {
+  return Cartographic.equalsEpsilon(this, right, epsilon);
+};
+Cartographic.prototype.toString = function() {
+  return `(${this.longitude}, ${this.latitude}, ${this.height})`;
+};
+var Cartographic_default = Cartographic;
+
+// packages/engine/Source/Core/Ellipsoid.js
+function initialize(ellipsoid, x, y, z) {
+  x = defaultValue_default(x, 0);
+  y = defaultValue_default(y, 0);
+  z = defaultValue_default(z, 0);
+  Check_default.typeOf.number.greaterThanOrEquals("x", x, 0);
+  Check_default.typeOf.number.greaterThanOrEquals("y", y, 0);
+  Check_default.typeOf.number.greaterThanOrEquals("z", z, 0);
+  ellipsoid._radii = new Cartesian3_default(x, y, z);
+  ellipsoid._radiiSquared = new Cartesian3_default(x * x, y * y, z * z);
+  ellipsoid._radiiToTheFourth = new Cartesian3_default(
+    x * x * x * x,
+    y * y * y * y,
+    z * z * z * z
+  );
+  ellipsoid._oneOverRadii = new Cartesian3_default(
+    x === 0 ? 0 : 1 / x,
+    y === 0 ? 0 : 1 / y,
+    z === 0 ? 0 : 1 / z
+  );
+  ellipsoid._oneOverRadiiSquared = new Cartesian3_default(
+    x === 0 ? 0 : 1 / (x * x),
+    y === 0 ? 0 : 1 / (y * y),
+    z === 0 ? 0 : 1 / (z * z)
+  );
+  ellipsoid._minimumRadius = Math.min(x, y, z);
+  ellipsoid._maximumRadius = Math.max(x, y, z);
+  ellipsoid._centerToleranceSquared = Math_default.EPSILON1;
+  if (ellipsoid._radiiSquared.z !== 0) {
+    ellipsoid._squaredXOverSquaredZ = ellipsoid._radiiSquared.x / ellipsoid._radiiSquared.z;
+  }
+}
+function Ellipsoid(x, y, z) {
+  this._radii = void 0;
+  this._radiiSquared = void 0;
+  this._radiiToTheFourth = void 0;
+  this._oneOverRadii = void 0;
+  this._oneOverRadiiSquared = void 0;
+  this._minimumRadius = void 0;
+  this._maximumRadius = void 0;
+  this._centerToleranceSquared = void 0;
+  this._squaredXOverSquaredZ = void 0;
+  initialize(this, x, y, z);
+}
+Object.defineProperties(Ellipsoid.prototype, {
+  /**
+   * Gets the radii of the ellipsoid.
+   * @memberof Ellipsoid.prototype
+   * @type {Cartesian3}
+   * @readonly
+   */
+  radii: {
+    get: function() {
+      return this._radii;
+    }
+  },
+  /**
+   * Gets the squared radii of the ellipsoid.
+   * @memberof Ellipsoid.prototype
+   * @type {Cartesian3}
+   * @readonly
+   */
+  radiiSquared: {
+    get: function() {
+      return this._radiiSquared;
+    }
+  },
+  /**
+   * Gets the radii of the ellipsoid raise to the fourth power.
+   * @memberof Ellipsoid.prototype
+   * @type {Cartesian3}
+   * @readonly
+   */
+  radiiToTheFourth: {
+    get: function() {
+      return this._radiiToTheFourth;
+    }
+  },
+  /**
+   * Gets one over the radii of the ellipsoid.
+   * @memberof Ellipsoid.prototype
+   * @type {Cartesian3}
+   * @readonly
+   */
+  oneOverRadii: {
+    get: function() {
+      return this._oneOverRadii;
+    }
+  },
+  /**
+   * Gets one over the squared radii of the ellipsoid.
+   * @memberof Ellipsoid.prototype
+   * @type {Cartesian3}
+   * @readonly
+   */
+  oneOverRadiiSquared: {
+    get: function() {
+      return this._oneOverRadiiSquared;
+    }
+  },
+  /**
+   * Gets the minimum radius of the ellipsoid.
+   * @memberof Ellipsoid.prototype
+   * @type {number}
+   * @readonly
+   */
+  minimumRadius: {
+    get: function() {
+      return this._minimumRadius;
+    }
+  },
+  /**
+   * Gets the maximum radius of the ellipsoid.
+   * @memberof Ellipsoid.prototype
+   * @type {number}
+   * @readonly
+   */
+  maximumRadius: {
+    get: function() {
+      return this._maximumRadius;
+    }
+  }
+});
+Ellipsoid.clone = function(ellipsoid, result) {
+  if (!defined_default(ellipsoid)) {
+    return void 0;
+  }
+  const radii = ellipsoid._radii;
+  if (!defined_default(result)) {
+    return new Ellipsoid(radii.x, radii.y, radii.z);
+  }
+  Cartesian3_default.clone(radii, result._radii);
+  Cartesian3_default.clone(ellipsoid._radiiSquared, result._radiiSquared);
+  Cartesian3_default.clone(ellipsoid._radiiToTheFourth, result._radiiToTheFourth);
+  Cartesian3_default.clone(ellipsoid._oneOverRadii, result._oneOverRadii);
+  Cartesian3_default.clone(ellipsoid._oneOverRadiiSquared, result._oneOverRadiiSquared);
+  result._minimumRadius = ellipsoid._minimumRadius;
+  result._maximumRadius = ellipsoid._maximumRadius;
+  result._centerToleranceSquared = ellipsoid._centerToleranceSquared;
+  return result;
+};
+Ellipsoid.fromCartesian3 = function(cartesian, result) {
+  if (!defined_default(result)) {
+    result = new Ellipsoid();
+  }
+  if (!defined_default(cartesian)) {
+    return result;
+  }
+  initialize(result, cartesian.x, cartesian.y, cartesian.z);
+  return result;
+};
+Ellipsoid.WGS84 = Object.freeze(
+  new Ellipsoid(6378137, 6378137, 6356752314245179e-9)
+);
+Ellipsoid.UNIT_SPHERE = Object.freeze(new Ellipsoid(1, 1, 1));
+Ellipsoid.MOON = Object.freeze(
+  new Ellipsoid(
+    Math_default.LUNAR_RADIUS,
+    Math_default.LUNAR_RADIUS,
+    Math_default.LUNAR_RADIUS
+  )
+);
+Ellipsoid.prototype.clone = function(result) {
+  return Ellipsoid.clone(this, result);
+};
+Ellipsoid.packedLength = Cartesian3_default.packedLength;
+Ellipsoid.pack = function(value, array, startingIndex) {
+  Check_default.typeOf.object("value", value);
+  Check_default.defined("array", array);
+  startingIndex = defaultValue_default(startingIndex, 0);
+  Cartesian3_default.pack(value._radii, array, startingIndex);
+  return array;
+};
+Ellipsoid.unpack = function(array, startingIndex, result) {
+  Check_default.defined("array", array);
+  startingIndex = defaultValue_default(startingIndex, 0);
+  const radii = Cartesian3_default.unpack(array, startingIndex);
+  return Ellipsoid.fromCartesian3(radii, result);
+};
+Ellipsoid.prototype.geocentricSurfaceNormal = Cartesian3_default.normalize;
+Ellipsoid.prototype.geodeticSurfaceNormalCartographic = function(cartographic, result) {
+  Check_default.typeOf.object("cartographic", cartographic);
+  const longitude = cartographic.longitude;
+  const latitude = cartographic.latitude;
+  const cosLatitude = Math.cos(latitude);
+  const x = cosLatitude * Math.cos(longitude);
+  const y = cosLatitude * Math.sin(longitude);
+  const z = Math.sin(latitude);
+  if (!defined_default(result)) {
+    result = new Cartesian3_default();
+  }
+  result.x = x;
+  result.y = y;
+  result.z = z;
+  return Cartesian3_default.normalize(result, result);
+};
+Ellipsoid.prototype.geodeticSurfaceNormal = function(cartesian, result) {
+  if (Cartesian3_default.equalsEpsilon(cartesian, Cartesian3_default.ZERO, Math_default.EPSILON14)) {
+    return void 0;
+  }
+  if (!defined_default(result)) {
+    result = new Cartesian3_default();
+  }
+  result = Cartesian3_default.multiplyComponents(
+    cartesian,
+    this._oneOverRadiiSquared,
+    result
+  );
+  return Cartesian3_default.normalize(result, result);
+};
+var cartographicToCartesianNormal = new Cartesian3_default();
+var cartographicToCartesianK = new Cartesian3_default();
+Ellipsoid.prototype.cartographicToCartesian = function(cartographic, result) {
+  const n = cartographicToCartesianNormal;
+  const k = cartographicToCartesianK;
+  this.geodeticSurfaceNormalCartographic(cartographic, n);
+  Cartesian3_default.multiplyComponents(this._radiiSquared, n, k);
+  const gamma = Math.sqrt(Cartesian3_default.dot(n, k));
+  Cartesian3_default.divideByScalar(k, gamma, k);
+  Cartesian3_default.multiplyByScalar(n, cartographic.height, n);
+  if (!defined_default(result)) {
+    result = new Cartesian3_default();
+  }
+  return Cartesian3_default.add(k, n, result);
+};
+Ellipsoid.prototype.cartographicArrayToCartesianArray = function(cartographics, result) {
+  Check_default.defined("cartographics", cartographics);
+  const length = cartographics.length;
+  if (!defined_default(result)) {
+    result = new Array(length);
+  } else {
+    result.length = length;
+  }
+  for (let i = 0; i < length; i++) {
+    result[i] = this.cartographicToCartesian(cartographics[i], result[i]);
+  }
+  return result;
+};
+var cartesianToCartographicN2 = new Cartesian3_default();
+var cartesianToCartographicP2 = new Cartesian3_default();
+var cartesianToCartographicH2 = new Cartesian3_default();
+Ellipsoid.prototype.cartesianToCartographic = function(cartesian, result) {
+  const p = this.scaleToGeodeticSurface(cartesian, cartesianToCartographicP2);
+  if (!defined_default(p)) {
+    return void 0;
+  }
+  const n = this.geodeticSurfaceNormal(p, cartesianToCartographicN2);
+  const h = Cartesian3_default.subtract(cartesian, p, cartesianToCartographicH2);
+  const longitude = Math.atan2(n.y, n.x);
+  const latitude = Math.asin(n.z);
+  const height = Math_default.sign(Cartesian3_default.dot(h, cartesian)) * Cartesian3_default.magnitude(h);
+  if (!defined_default(result)) {
+    return new Cartographic_default(longitude, latitude, height);
+  }
+  result.longitude = longitude;
+  result.latitude = latitude;
+  result.height = height;
+  return result;
+};
+Ellipsoid.prototype.cartesianArrayToCartographicArray = function(cartesians, result) {
+  Check_default.defined("cartesians", cartesians);
+  const length = cartesians.length;
+  if (!defined_default(result)) {
+    result = new Array(length);
+  } else {
+    result.length = length;
+  }
+  for (let i = 0; i < length; ++i) {
+    result[i] = this.cartesianToCartographic(cartesians[i], result[i]);
+  }
+  return result;
+};
+Ellipsoid.prototype.scaleToGeodeticSurface = function(cartesian, result) {
+  return scaleToGeodeticSurface_default(
+    cartesian,
+    this._oneOverRadii,
+    this._oneOverRadiiSquared,
+    this._centerToleranceSquared,
+    result
+  );
+};
+Ellipsoid.prototype.scaleToGeocentricSurface = function(cartesian, result) {
+  Check_default.typeOf.object("cartesian", cartesian);
+  if (!defined_default(result)) {
+    result = new Cartesian3_default();
+  }
+  const positionX = cartesian.x;
+  const positionY = cartesian.y;
+  const positionZ = cartesian.z;
+  const oneOverRadiiSquared = this._oneOverRadiiSquared;
+  const beta = 1 / Math.sqrt(
+    positionX * positionX * oneOverRadiiSquared.x + positionY * positionY * oneOverRadiiSquared.y + positionZ * positionZ * oneOverRadiiSquared.z
+  );
+  return Cartesian3_default.multiplyByScalar(cartesian, beta, result);
+};
+Ellipsoid.prototype.transformPositionToScaledSpace = function(position, result) {
+  if (!defined_default(result)) {
+    result = new Cartesian3_default();
+  }
+  return Cartesian3_default.multiplyComponents(position, this._oneOverRadii, result);
+};
+Ellipsoid.prototype.transformPositionFromScaledSpace = function(position, result) {
+  if (!defined_default(result)) {
+    result = new Cartesian3_default();
+  }
+  return Cartesian3_default.multiplyComponents(position, this._radii, result);
+};
+Ellipsoid.prototype.equals = function(right) {
+  return this === right || defined_default(right) && Cartesian3_default.equals(this._radii, right._radii);
+};
+Ellipsoid.prototype.toString = function() {
+  return this._radii.toString();
+};
+Ellipsoid.prototype.getSurfaceNormalIntersectionWithZAxis = function(position, buffer, result) {
+  Check_default.typeOf.object("position", position);
+  if (!Math_default.equalsEpsilon(
+    this._radii.x,
+    this._radii.y,
+    Math_default.EPSILON15
+  )) {
+    throw new DeveloperError_default(
+      "Ellipsoid must be an ellipsoid of revolution (radii.x == radii.y)"
+    );
+  }
+  Check_default.typeOf.number.greaterThan("Ellipsoid.radii.z", this._radii.z, 0);
+  buffer = defaultValue_default(buffer, 0);
+  const squaredXOverSquaredZ = this._squaredXOverSquaredZ;
+  if (!defined_default(result)) {
+    result = new Cartesian3_default();
+  }
+  result.x = 0;
+  result.y = 0;
+  result.z = position.z * (1 - squaredXOverSquaredZ);
+  if (Math.abs(result.z) >= this._radii.z - buffer) {
+    return void 0;
+  }
+  return result;
+};
+var abscissas = [
+  0.14887433898163,
+  0.43339539412925,
+  0.67940956829902,
+  0.86506336668898,
+  0.97390652851717,
+  0
+];
+var weights = [
+  0.29552422471475,
+  0.26926671930999,
+  0.21908636251598,
+  0.14945134915058,
+  0.066671344308684,
+  0
+];
+function gaussLegendreQuadrature(a3, b, func) {
+  Check_default.typeOf.number("a", a3);
+  Check_default.typeOf.number("b", b);
+  Check_default.typeOf.func("func", func);
+  const xMean = 0.5 * (b + a3);
+  const xRange = 0.5 * (b - a3);
+  let sum = 0;
+  for (let i = 0; i < 5; i++) {
+    const dx = xRange * abscissas[i];
+    sum += weights[i] * (func(xMean + dx) + func(xMean - dx));
+  }
+  sum *= xRange;
+  return sum;
+}
+Ellipsoid.prototype.surfaceArea = function(rectangle) {
+  Check_default.typeOf.object("rectangle", rectangle);
+  const minLongitude = rectangle.west;
+  let maxLongitude = rectangle.east;
+  const minLatitude = rectangle.south;
+  const maxLatitude = rectangle.north;
+  while (maxLongitude < minLongitude) {
+    maxLongitude += Math_default.TWO_PI;
+  }
+  const radiiSquared = this._radiiSquared;
+  const a22 = radiiSquared.x;
+  const b2 = radiiSquared.y;
+  const c2 = radiiSquared.z;
+  const a2b2 = a22 * b2;
+  return gaussLegendreQuadrature(minLatitude, maxLatitude, function(lat) {
+    const sinPhi = Math.cos(lat);
+    const cosPhi = Math.sin(lat);
+    return Math.cos(lat) * gaussLegendreQuadrature(minLongitude, maxLongitude, function(lon) {
+      const cosTheta = Math.cos(lon);
+      const sinTheta = Math.sin(lon);
+      return Math.sqrt(
+        a2b2 * cosPhi * cosPhi + c2 * (b2 * cosTheta * cosTheta + a22 * sinTheta * sinTheta) * sinPhi * sinPhi
+      );
+    });
+  });
+};
+var Ellipsoid_default = Ellipsoid;
+
+// packages/engine/Source/Core/Rectangle.js
+function Rectangle(west, south, east, north) {
+  this.west = defaultValue_default(west, 0);
+  this.south = defaultValue_default(south, 0);
+  this.east = defaultValue_default(east, 0);
+  this.north = defaultValue_default(north, 0);
+}
+Object.defineProperties(Rectangle.prototype, {
+  /**
+   * Gets the width of the rectangle in radians.
+   * @memberof Rectangle.prototype
+   * @type {number}
+   * @readonly
+   */
+  width: {
+    get: function() {
+      return Rectangle.computeWidth(this);
+    }
+  },
+  /**
+   * Gets the height of the rectangle in radians.
+   * @memberof Rectangle.prototype
+   * @type {number}
+   * @readonly
+   */
+  height: {
+    get: function() {
+      return Rectangle.computeHeight(this);
+    }
+  }
+});
+Rectangle.packedLength = 4;
+Rectangle.pack = function(value, array, startingIndex) {
+  Check_default.typeOf.object("value", value);
+  Check_default.defined("array", array);
+  startingIndex = defaultValue_default(startingIndex, 0);
+  array[startingIndex++] = value.west;
+  array[startingIndex++] = value.south;
+  array[startingIndex++] = value.east;
+  array[startingIndex] = value.north;
+  return array;
+};
+Rectangle.unpack = function(array, startingIndex, result) {
+  Check_default.defined("array", array);
+  startingIndex = defaultValue_default(startingIndex, 0);
+  if (!defined_default(result)) {
+    result = new Rectangle();
+  }
+  result.west = array[startingIndex++];
+  result.south = array[startingIndex++];
+  result.east = array[startingIndex++];
+  result.north = array[startingIndex];
+  return result;
+};
+Rectangle.computeWidth = function(rectangle) {
+  Check_default.typeOf.object("rectangle", rectangle);
+  let east = rectangle.east;
+  const west = rectangle.west;
+  if (east < west) {
+    east += Math_default.TWO_PI;
+  }
+  return east - west;
+};
+Rectangle.computeHeight = function(rectangle) {
+  Check_default.typeOf.object("rectangle", rectangle);
+  return rectangle.north - rectangle.south;
+};
+Rectangle.fromDegrees = function(west, south, east, north, result) {
+  west = Math_default.toRadians(defaultValue_default(west, 0));
+  south = Math_default.toRadians(defaultValue_default(south, 0));
+  east = Math_default.toRadians(defaultValue_default(east, 0));
+  north = Math_default.toRadians(defaultValue_default(north, 0));
+  if (!defined_default(result)) {
+    return new Rectangle(west, south, east, north);
+  }
+  result.west = west;
+  result.south = south;
+  result.east = east;
+  result.north = north;
+  return result;
+};
+Rectangle.fromRadians = function(west, south, east, north, result) {
+  if (!defined_default(result)) {
+    return new Rectangle(west, south, east, north);
+  }
+  result.west = defaultValue_default(west, 0);
+  result.south = defaultValue_default(south, 0);
+  result.east = defaultValue_default(east, 0);
+  result.north = defaultValue_default(north, 0);
+  return result;
+};
+Rectangle.fromCartographicArray = function(cartographics, result) {
+  Check_default.defined("cartographics", cartographics);
+  let west = Number.MAX_VALUE;
+  let east = -Number.MAX_VALUE;
+  let westOverIDL = Number.MAX_VALUE;
+  let eastOverIDL = -Number.MAX_VALUE;
+  let south = Number.MAX_VALUE;
+  let north = -Number.MAX_VALUE;
+  for (let i = 0, len = cartographics.length; i < len; i++) {
+    const position = cartographics[i];
+    west = Math.min(west, position.longitude);
+    east = Math.max(east, position.longitude);
+    south = Math.min(south, position.latitude);
+    north = Math.max(north, position.latitude);
+    const lonAdjusted = position.longitude >= 0 ? position.longitude : position.longitude + Math_default.TWO_PI;
+    westOverIDL = Math.min(westOverIDL, lonAdjusted);
+    eastOverIDL = Math.max(eastOverIDL, lonAdjusted);
+  }
+  if (east - west > eastOverIDL - westOverIDL) {
+    west = westOverIDL;
+    east = eastOverIDL;
+    if (east > Math_default.PI) {
+      east = east - Math_default.TWO_PI;
+    }
+    if (west > Math_default.PI) {
+      west = west - Math_default.TWO_PI;
+    }
+  }
+  if (!defined_default(result)) {
+    return new Rectangle(west, south, east, north);
+  }
+  result.west = west;
+  result.south = south;
+  result.east = east;
+  result.north = north;
+  return result;
+};
+Rectangle.fromCartesianArray = function(cartesians, ellipsoid, result) {
+  Check_default.defined("cartesians", cartesians);
+  ellipsoid = defaultValue_default(ellipsoid, Ellipsoid_default.WGS84);
+  let west = Number.MAX_VALUE;
+  let east = -Number.MAX_VALUE;
+  let westOverIDL = Number.MAX_VALUE;
+  let eastOverIDL = -Number.MAX_VALUE;
+  let south = Number.MAX_VALUE;
+  let north = -Number.MAX_VALUE;
+  for (let i = 0, len = cartesians.length; i < len; i++) {
+    const position = ellipsoid.cartesianToCartographic(cartesians[i]);
+    west = Math.min(west, position.longitude);
+    east = Math.max(east, position.longitude);
+    south = Math.min(south, position.latitude);
+    north = Math.max(north, position.latitude);
+    const lonAdjusted = position.longitude >= 0 ? position.longitude : position.longitude + Math_default.TWO_PI;
+    westOverIDL = Math.min(westOverIDL, lonAdjusted);
+    eastOverIDL = Math.max(eastOverIDL, lonAdjusted);
+  }
+  if (east - west > eastOverIDL - westOverIDL) {
+    west = westOverIDL;
+    east = eastOverIDL;
+    if (east > Math_default.PI) {
+      east = east - Math_default.TWO_PI;
+    }
+    if (west > Math_default.PI) {
+      west = west - Math_default.TWO_PI;
+    }
+  }
+  if (!defined_default(result)) {
+    return new Rectangle(west, south, east, north);
+  }
+  result.west = west;
+  result.south = south;
+  result.east = east;
+  result.north = north;
+  return result;
+};
+Rectangle.clone = function(rectangle, result) {
+  if (!defined_default(rectangle)) {
+    return void 0;
+  }
+  if (!defined_default(result)) {
+    return new Rectangle(
+      rectangle.west,
+      rectangle.south,
+      rectangle.east,
+      rectangle.north
+    );
+  }
+  result.west = rectangle.west;
+  result.south = rectangle.south;
+  result.east = rectangle.east;
+  result.north = rectangle.north;
+  return result;
+};
+Rectangle.equalsEpsilon = function(left, right, absoluteEpsilon) {
+  absoluteEpsilon = defaultValue_default(absoluteEpsilon, 0);
+  return left === right || defined_default(left) && defined_default(right) && Math.abs(left.west - right.west) <= absoluteEpsilon && Math.abs(left.south - right.south) <= absoluteEpsilon && Math.abs(left.east - right.east) <= absoluteEpsilon && Math.abs(left.north - right.north) <= absoluteEpsilon;
+};
+Rectangle.prototype.clone = function(result) {
+  return Rectangle.clone(this, result);
+};
+Rectangle.prototype.equals = function(other) {
+  return Rectangle.equals(this, other);
+};
+Rectangle.equals = function(left, right) {
+  return left === right || defined_default(left) && defined_default(right) && left.west === right.west && left.south === right.south && left.east === right.east && left.north === right.north;
+};
+Rectangle.prototype.equalsEpsilon = function(other, epsilon) {
+  return Rectangle.equalsEpsilon(this, other, epsilon);
+};
+Rectangle.validate = function(rectangle) {
+  Check_default.typeOf.object("rectangle", rectangle);
+  const north = rectangle.north;
+  Check_default.typeOf.number.greaterThanOrEquals(
+    "north",
+    north,
+    -Math_default.PI_OVER_TWO
+  );
+  Check_default.typeOf.number.lessThanOrEquals("north", north, Math_default.PI_OVER_TWO);
+  const south = rectangle.south;
+  Check_default.typeOf.number.greaterThanOrEquals(
+    "south",
+    south,
+    -Math_default.PI_OVER_TWO
+  );
+  Check_default.typeOf.number.lessThanOrEquals("south", south, Math_default.PI_OVER_TWO);
+  const west = rectangle.west;
+  Check_default.typeOf.number.greaterThanOrEquals("west", west, -Math.PI);
+  Check_default.typeOf.number.lessThanOrEquals("west", west, Math.PI);
+  const east = rectangle.east;
+  Check_default.typeOf.number.greaterThanOrEquals("east", east, -Math.PI);
+  Check_default.typeOf.number.lessThanOrEquals("east", east, Math.PI);
+};
+Rectangle.southwest = function(rectangle, result) {
+  Check_default.typeOf.object("rectangle", rectangle);
+  if (!defined_default(result)) {
+    return new Cartographic_default(rectangle.west, rectangle.south);
+  }
+  result.longitude = rectangle.west;
+  result.latitude = rectangle.south;
+  result.height = 0;
+  return result;
+};
+Rectangle.northwest = function(rectangle, result) {
+  Check_default.typeOf.object("rectangle", rectangle);
+  if (!defined_default(result)) {
+    return new Cartographic_default(rectangle.west, rectangle.north);
+  }
+  result.longitude = rectangle.west;
+  result.latitude = rectangle.north;
+  result.height = 0;
+  return result;
+};
+Rectangle.northeast = function(rectangle, result) {
+  Check_default.typeOf.object("rectangle", rectangle);
+  if (!defined_default(result)) {
+    return new Cartographic_default(rectangle.east, rectangle.north);
+  }
+  result.longitude = rectangle.east;
+  result.latitude = rectangle.north;
+  result.height = 0;
+  return result;
+};
+Rectangle.southeast = function(rectangle, result) {
+  Check_default.typeOf.object("rectangle", rectangle);
+  if (!defined_default(result)) {
+    return new Cartographic_default(rectangle.east, rectangle.south);
+  }
+  result.longitude = rectangle.east;
+  result.latitude = rectangle.south;
+  result.height = 0;
+  return result;
+};
+Rectangle.center = function(rectangle, result) {
+  Check_default.typeOf.object("rectangle", rectangle);
+  let east = rectangle.east;
+  const west = rectangle.west;
+  if (east < west) {
+    east += Math_default.TWO_PI;
+  }
+  const longitude = Math_default.negativePiToPi((west + east) * 0.5);
+  const latitude = (rectangle.south + rectangle.north) * 0.5;
+  if (!defined_default(result)) {
+    return new Cartographic_default(longitude, latitude);
+  }
+  result.longitude = longitude;
+  result.latitude = latitude;
+  result.height = 0;
+  return result;
+};
+Rectangle.intersection = function(rectangle, otherRectangle, result) {
+  Check_default.typeOf.object("rectangle", rectangle);
+  Check_default.typeOf.object("otherRectangle", otherRectangle);
+  let rectangleEast = rectangle.east;
+  let rectangleWest = rectangle.west;
+  let otherRectangleEast = otherRectangle.east;
+  let otherRectangleWest = otherRectangle.west;
+  if (rectangleEast < rectangleWest && otherRectangleEast > 0) {
+    rectangleEast += Math_default.TWO_PI;
+  } else if (otherRectangleEast < otherRectangleWest && rectangleEast > 0) {
+    otherRectangleEast += Math_default.TWO_PI;
+  }
+  if (rectangleEast < rectangleWest && otherRectangleWest < 0) {
+    otherRectangleWest += Math_default.TWO_PI;
+  } else if (otherRectangleEast < otherRectangleWest && rectangleWest < 0) {
+    rectangleWest += Math_default.TWO_PI;
+  }
+  const west = Math_default.negativePiToPi(
+    Math.max(rectangleWest, otherRectangleWest)
+  );
+  const east = Math_default.negativePiToPi(
+    Math.min(rectangleEast, otherRectangleEast)
+  );
+  if ((rectangle.west < rectangle.east || otherRectangle.west < otherRectangle.east) && east <= west) {
+    return void 0;
+  }
+  const south = Math.max(rectangle.south, otherRectangle.south);
+  const north = Math.min(rectangle.north, otherRectangle.north);
+  if (south >= north) {
+    return void 0;
+  }
+  if (!defined_default(result)) {
+    return new Rectangle(west, south, east, north);
+  }
+  result.west = west;
+  result.south = south;
+  result.east = east;
+  result.north = north;
+  return result;
+};
+Rectangle.simpleIntersection = function(rectangle, otherRectangle, result) {
+  Check_default.typeOf.object("rectangle", rectangle);
+  Check_default.typeOf.object("otherRectangle", otherRectangle);
+  const west = Math.max(rectangle.west, otherRectangle.west);
+  const south = Math.max(rectangle.south, otherRectangle.south);
+  const east = Math.min(rectangle.east, otherRectangle.east);
+  const north = Math.min(rectangle.north, otherRectangle.north);
+  if (south >= north || west >= east) {
+    return void 0;
+  }
+  if (!defined_default(result)) {
+    return new Rectangle(west, south, east, north);
+  }
+  result.west = west;
+  result.south = south;
+  result.east = east;
+  result.north = north;
+  return result;
+};
+Rectangle.union = function(rectangle, otherRectangle, result) {
+  Check_default.typeOf.object("rectangle", rectangle);
+  Check_default.typeOf.object("otherRectangle", otherRectangle);
+  if (!defined_default(result)) {
+    result = new Rectangle();
+  }
+  let rectangleEast = rectangle.east;
+  let rectangleWest = rectangle.west;
+  let otherRectangleEast = otherRectangle.east;
+  let otherRectangleWest = otherRectangle.west;
+  if (rectangleEast < rectangleWest && otherRectangleEast > 0) {
+    rectangleEast += Math_default.TWO_PI;
+  } else if (otherRectangleEast < otherRectangleWest && rectangleEast > 0) {
+    otherRectangleEast += Math_default.TWO_PI;
+  }
+  if (rectangleEast < rectangleWest && otherRectangleWest < 0) {
+    otherRectangleWest += Math_default.TWO_PI;
+  } else if (otherRectangleEast < otherRectangleWest && rectangleWest < 0) {
+    rectangleWest += Math_default.TWO_PI;
+  }
+  const west = Math_default.negativePiToPi(
+    Math.min(rectangleWest, otherRectangleWest)
+  );
+  const east = Math_default.negativePiToPi(
+    Math.max(rectangleEast, otherRectangleEast)
+  );
+  result.west = west;
+  result.south = Math.min(rectangle.south, otherRectangle.south);
+  result.east = east;
+  result.north = Math.max(rectangle.north, otherRectangle.north);
+  return result;
+};
+Rectangle.expand = function(rectangle, cartographic, result) {
+  Check_default.typeOf.object("rectangle", rectangle);
+  Check_default.typeOf.object("cartographic", cartographic);
+  if (!defined_default(result)) {
+    result = new Rectangle();
+  }
+  result.west = Math.min(rectangle.west, cartographic.longitude);
+  result.south = Math.min(rectangle.south, cartographic.latitude);
+  result.east = Math.max(rectangle.east, cartographic.longitude);
+  result.north = Math.max(rectangle.north, cartographic.latitude);
+  return result;
+};
+Rectangle.contains = function(rectangle, cartographic) {
+  Check_default.typeOf.object("rectangle", rectangle);
+  Check_default.typeOf.object("cartographic", cartographic);
+  let longitude = cartographic.longitude;
+  const latitude = cartographic.latitude;
+  const west = rectangle.west;
+  let east = rectangle.east;
+  if (east < west) {
+    east += Math_default.TWO_PI;
+    if (longitude < 0) {
+      longitude += Math_default.TWO_PI;
+    }
+  }
+  return (longitude > west || Math_default.equalsEpsilon(longitude, west, Math_default.EPSILON14)) && (longitude < east || Math_default.equalsEpsilon(longitude, east, Math_default.EPSILON14)) && latitude >= rectangle.south && latitude <= rectangle.north;
+};
+var subsampleLlaScratch = new Cartographic_default();
+Rectangle.subsample = function(rectangle, ellipsoid, surfaceHeight, result) {
+  Check_default.typeOf.object("rectangle", rectangle);
+  ellipsoid = defaultValue_default(ellipsoid, Ellipsoid_default.WGS84);
+  surfaceHeight = defaultValue_default(surfaceHeight, 0);
+  if (!defined_default(result)) {
+    result = [];
+  }
+  let length = 0;
+  const north = rectangle.north;
+  const south = rectangle.south;
+  const east = rectangle.east;
+  const west = rectangle.west;
+  const lla = subsampleLlaScratch;
+  lla.height = surfaceHeight;
+  lla.longitude = west;
+  lla.latitude = north;
+  result[length] = ellipsoid.cartographicToCartesian(lla, result[length]);
+  length++;
+  lla.longitude = east;
+  result[length] = ellipsoid.cartographicToCartesian(lla, result[length]);
+  length++;
+  lla.latitude = south;
+  result[length] = ellipsoid.cartographicToCartesian(lla, result[length]);
+  length++;
+  lla.longitude = west;
+  result[length] = ellipsoid.cartographicToCartesian(lla, result[length]);
+  length++;
+  if (north < 0) {
+    lla.latitude = north;
+  } else if (south > 0) {
+    lla.latitude = south;
+  } else {
+    lla.latitude = 0;
+  }
+  for (let i = 1; i < 8; ++i) {
+    lla.longitude = -Math.PI + i * Math_default.PI_OVER_TWO;
+    if (Rectangle.contains(rectangle, lla)) {
+      result[length] = ellipsoid.cartographicToCartesian(lla, result[length]);
+      length++;
+    }
+  }
+  if (lla.latitude === 0) {
+    lla.longitude = west;
+    result[length] = ellipsoid.cartographicToCartesian(lla, result[length]);
+    length++;
+    lla.longitude = east;
+    result[length] = ellipsoid.cartographicToCartesian(lla, result[length]);
+    length++;
+  }
+  result.length = length;
+  return result;
+};
+Rectangle.subsection = function(rectangle, westLerp, southLerp, eastLerp, northLerp, result) {
+  Check_default.typeOf.object("rectangle", rectangle);
+  Check_default.typeOf.number.greaterThanOrEquals("westLerp", westLerp, 0);
+  Check_default.typeOf.number.lessThanOrEquals("westLerp", westLerp, 1);
+  Check_default.typeOf.number.greaterThanOrEquals("southLerp", southLerp, 0);
+  Check_default.typeOf.number.lessThanOrEquals("southLerp", southLerp, 1);
+  Check_default.typeOf.number.greaterThanOrEquals("eastLerp", eastLerp, 0);
+  Check_default.typeOf.number.lessThanOrEquals("eastLerp", eastLerp, 1);
+  Check_default.typeOf.number.greaterThanOrEquals("northLerp", northLerp, 0);
+  Check_default.typeOf.number.lessThanOrEquals("northLerp", northLerp, 1);
+  Check_default.typeOf.number.lessThanOrEquals("westLerp", westLerp, eastLerp);
+  Check_default.typeOf.number.lessThanOrEquals("southLerp", southLerp, northLerp);
+  if (!defined_default(result)) {
+    result = new Rectangle();
+  }
+  if (rectangle.west <= rectangle.east) {
+    const width = rectangle.east - rectangle.west;
+    result.west = rectangle.west + westLerp * width;
+    result.east = rectangle.west + eastLerp * width;
+  } else {
+    const width = Math_default.TWO_PI + rectangle.east - rectangle.west;
+    result.west = Math_default.negativePiToPi(rectangle.west + westLerp * width);
+    result.east = Math_default.negativePiToPi(rectangle.west + eastLerp * width);
+  }
+  const height = rectangle.north - rectangle.south;
+  result.south = rectangle.south + southLerp * height;
+  result.north = rectangle.south + northLerp * height;
+  if (westLerp === 1) {
+    result.west = rectangle.east;
+  }
+  if (eastLerp === 1) {
+    result.east = rectangle.east;
+  }
+  if (southLerp === 1) {
+    result.south = rectangle.north;
+  }
+  if (northLerp === 1) {
+    result.north = rectangle.north;
+  }
+  return result;
+};
+Rectangle.MAX_VALUE = Object.freeze(
+  new Rectangle(
+    -Math.PI,
+    -Math_default.PI_OVER_TWO,
+    Math.PI,
+    Math_default.PI_OVER_TWO
+  )
+);
+var Rectangle_default = Rectangle;
+
+// packages/engine/Source/Core/PrimitiveType.js
+var PrimitiveType = {
+  /**
+   * Points primitive where each vertex (or index) is a separate point.
+   *
+   * @type {number}
+   * @constant
+   */
+  POINTS: WebGLConstants_default.POINTS,
+  /**
+   * Lines primitive where each two vertices (or indices) is a line segment.  Line segments are not necessarily connected.
+   *
+   * @type {number}
+   * @constant
+   */
+  LINES: WebGLConstants_default.LINES,
+  /**
+   * Line loop primitive where each vertex (or index) after the first connects a line to
+   * the previous vertex, and the last vertex implicitly connects to the first.
+   *
+   * @type {number}
+   * @constant
+   */
+  LINE_LOOP: WebGLConstants_default.LINE_LOOP,
+  /**
+   * Line strip primitive where each vertex (or index) after the first connects a line to the previous vertex.
+   *
+   * @type {number}
+   * @constant
+   */
+  LINE_STRIP: WebGLConstants_default.LINE_STRIP,
+  /**
+   * Triangles primitive where each three vertices (or indices) is a triangle.  Triangles do not necessarily share edges.
+   *
+   * @type {number}
+   * @constant
+   */
+  TRIANGLES: WebGLConstants_default.TRIANGLES,
+  /**
+   * Triangle strip primitive where each vertex (or index) after the first two connect to
+   * the previous two vertices forming a triangle.  For example, this can be used to model a wall.
+   *
+   * @type {number}
+   * @constant
+   */
+  TRIANGLE_STRIP: WebGLConstants_default.TRIANGLE_STRIP,
+  /**
+   * Triangle fan primitive where each vertex (or index) after the first two connect to
+   * the previous vertex and the first vertex forming a triangle.  For example, this can be used
+   * to model a cone or circle.
+   *
+   * @type {number}
+   * @constant
+   */
+  TRIANGLE_FAN: WebGLConstants_default.TRIANGLE_FAN
+};
+PrimitiveType.isLines = function(primitiveType) {
+  return primitiveType === PrimitiveType.LINES || primitiveType === PrimitiveType.LINE_LOOP || primitiveType === PrimitiveType.LINE_STRIP;
+};
+PrimitiveType.isTriangles = function(primitiveType) {
+  return primitiveType === PrimitiveType.TRIANGLES || primitiveType === PrimitiveType.TRIANGLE_STRIP || primitiveType === PrimitiveType.TRIANGLE_FAN;
+};
+PrimitiveType.validate = function(primitiveType) {
+  return primitiveType === PrimitiveType.POINTS || primitiveType === PrimitiveType.LINES || primitiveType === PrimitiveType.LINE_LOOP || primitiveType === PrimitiveType.LINE_STRIP || primitiveType === PrimitiveType.TRIANGLES || primitiveType === PrimitiveType.TRIANGLE_STRIP || primitiveType === PrimitiveType.TRIANGLE_FAN;
+};
+var PrimitiveType_default = Object.freeze(PrimitiveType);
+
+// packages/engine/Source/Renderer/DrawCommand.js
+var Flags = {
+  CULL: 1,
+  OCCLUDE: 2,
+  EXECUTE_IN_CLOSEST_FRUSTUM: 4,
+  DEBUG_SHOW_BOUNDING_VOLUME: 8,
+  CAST_SHADOWS: 16,
+  RECEIVE_SHADOWS: 32,
+  PICK_ONLY: 64,
+  DEPTH_FOR_TRANSLUCENT_CLASSIFICATION: 128
+};
+function DrawCommand(options) {
+  options = defaultValue_default(options, defaultValue_default.EMPTY_OBJECT);
+  this._boundingVolume = options.boundingVolume;
+  this._orientedBoundingBox = options.orientedBoundingBox;
+  this._modelMatrix = options.modelMatrix;
+  this._primitiveType = defaultValue_default(
+    options.primitiveType,
+    PrimitiveType_default.TRIANGLES
+  );
+  this._vertexArray = options.vertexArray;
+  this._count = options.count;
+  this._offset = defaultValue_default(options.offset, 0);
+  this._instanceCount = defaultValue_default(options.instanceCount, 0);
+  this._shaderProgram = options.shaderProgram;
+  this._uniformMap = options.uniformMap;
+  this._renderState = options.renderState;
+  this._framebuffer = options.framebuffer;
+  this._pass = options.pass;
+  this._owner = options.owner;
+  this._debugOverlappingFrustums = 0;
+  this._pickId = options.pickId;
+  this._flags = 0;
+  this.cull = defaultValue_default(options.cull, true);
+  this.occlude = defaultValue_default(options.occlude, true);
+  this.executeInClosestFrustum = defaultValue_default(
+    options.executeInClosestFrustum,
+    false
+  );
+  this.debugShowBoundingVolume = defaultValue_default(
+    options.debugShowBoundingVolume,
+    false
+  );
+  this.castShadows = defaultValue_default(options.castShadows, false);
+  this.receiveShadows = defaultValue_default(options.receiveShadows, false);
+  this.pickOnly = defaultValue_default(options.pickOnly, false);
+  this.depthForTranslucentClassification = defaultValue_default(
+    options.depthForTranslucentClassification,
+    false
+  );
+  this.dirty = true;
+  this.lastDirtyTime = 0;
+  this.derivedCommands = {};
+}
+function hasFlag(command, flag) {
+  return (command._flags & flag) === flag;
+}
+function setFlag(command, flag, value) {
+  if (value) {
+    command._flags |= flag;
+  } else {
+    command._flags &= ~flag;
+  }
+}
+Object.defineProperties(DrawCommand.prototype, {
+  /**
+   * The bounding volume of the geometry in world space.  This is used for culling and frustum selection.
+   * <p>
+   * For best rendering performance, use the tightest possible bounding volume.  Although
+   * <code>undefined</code> is allowed, always try to provide a bounding volume to
+   * allow the tightest possible near and far planes to be computed for the scene, and
+   * minimize the number of frustums needed.
+   * </p>
+   *
+   * @memberof DrawCommand.prototype
+   * @type {object}
+   * @default undefined
+   *
+   * @see DrawCommand#debugShowBoundingVolume
+   */
+  boundingVolume: {
+    get: function() {
+      return this._boundingVolume;
+    },
+    set: function(value) {
+      if (this._boundingVolume !== value) {
+        this._boundingVolume = value;
+        this.dirty = true;
+      }
+    }
+  },
+  /**
+   * The oriented bounding box of the geometry in world space. If this is defined, it is used instead of
+   * {@link DrawCommand#boundingVolume} for plane intersection testing.
+   *
+   * @memberof DrawCommand.prototype
+   * @type {OrientedBoundingBox}
+   * @default undefined
+   *
+   * @see DrawCommand#debugShowBoundingVolume
+   */
+  orientedBoundingBox: {
+    get: function() {
+      return this._orientedBoundingBox;
+    },
+    set: function(value) {
+      if (this._orientedBoundingBox !== value) {
+        this._orientedBoundingBox = value;
+        this.dirty = true;
+      }
+    }
+  },
+  /**
+   * When <code>true</code>, the renderer frustum and horizon culls the command based on its {@link DrawCommand#boundingVolume}.
+   * If the command was already culled, set this to <code>false</code> for a performance improvement.
+   *
+   * @memberof DrawCommand.prototype
+   * @type {boolean}
+   * @default true
+   */
+  cull: {
+    get: function() {
+      return hasFlag(this, Flags.CULL);
+    },
+    set: function(value) {
+      if (hasFlag(this, Flags.CULL) !== value) {
+        setFlag(this, Flags.CULL, value);
+        this.dirty = true;
+      }
+    }
+  },
+  /**
+   * When <code>true</code>, the horizon culls the command based on its {@link DrawCommand#boundingVolume}.
+   * {@link DrawCommand#cull} must also be <code>true</code> in order for the command to be culled.
+   *
+   * @memberof DrawCommand.prototype
+   * @type {boolean}
+   * @default true
+   */
+  occlude: {
+    get: function() {
+      return hasFlag(this, Flags.OCCLUDE);
+    },
+    set: function(value) {
+      if (hasFlag(this, Flags.OCCLUDE) !== value) {
+        setFlag(this, Flags.OCCLUDE, value);
+        this.dirty = true;
+      }
+    }
+  },
+  /**
+   * The transformation from the geometry in model space to world space.
+   * <p>
+   * When <code>undefined</code>, the geometry is assumed to be defined in world space.
+   * </p>
+   *
+   * @memberof DrawCommand.prototype
+   * @type {Matrix4}
+   * @default undefined
+   */
+  modelMatrix: {
+    get: function() {
+      return this._modelMatrix;
+    },
+    set: function(value) {
+      if (this._modelMatrix !== value) {
+        this._modelMatrix = value;
+        this.dirty = true;
+      }
+    }
+  },
+  /**
+   * The type of geometry in the vertex array.
+   *
+   * @memberof DrawCommand.prototype
+   * @type {PrimitiveType}
+   * @default PrimitiveType.TRIANGLES
+   */
+  primitiveType: {
+    get: function() {
+      return this._primitiveType;
+    },
+    set: function(value) {
+      if (this._primitiveType !== value) {
+        this._primitiveType = value;
+        this.dirty = true;
+      }
+    }
+  },
+  /**
+   * The vertex array.
+   *
+   * @memberof DrawCommand.prototype
+   * @type {VertexArray}
+   * @default undefined
+   */
+  vertexArray: {
+    get: function() {
+      return this._vertexArray;
+    },
+    set: function(value) {
+      if (this._vertexArray !== value) {
+        this._vertexArray = value;
+        this.dirty = true;
+      }
+    }
+  },
+  /**
+   * The number of vertices to draw in the vertex array.
+   *
+   * @memberof DrawCommand.prototype
+   * @type {number}
+   * @default undefined
+   */
+  count: {
+    get: function() {
+      return this._count;
+    },
+    set: function(value) {
+      if (this._count !== value) {
+        this._count = value;
+        this.dirty = true;
+      }
+    }
+  },
+  /**
+   * The offset to start drawing in the vertex array.
+   *
+   * @memberof DrawCommand.prototype
+   * @type {number}
+   * @default 0
+   */
+  offset: {
+    get: function() {
+      return this._offset;
+    },
+    set: function(value) {
+      if (this._offset !== value) {
+        this._offset = value;
+        this.dirty = true;
+      }
+    }
+  },
+  /**
+   * The number of instances to draw.
+   *
+   * @memberof DrawCommand.prototype
+   * @type {number}
+   * @default 0
+   */
+  instanceCount: {
+    get: function() {
+      return this._instanceCount;
+    },
+    set: function(value) {
+      if (this._instanceCount !== value) {
+        this._instanceCount = value;
+        this.dirty = true;
+      }
+    }
+  },
+  /**
+   * The shader program to apply.
+   *
+   * @memberof DrawCommand.prototype
+   * @type {ShaderProgram}
+   * @default undefined
+   */
+  shaderProgram: {
+    get: function() {
+      return this._shaderProgram;
+    },
+    set: function(value) {
+      if (this._shaderProgram !== value) {
+        this._shaderProgram = value;
+        this.dirty = true;
+      }
+    }
+  },
+  /**
+   * Whether this command should cast shadows when shadowing is enabled.
+   *
+   * @memberof DrawCommand.prototype
+   * @type {boolean}
+   * @default false
+   */
+  castShadows: {
+    get: function() {
+      return hasFlag(this, Flags.CAST_SHADOWS);
+    },
+    set: function(value) {
+      if (hasFlag(this, Flags.CAST_SHADOWS) !== value) {
+        setFlag(this, Flags.CAST_SHADOWS, value);
+        this.dirty = true;
+      }
+    }
+  },
+  /**
+   * Whether this command should receive shadows when shadowing is enabled.
+   *
+   * @memberof DrawCommand.prototype
+   * @type {boolean}
+   * @default false
+   */
+  receiveShadows: {
+    get: function() {
+      return hasFlag(this, Flags.RECEIVE_SHADOWS);
+    },
+    set: function(value) {
+      if (hasFlag(this, Flags.RECEIVE_SHADOWS) !== value) {
+        setFlag(this, Flags.RECEIVE_SHADOWS, value);
+        this.dirty = true;
+      }
+    }
+  },
+  /**
+   * An object with functions whose names match the uniforms in the shader program
+   * and return values to set those uniforms.
+   *
+   * @memberof DrawCommand.prototype
+   * @type {object}
+   * @default undefined
+   */
+  uniformMap: {
+    get: function() {
+      return this._uniformMap;
+    },
+    set: function(value) {
+      if (this._uniformMap !== value) {
+        this._uniformMap = value;
+        this.dirty = true;
+      }
+    }
+  },
+  /**
+   * The render state.
+   *
+   * @memberof DrawCommand.prototype
+   * @type {RenderState}
+   * @default undefined
+   */
+  renderState: {
+    get: function() {
+      return this._renderState;
+    },
+    set: function(value) {
+      if (this._renderState !== value) {
+        this._renderState = value;
+        this.dirty = true;
+      }
+    }
+  },
+  /**
+   * The framebuffer to draw to.
+   *
+   * @memberof DrawCommand.prototype
+   * @type {Framebuffer}
+   * @default undefined
+   */
+  framebuffer: {
+    get: function() {
+      return this._framebuffer;
+    },
+    set: function(value) {
+      if (this._framebuffer !== value) {
+        this._framebuffer = value;
+        this.dirty = true;
+      }
+    }
+  },
+  /**
+   * The pass when to render.
+   *
+   * @memberof DrawCommand.prototype
+   * @type {Pass}
+   * @default undefined
+   */
+  pass: {
+    get: function() {
+      return this._pass;
+    },
+    set: function(value) {
+      if (this._pass !== value) {
+        this._pass = value;
+        this.dirty = true;
+      }
+    }
+  },
+  /**
+   * Specifies if this command is only to be executed in the frustum closest
+   * to the eye containing the bounding volume. Defaults to <code>false</code>.
+   *
+   * @memberof DrawCommand.prototype
+   * @type {boolean}
+   * @default false
+   */
+  executeInClosestFrustum: {
+    get: function() {
+      return hasFlag(this, Flags.EXECUTE_IN_CLOSEST_FRUSTUM);
+    },
+    set: function(value) {
+      if (hasFlag(this, Flags.EXECUTE_IN_CLOSEST_FRUSTUM) !== value) {
+        setFlag(this, Flags.EXECUTE_IN_CLOSEST_FRUSTUM, value);
+        this.dirty = true;
+      }
+    }
+  },
+  /**
+   * The object who created this command.  This is useful for debugging command
+   * execution; it allows us to see who created a command when we only have a
+   * reference to the command, and can be used to selectively execute commands
+   * with {@link Scene#debugCommandFilter}.
+   *
+   * @memberof DrawCommand.prototype
+   * @type {object}
+   * @default undefined
+   *
+   * @see Scene#debugCommandFilter
+   */
+  owner: {
+    get: function() {
+      return this._owner;
+    },
+    set: function(value) {
+      if (this._owner !== value) {
+        this._owner = value;
+        this.dirty = true;
+      }
+    }
+  },
+  /**
+   * This property is for debugging only; it is not for production use nor is it optimized.
+   * <p>
+   * Draws the {@link DrawCommand#boundingVolume} for this command, assuming it is a sphere, when the command executes.
+   * </p>
+   *
+   * @memberof DrawCommand.prototype
+   * @type {boolean}
+   * @default false
+   *
+   * @see DrawCommand#boundingVolume
+   */
+  debugShowBoundingVolume: {
+    get: function() {
+      return hasFlag(this, Flags.DEBUG_SHOW_BOUNDING_VOLUME);
+    },
+    set: function(value) {
+      if (hasFlag(this, Flags.DEBUG_SHOW_BOUNDING_VOLUME) !== value) {
+        setFlag(this, Flags.DEBUG_SHOW_BOUNDING_VOLUME, value);
+        this.dirty = true;
+      }
+    }
+  },
+  /**
+   * Used to implement Scene.debugShowFrustums.
+   * @private
+   */
+  debugOverlappingFrustums: {
+    get: function() {
+      return this._debugOverlappingFrustums;
+    },
+    set: function(value) {
+      if (this._debugOverlappingFrustums !== value) {
+        this._debugOverlappingFrustums = value;
+        this.dirty = true;
+      }
+    }
+  },
+  /**
+   * A GLSL string that will evaluate to a pick id. When <code>undefined</code>, the command will only draw depth
+   * during the pick pass.
+   *
+   * @memberof DrawCommand.prototype
+   * @type {string}
+   * @default undefined
+   */
+  pickId: {
+    get: function() {
+      return this._pickId;
+    },
+    set: function(value) {
+      if (this._pickId !== value) {
+        this._pickId = value;
+        this.dirty = true;
+      }
+    }
+  },
+  /**
+   * Whether this command should be executed in the pick pass only.
+   *
+   * @memberof DrawCommand.prototype
+   * @type {boolean}
+   * @default false
+   */
+  pickOnly: {
+    get: function() {
+      return hasFlag(this, Flags.PICK_ONLY);
+    },
+    set: function(value) {
+      if (hasFlag(this, Flags.PICK_ONLY) !== value) {
+        setFlag(this, Flags.PICK_ONLY, value);
+        this.dirty = true;
+      }
+    }
+  },
+  /**
+   * Whether this command should be derived to draw depth for classification of translucent primitives.
+   *
+   * @memberof DrawCommand.prototype
+   * @type {boolean}
+   * @default false
+   */
+  depthForTranslucentClassification: {
+    get: function() {
+      return hasFlag(this, Flags.DEPTH_FOR_TRANSLUCENT_CLASSIFICATION);
+    },
+    set: function(value) {
+      if (hasFlag(this, Flags.DEPTH_FOR_TRANSLUCENT_CLASSIFICATION) !== value) {
+        setFlag(this, Flags.DEPTH_FOR_TRANSLUCENT_CLASSIFICATION, value);
+        this.dirty = true;
+      }
+    }
+  }
+});
+DrawCommand.shallowClone = function(command, result) {
+  if (!defined_default(command)) {
+    return void 0;
+  }
+  if (!defined_default(result)) {
+    result = new DrawCommand();
+  }
+  result._boundingVolume = command._boundingVolume;
+  result._orientedBoundingBox = command._orientedBoundingBox;
+  result._modelMatrix = command._modelMatrix;
+  result._primitiveType = command._primitiveType;
+  result._vertexArray = command._vertexArray;
+  result._count = command._count;
+  result._offset = command._offset;
+  result._instanceCount = command._instanceCount;
+  result._shaderProgram = command._shaderProgram;
+  result._uniformMap = command._uniformMap;
+  result._renderState = command._renderState;
+  result._framebuffer = command._framebuffer;
+  result._pass = command._pass;
+  result._owner = command._owner;
+  result._debugOverlappingFrustums = command._debugOverlappingFrustums;
+  result._pickId = command._pickId;
+  result._flags = command._flags;
+  result.dirty = true;
+  result.lastDirtyTime = 0;
+  return result;
+};
+DrawCommand.prototype.execute = function(context, passState) {
+  context.draw(this, passState);
+};
+var DrawCommand_default = DrawCommand;
+
+// packages/engine/Source/Renderer/ContextLimits.js
+var ContextLimits = {
+  _maximumCombinedTextureImageUnits: 0,
+  _maximumCubeMapSize: 0,
+  _maximumFragmentUniformVectors: 0,
+  _maximumTextureImageUnits: 0,
+  _maximumRenderbufferSize: 0,
+  _maximumTextureSize: 0,
+  _maximumVaryingVectors: 0,
+  _maximumVertexAttributes: 0,
+  _maximumVertexTextureImageUnits: 0,
+  _maximumVertexUniformVectors: 0,
+  _minimumAliasedLineWidth: 0,
+  _maximumAliasedLineWidth: 0,
+  _minimumAliasedPointSize: 0,
+  _maximumAliasedPointSize: 0,
+  _maximumViewportWidth: 0,
+  _maximumViewportHeight: 0,
+  _maximumTextureFilterAnisotropy: 0,
+  _maximumDrawBuffers: 0,
+  _maximumColorAttachments: 0,
+  _maximumSamples: 0,
+  _highpFloatSupported: false,
+  _highpIntSupported: false
+};
+Object.defineProperties(ContextLimits, {
+  /**
+   * The maximum number of texture units that can be used from the vertex and fragment
+   * shader with this WebGL implementation.  The minimum is eight.  If both shaders access the
+   * same texture unit, this counts as two texture units.
+   * @memberof ContextLimits
+   * @type {number}
+   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>MAX_COMBINED_TEXTURE_IMAGE_UNITS</code>.
+   */
+  maximumCombinedTextureImageUnits: {
+    get: function() {
+      return ContextLimits._maximumCombinedTextureImageUnits;
+    }
+  },
+  /**
+   * The approximate maximum cube mape width and height supported by this WebGL implementation.
+   * The minimum is 16, but most desktop and laptop implementations will support much larger sizes like 8,192.
+   * @memberof ContextLimits
+   * @type {number}
+   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>MAX_CUBE_MAP_TEXTURE_SIZE</code>.
+   */
+  maximumCubeMapSize: {
+    get: function() {
+      return ContextLimits._maximumCubeMapSize;
+    }
+  },
+  /**
+   * The maximum number of <code>vec4</code>, <code>ivec4</code>, and <code>bvec4</code>
+   * uniforms that can be used by a fragment shader with this WebGL implementation.  The minimum is 16.
+   * @memberof ContextLimits
+   * @type {number}
+   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>MAX_FRAGMENT_UNIFORM_VECTORS</code>.
+   */
+  maximumFragmentUniformVectors: {
+    get: function() {
+      return ContextLimits._maximumFragmentUniformVectors;
+    }
+  },
+  /**
+   * The maximum number of texture units that can be used from the fragment shader with this WebGL implementation.  The minimum is eight.
+   * @memberof ContextLimits
+   * @type {number}
+   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>MAX_TEXTURE_IMAGE_UNITS</code>.
+   */
+  maximumTextureImageUnits: {
+    get: function() {
+      return ContextLimits._maximumTextureImageUnits;
+    }
+  },
+  /**
+   * The maximum renderbuffer width and height supported by this WebGL implementation.
+   * The minimum is 16, but most desktop and laptop implementations will support much larger sizes like 8,192.
+   * @memberof ContextLimits
+   * @type {number}
+   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>MAX_RENDERBUFFER_SIZE</code>.
+   */
+  maximumRenderbufferSize: {
+    get: function() {
+      return ContextLimits._maximumRenderbufferSize;
+    }
+  },
+  /**
+   * The approximate maximum texture width and height supported by this WebGL implementation.
+   * The minimum is 64, but most desktop and laptop implementations will support much larger sizes like 8,192.
+   * @memberof ContextLimits
+   * @type {number}
+   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>MAX_TEXTURE_SIZE</code>.
+   */
+  maximumTextureSize: {
+    get: function() {
+      return ContextLimits._maximumTextureSize;
+    }
+  },
+  /**
+   * The maximum number of <code>vec4</code> varying variables supported by this WebGL implementation.
+   * The minimum is eight.  Matrices and arrays count as multiple <code>vec4</code>s.
+   * @memberof ContextLimits
+   * @type {number}
+   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>MAX_VARYING_VECTORS</code>.
+   */
+  maximumVaryingVectors: {
+    get: function() {
+      return ContextLimits._maximumVaryingVectors;
+    }
+  },
+  /**
+   * The maximum number of <code>vec4</code> vertex attributes supported by this WebGL implementation.  The minimum is eight.
+   * @memberof ContextLimits
+   * @type {number}
+   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>MAX_VERTEX_ATTRIBS</code>.
+   */
+  maximumVertexAttributes: {
+    get: function() {
+      return ContextLimits._maximumVertexAttributes;
+    }
+  },
+  /**
+   * The maximum number of texture units that can be used from the vertex shader with this WebGL implementation.
+   * The minimum is zero, which means the GL does not support vertex texture fetch.
+   * @memberof ContextLimits
+   * @type {number}
+   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>MAX_VERTEX_TEXTURE_IMAGE_UNITS</code>.
+   */
+  maximumVertexTextureImageUnits: {
+    get: function() {
+      return ContextLimits._maximumVertexTextureImageUnits;
+    }
+  },
+  /**
+   * The maximum number of <code>vec4</code>, <code>ivec4</code>, and <code>bvec4</code>
+   * uniforms that can be used by a vertex shader with this WebGL implementation.  The minimum is 16.
+   * @memberof ContextLimits
+   * @type {number}
+   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>MAX_VERTEX_UNIFORM_VECTORS</code>.
+   */
+  maximumVertexUniformVectors: {
+    get: function() {
+      return ContextLimits._maximumVertexUniformVectors;
+    }
+  },
+  /**
+   * The minimum aliased line width, in pixels, supported by this WebGL implementation.  It will be at most one.
+   * @memberof ContextLimits
+   * @type {number}
+   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>ALIASED_LINE_WIDTH_RANGE</code>.
+   */
+  minimumAliasedLineWidth: {
+    get: function() {
+      return ContextLimits._minimumAliasedLineWidth;
+    }
+  },
+  /**
+   * The maximum aliased line width, in pixels, supported by this WebGL implementation.  It will be at least one.
+   * @memberof ContextLimits
+   * @type {number}
+   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>ALIASED_LINE_WIDTH_RANGE</code>.
+   */
+  maximumAliasedLineWidth: {
+    get: function() {
+      return ContextLimits._maximumAliasedLineWidth;
+    }
+  },
+  /**
+   * The minimum aliased point size, in pixels, supported by this WebGL implementation.  It will be at most one.
+   * @memberof ContextLimits
+   * @type {number}
+   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>ALIASED_POINT_SIZE_RANGE</code>.
+   */
+  minimumAliasedPointSize: {
+    get: function() {
+      return ContextLimits._minimumAliasedPointSize;
+    }
+  },
+  /**
+   * The maximum aliased point size, in pixels, supported by this WebGL implementation.  It will be at least one.
+   * @memberof ContextLimits
+   * @type {number}
+   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>ALIASED_POINT_SIZE_RANGE</code>.
+   */
+  maximumAliasedPointSize: {
+    get: function() {
+      return ContextLimits._maximumAliasedPointSize;
+    }
+  },
+  /**
+   * The maximum supported width of the viewport.  It will be at least as large as the visible width of the associated canvas.
+   * @memberof ContextLimits
+   * @type {number}
+   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>MAX_VIEWPORT_DIMS</code>.
+   */
+  maximumViewportWidth: {
+    get: function() {
+      return ContextLimits._maximumViewportWidth;
+    }
+  },
+  /**
+   * The maximum supported height of the viewport.  It will be at least as large as the visible height of the associated canvas.
+   * @memberof ContextLimits
+   * @type {number}
+   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>MAX_VIEWPORT_DIMS</code>.
+   */
+  maximumViewportHeight: {
+    get: function() {
+      return ContextLimits._maximumViewportHeight;
+    }
+  },
+  /**
+   * The maximum degree of anisotropy for texture filtering
+   * @memberof ContextLimits
+   * @type {number}
+   */
+  maximumTextureFilterAnisotropy: {
+    get: function() {
+      return ContextLimits._maximumTextureFilterAnisotropy;
+    }
+  },
+  /**
+   * The maximum number of simultaneous outputs that may be written in a fragment shader.
+   * @memberof ContextLimits
+   * @type {number}
+   */
+  maximumDrawBuffers: {
+    get: function() {
+      return ContextLimits._maximumDrawBuffers;
+    }
+  },
+  /**
+   * The maximum number of color attachments supported.
+   * @memberof ContextLimits
+   * @type {number}
+   */
+  maximumColorAttachments: {
+    get: function() {
+      return ContextLimits._maximumColorAttachments;
+    }
+  },
+  /**
+   * The maximum number of samples supported for multisampling.
+   * @memberof ContextLimits
+   * @type {number}
+   */
+  maximumSamples: {
+    get: function() {
+      return ContextLimits._maximumSamples;
+    }
+  },
+  /**
+   * High precision float supported (<code>highp</code>) in fragment shaders.
+   * @memberof ContextLimits
+   * @type {boolean}
+   */
+  highpFloatSupported: {
+    get: function() {
+      return ContextLimits._highpFloatSupported;
+    }
+  },
+  /**
+   * High precision int supported (<code>highp</code>) in fragment shaders.
+   * @memberof ContextLimits
+   * @type {boolean}
+   */
+  highpIntSupported: {
+    get: function() {
+      return ContextLimits._highpIntSupported;
+    }
+  }
+});
+var ContextLimits_default = ContextLimits;
 
 // packages/engine/Source/Core/Matrix2.js
 function Matrix2(column0Row0, column1Row0, column0Row1, column1Row1) {
@@ -10282,72 +12797,1304 @@ Matrix2.prototype.toString = function() {
 };
 var Matrix2_default = Matrix2;
 
-// packages/engine/Source/Core/PrimitiveType.js
-var PrimitiveType = {
-  /**
-   * Points primitive where each vertex (or index) is a separate point.
-   *
-   * @type {number}
-   * @constant
-   */
-  POINTS: WebGLConstants_default.POINTS,
-  /**
-   * Lines primitive where each two vertices (or indices) is a line segment.  Line segments are not necessarily connected.
-   *
-   * @type {number}
-   * @constant
-   */
-  LINES: WebGLConstants_default.LINES,
-  /**
-   * Line loop primitive where each vertex (or index) after the first connects a line to
-   * the previous vertex, and the last vertex implicitly connects to the first.
-   *
-   * @type {number}
-   * @constant
-   */
-  LINE_LOOP: WebGLConstants_default.LINE_LOOP,
-  /**
-   * Line strip primitive where each vertex (or index) after the first connects a line to the previous vertex.
-   *
-   * @type {number}
-   * @constant
-   */
-  LINE_STRIP: WebGLConstants_default.LINE_STRIP,
-  /**
-   * Triangles primitive where each three vertices (or indices) is a triangle.  Triangles do not necessarily share edges.
-   *
-   * @type {number}
-   * @constant
-   */
-  TRIANGLES: WebGLConstants_default.TRIANGLES,
-  /**
-   * Triangle strip primitive where each vertex (or index) after the first two connect to
-   * the previous two vertices forming a triangle.  For example, this can be used to model a wall.
-   *
-   * @type {number}
-   * @constant
-   */
-  TRIANGLE_STRIP: WebGLConstants_default.TRIANGLE_STRIP,
-  /**
-   * Triangle fan primitive where each vertex (or index) after the first two connect to
-   * the previous vertex and the first vertex forming a triangle.  For example, this can be used
-   * to model a cone or circle.
-   *
-   * @type {number}
-   * @constant
-   */
-  TRIANGLE_FAN: WebGLConstants_default.TRIANGLE_FAN
+// packages/engine/Source/Renderer/createUniform.js
+function createUniform(gl, activeUniform, uniformName, location2) {
+  switch (activeUniform.type) {
+    case gl.FLOAT:
+      return new UniformFloat(gl, activeUniform, uniformName, location2);
+    case gl.FLOAT_VEC2:
+      return new UniformFloatVec2(gl, activeUniform, uniformName, location2);
+    case gl.FLOAT_VEC3:
+      return new UniformFloatVec3(gl, activeUniform, uniformName, location2);
+    case gl.FLOAT_VEC4:
+      return new UniformFloatVec4(gl, activeUniform, uniformName, location2);
+    case gl.SAMPLER_2D:
+    case gl.SAMPLER_CUBE:
+      return new UniformSampler(gl, activeUniform, uniformName, location2);
+    case gl.INT:
+    case gl.BOOL:
+      return new UniformInt(gl, activeUniform, uniformName, location2);
+    case gl.INT_VEC2:
+    case gl.BOOL_VEC2:
+      return new UniformIntVec2(gl, activeUniform, uniformName, location2);
+    case gl.INT_VEC3:
+    case gl.BOOL_VEC3:
+      return new UniformIntVec3(gl, activeUniform, uniformName, location2);
+    case gl.INT_VEC4:
+    case gl.BOOL_VEC4:
+      return new UniformIntVec4(gl, activeUniform, uniformName, location2);
+    case gl.FLOAT_MAT2:
+      return new UniformMat2(gl, activeUniform, uniformName, location2);
+    case gl.FLOAT_MAT3:
+      return new UniformMat3(gl, activeUniform, uniformName, location2);
+    case gl.FLOAT_MAT4:
+      return new UniformMat4(gl, activeUniform, uniformName, location2);
+    default:
+      throw new RuntimeError_default(
+        `Unrecognized uniform type: ${activeUniform.type} for uniform "${uniformName}".`
+      );
+  }
+}
+function UniformFloat(gl, activeUniform, uniformName, location2) {
+  this.name = uniformName;
+  this.value = void 0;
+  this._value = 0;
+  this._gl = gl;
+  this._location = location2;
+}
+UniformFloat.prototype.set = function() {
+  if (this.value !== this._value) {
+    this._value = this.value;
+    this._gl.uniform1f(this._location, this.value);
+  }
 };
-PrimitiveType.isLines = function(primitiveType) {
-  return primitiveType === PrimitiveType.LINES || primitiveType === PrimitiveType.LINE_LOOP || primitiveType === PrimitiveType.LINE_STRIP;
+function UniformFloatVec2(gl, activeUniform, uniformName, location2) {
+  this.name = uniformName;
+  this.value = void 0;
+  this._value = new Cartesian2_default();
+  this._gl = gl;
+  this._location = location2;
+}
+UniformFloatVec2.prototype.set = function() {
+  const v2 = this.value;
+  if (!Cartesian2_default.equals(v2, this._value)) {
+    Cartesian2_default.clone(v2, this._value);
+    this._gl.uniform2f(this._location, v2.x, v2.y);
+  }
 };
-PrimitiveType.isTriangles = function(primitiveType) {
-  return primitiveType === PrimitiveType.TRIANGLES || primitiveType === PrimitiveType.TRIANGLE_STRIP || primitiveType === PrimitiveType.TRIANGLE_FAN;
+function UniformFloatVec3(gl, activeUniform, uniformName, location2) {
+  this.name = uniformName;
+  this.value = void 0;
+  this._value = void 0;
+  this._gl = gl;
+  this._location = location2;
+}
+UniformFloatVec3.prototype.set = function() {
+  const v2 = this.value;
+  if (defined_default(v2.red)) {
+    if (!Color_default.equals(v2, this._value)) {
+      this._value = Color_default.clone(v2, this._value);
+      this._gl.uniform3f(this._location, v2.red, v2.green, v2.blue);
+    }
+  } else if (defined_default(v2.x)) {
+    if (!Cartesian3_default.equals(v2, this._value)) {
+      this._value = Cartesian3_default.clone(v2, this._value);
+      this._gl.uniform3f(this._location, v2.x, v2.y, v2.z);
+    }
+  } else {
+    throw new DeveloperError_default(`Invalid vec3 value for uniform "${this.name}".`);
+  }
 };
-PrimitiveType.validate = function(primitiveType) {
-  return primitiveType === PrimitiveType.POINTS || primitiveType === PrimitiveType.LINES || primitiveType === PrimitiveType.LINE_LOOP || primitiveType === PrimitiveType.LINE_STRIP || primitiveType === PrimitiveType.TRIANGLES || primitiveType === PrimitiveType.TRIANGLE_STRIP || primitiveType === PrimitiveType.TRIANGLE_FAN;
+function UniformFloatVec4(gl, activeUniform, uniformName, location2) {
+  this.name = uniformName;
+  this.value = void 0;
+  this._value = void 0;
+  this._gl = gl;
+  this._location = location2;
+}
+UniformFloatVec4.prototype.set = function() {
+  const v2 = this.value;
+  if (defined_default(v2.red)) {
+    if (!Color_default.equals(v2, this._value)) {
+      this._value = Color_default.clone(v2, this._value);
+      this._gl.uniform4f(this._location, v2.red, v2.green, v2.blue, v2.alpha);
+    }
+  } else if (defined_default(v2.x)) {
+    if (!Cartesian4_default.equals(v2, this._value)) {
+      this._value = Cartesian4_default.clone(v2, this._value);
+      this._gl.uniform4f(this._location, v2.x, v2.y, v2.z, v2.w);
+    }
+  } else {
+    throw new DeveloperError_default(`Invalid vec4 value for uniform "${this.name}".`);
+  }
 };
-var PrimitiveType_default = Object.freeze(PrimitiveType);
+function UniformSampler(gl, activeUniform, uniformName, location2) {
+  this.name = uniformName;
+  this.value = void 0;
+  this._gl = gl;
+  this._location = location2;
+  this.textureUnitIndex = void 0;
+}
+UniformSampler.prototype.set = function() {
+  const gl = this._gl;
+  gl.activeTexture(gl.TEXTURE0 + this.textureUnitIndex);
+  const v2 = this.value;
+  gl.bindTexture(v2._target, v2._texture);
+};
+UniformSampler.prototype._setSampler = function(textureUnitIndex) {
+  this.textureUnitIndex = textureUnitIndex;
+  this._gl.uniform1i(this._location, textureUnitIndex);
+  return textureUnitIndex + 1;
+};
+function UniformInt(gl, activeUniform, uniformName, location2) {
+  this.name = uniformName;
+  this.value = void 0;
+  this._value = 0;
+  this._gl = gl;
+  this._location = location2;
+}
+UniformInt.prototype.set = function() {
+  if (this.value !== this._value) {
+    this._value = this.value;
+    this._gl.uniform1i(this._location, this.value);
+  }
+};
+function UniformIntVec2(gl, activeUniform, uniformName, location2) {
+  this.name = uniformName;
+  this.value = void 0;
+  this._value = new Cartesian2_default();
+  this._gl = gl;
+  this._location = location2;
+}
+UniformIntVec2.prototype.set = function() {
+  const v2 = this.value;
+  if (!Cartesian2_default.equals(v2, this._value)) {
+    Cartesian2_default.clone(v2, this._value);
+    this._gl.uniform2i(this._location, v2.x, v2.y);
+  }
+};
+function UniformIntVec3(gl, activeUniform, uniformName, location2) {
+  this.name = uniformName;
+  this.value = void 0;
+  this._value = new Cartesian3_default();
+  this._gl = gl;
+  this._location = location2;
+}
+UniformIntVec3.prototype.set = function() {
+  const v2 = this.value;
+  if (!Cartesian3_default.equals(v2, this._value)) {
+    Cartesian3_default.clone(v2, this._value);
+    this._gl.uniform3i(this._location, v2.x, v2.y, v2.z);
+  }
+};
+function UniformIntVec4(gl, activeUniform, uniformName, location2) {
+  this.name = uniformName;
+  this.value = void 0;
+  this._value = new Cartesian4_default();
+  this._gl = gl;
+  this._location = location2;
+}
+UniformIntVec4.prototype.set = function() {
+  const v2 = this.value;
+  if (!Cartesian4_default.equals(v2, this._value)) {
+    Cartesian4_default.clone(v2, this._value);
+    this._gl.uniform4i(this._location, v2.x, v2.y, v2.z, v2.w);
+  }
+};
+var scratchUniformArray = new Float32Array(4);
+function UniformMat2(gl, activeUniform, uniformName, location2) {
+  this.name = uniformName;
+  this.value = void 0;
+  this._value = new Matrix2_default();
+  this._gl = gl;
+  this._location = location2;
+}
+UniformMat2.prototype.set = function() {
+  if (!Matrix2_default.equalsArray(this.value, this._value, 0)) {
+    Matrix2_default.clone(this.value, this._value);
+    const array = Matrix2_default.toArray(this.value, scratchUniformArray);
+    this._gl.uniformMatrix2fv(this._location, false, array);
+  }
+};
+var scratchMat3Array = new Float32Array(9);
+function UniformMat3(gl, activeUniform, uniformName, location2) {
+  this.name = uniformName;
+  this.value = void 0;
+  this._value = new Matrix3_default();
+  this._gl = gl;
+  this._location = location2;
+}
+UniformMat3.prototype.set = function() {
+  if (!Matrix3_default.equalsArray(this.value, this._value, 0)) {
+    Matrix3_default.clone(this.value, this._value);
+    const array = Matrix3_default.toArray(this.value, scratchMat3Array);
+    this._gl.uniformMatrix3fv(this._location, false, array);
+  }
+};
+var scratchMat4Array = new Float32Array(16);
+function UniformMat4(gl, activeUniform, uniformName, location2) {
+  this.name = uniformName;
+  this.value = void 0;
+  this._value = new Matrix4_default();
+  this._gl = gl;
+  this._location = location2;
+}
+UniformMat4.prototype.set = function() {
+  if (!Matrix4_default.equalsArray(this.value, this._value, 0)) {
+    Matrix4_default.clone(this.value, this._value);
+    const array = Matrix4_default.toArray(this.value, scratchMat4Array);
+    this._gl.uniformMatrix4fv(this._location, false, array);
+  }
+};
+var createUniform_default = createUniform;
+
+// packages/engine/Source/Renderer/createUniformArray.js
+function createUniformArray(gl, activeUniform, uniformName, locations) {
+  switch (activeUniform.type) {
+    case gl.FLOAT:
+      return new UniformArrayFloat(gl, activeUniform, uniformName, locations);
+    case gl.FLOAT_VEC2:
+      return new UniformArrayFloatVec2(
+        gl,
+        activeUniform,
+        uniformName,
+        locations
+      );
+    case gl.FLOAT_VEC3:
+      return new UniformArrayFloatVec3(
+        gl,
+        activeUniform,
+        uniformName,
+        locations
+      );
+    case gl.FLOAT_VEC4:
+      return new UniformArrayFloatVec4(
+        gl,
+        activeUniform,
+        uniformName,
+        locations
+      );
+    case gl.SAMPLER_2D:
+    case gl.SAMPLER_CUBE:
+      return new UniformArraySampler(gl, activeUniform, uniformName, locations);
+    case gl.INT:
+    case gl.BOOL:
+      return new UniformArrayInt(gl, activeUniform, uniformName, locations);
+    case gl.INT_VEC2:
+    case gl.BOOL_VEC2:
+      return new UniformArrayIntVec2(gl, activeUniform, uniformName, locations);
+    case gl.INT_VEC3:
+    case gl.BOOL_VEC3:
+      return new UniformArrayIntVec3(gl, activeUniform, uniformName, locations);
+    case gl.INT_VEC4:
+    case gl.BOOL_VEC4:
+      return new UniformArrayIntVec4(gl, activeUniform, uniformName, locations);
+    case gl.FLOAT_MAT2:
+      return new UniformArrayMat2(gl, activeUniform, uniformName, locations);
+    case gl.FLOAT_MAT3:
+      return new UniformArrayMat3(gl, activeUniform, uniformName, locations);
+    case gl.FLOAT_MAT4:
+      return new UniformArrayMat4(gl, activeUniform, uniformName, locations);
+    default:
+      throw new RuntimeError_default(
+        `Unrecognized uniform type: ${activeUniform.type} for uniform "${uniformName}".`
+      );
+  }
+}
+function UniformArrayFloat(gl, activeUniform, uniformName, locations) {
+  const length = locations.length;
+  this.name = uniformName;
+  this.value = new Array(length);
+  this._value = new Float32Array(length);
+  this._gl = gl;
+  this._location = locations[0];
+}
+UniformArrayFloat.prototype.set = function() {
+  const value = this.value;
+  const length = value.length;
+  const arraybuffer = this._value;
+  let changed = false;
+  for (let i = 0; i < length; ++i) {
+    const v2 = value[i];
+    if (v2 !== arraybuffer[i]) {
+      arraybuffer[i] = v2;
+      changed = true;
+    }
+  }
+  if (changed) {
+    this._gl.uniform1fv(this._location, arraybuffer);
+  }
+};
+function UniformArrayFloatVec2(gl, activeUniform, uniformName, locations) {
+  const length = locations.length;
+  this.name = uniformName;
+  this.value = new Array(length);
+  this._value = new Float32Array(length * 2);
+  this._gl = gl;
+  this._location = locations[0];
+}
+UniformArrayFloatVec2.prototype.set = function() {
+  const value = this.value;
+  const length = value.length;
+  const arraybuffer = this._value;
+  let changed = false;
+  let j = 0;
+  for (let i = 0; i < length; ++i) {
+    const v2 = value[i];
+    if (!Cartesian2_default.equalsArray(v2, arraybuffer, j)) {
+      Cartesian2_default.pack(v2, arraybuffer, j);
+      changed = true;
+    }
+    j += 2;
+  }
+  if (changed) {
+    this._gl.uniform2fv(this._location, arraybuffer);
+  }
+};
+function UniformArrayFloatVec3(gl, activeUniform, uniformName, locations) {
+  const length = locations.length;
+  this.name = uniformName;
+  this.value = new Array(length);
+  this._value = new Float32Array(length * 3);
+  this._gl = gl;
+  this._location = locations[0];
+}
+UniformArrayFloatVec3.prototype.set = function() {
+  const value = this.value;
+  const length = value.length;
+  const arraybuffer = this._value;
+  let changed = false;
+  let j = 0;
+  for (let i = 0; i < length; ++i) {
+    const v2 = value[i];
+    if (defined_default(v2.red)) {
+      if (v2.red !== arraybuffer[j] || v2.green !== arraybuffer[j + 1] || v2.blue !== arraybuffer[j + 2]) {
+        arraybuffer[j] = v2.red;
+        arraybuffer[j + 1] = v2.green;
+        arraybuffer[j + 2] = v2.blue;
+        changed = true;
+      }
+    } else if (defined_default(v2.x)) {
+      if (!Cartesian3_default.equalsArray(v2, arraybuffer, j)) {
+        Cartesian3_default.pack(v2, arraybuffer, j);
+        changed = true;
+      }
+    } else {
+      throw new DeveloperError_default("Invalid vec3 value.");
+    }
+    j += 3;
+  }
+  if (changed) {
+    this._gl.uniform3fv(this._location, arraybuffer);
+  }
+};
+function UniformArrayFloatVec4(gl, activeUniform, uniformName, locations) {
+  const length = locations.length;
+  this.name = uniformName;
+  this.value = new Array(length);
+  this._value = new Float32Array(length * 4);
+  this._gl = gl;
+  this._location = locations[0];
+}
+UniformArrayFloatVec4.prototype.set = function() {
+  const value = this.value;
+  const length = value.length;
+  const arraybuffer = this._value;
+  let changed = false;
+  let j = 0;
+  for (let i = 0; i < length; ++i) {
+    const v2 = value[i];
+    if (defined_default(v2.red)) {
+      if (!Color_default.equalsArray(v2, arraybuffer, j)) {
+        Color_default.pack(v2, arraybuffer, j);
+        changed = true;
+      }
+    } else if (defined_default(v2.x)) {
+      if (!Cartesian4_default.equalsArray(v2, arraybuffer, j)) {
+        Cartesian4_default.pack(v2, arraybuffer, j);
+        changed = true;
+      }
+    } else {
+      throw new DeveloperError_default("Invalid vec4 value.");
+    }
+    j += 4;
+  }
+  if (changed) {
+    this._gl.uniform4fv(this._location, arraybuffer);
+  }
+};
+function UniformArraySampler(gl, activeUniform, uniformName, locations) {
+  const length = locations.length;
+  this.name = uniformName;
+  this.value = new Array(length);
+  this._value = new Float32Array(length);
+  this._gl = gl;
+  this._locations = locations;
+  this.textureUnitIndex = void 0;
+}
+UniformArraySampler.prototype.set = function() {
+  const gl = this._gl;
+  const textureUnitIndex = gl.TEXTURE0 + this.textureUnitIndex;
+  const value = this.value;
+  const length = value.length;
+  for (let i = 0; i < length; ++i) {
+    const v2 = value[i];
+    gl.activeTexture(textureUnitIndex + i);
+    gl.bindTexture(v2._target, v2._texture);
+  }
+};
+UniformArraySampler.prototype._setSampler = function(textureUnitIndex) {
+  this.textureUnitIndex = textureUnitIndex;
+  const locations = this._locations;
+  const length = locations.length;
+  for (let i = 0; i < length; ++i) {
+    const index = textureUnitIndex + i;
+    this._gl.uniform1i(locations[i], index);
+  }
+  return textureUnitIndex + length;
+};
+function UniformArrayInt(gl, activeUniform, uniformName, locations) {
+  const length = locations.length;
+  this.name = uniformName;
+  this.value = new Array(length);
+  this._value = new Int32Array(length);
+  this._gl = gl;
+  this._location = locations[0];
+}
+UniformArrayInt.prototype.set = function() {
+  const value = this.value;
+  const length = value.length;
+  const arraybuffer = this._value;
+  let changed = false;
+  for (let i = 0; i < length; ++i) {
+    const v2 = value[i];
+    if (v2 !== arraybuffer[i]) {
+      arraybuffer[i] = v2;
+      changed = true;
+    }
+  }
+  if (changed) {
+    this._gl.uniform1iv(this._location, arraybuffer);
+  }
+};
+function UniformArrayIntVec2(gl, activeUniform, uniformName, locations) {
+  const length = locations.length;
+  this.name = uniformName;
+  this.value = new Array(length);
+  this._value = new Int32Array(length * 2);
+  this._gl = gl;
+  this._location = locations[0];
+}
+UniformArrayIntVec2.prototype.set = function() {
+  const value = this.value;
+  const length = value.length;
+  const arraybuffer = this._value;
+  let changed = false;
+  let j = 0;
+  for (let i = 0; i < length; ++i) {
+    const v2 = value[i];
+    if (!Cartesian2_default.equalsArray(v2, arraybuffer, j)) {
+      Cartesian2_default.pack(v2, arraybuffer, j);
+      changed = true;
+    }
+    j += 2;
+  }
+  if (changed) {
+    this._gl.uniform2iv(this._location, arraybuffer);
+  }
+};
+function UniformArrayIntVec3(gl, activeUniform, uniformName, locations) {
+  const length = locations.length;
+  this.name = uniformName;
+  this.value = new Array(length);
+  this._value = new Int32Array(length * 3);
+  this._gl = gl;
+  this._location = locations[0];
+}
+UniformArrayIntVec3.prototype.set = function() {
+  const value = this.value;
+  const length = value.length;
+  const arraybuffer = this._value;
+  let changed = false;
+  let j = 0;
+  for (let i = 0; i < length; ++i) {
+    const v2 = value[i];
+    if (!Cartesian3_default.equalsArray(v2, arraybuffer, j)) {
+      Cartesian3_default.pack(v2, arraybuffer, j);
+      changed = true;
+    }
+    j += 3;
+  }
+  if (changed) {
+    this._gl.uniform3iv(this._location, arraybuffer);
+  }
+};
+function UniformArrayIntVec4(gl, activeUniform, uniformName, locations) {
+  const length = locations.length;
+  this.name = uniformName;
+  this.value = new Array(length);
+  this._value = new Int32Array(length * 4);
+  this._gl = gl;
+  this._location = locations[0];
+}
+UniformArrayIntVec4.prototype.set = function() {
+  const value = this.value;
+  const length = value.length;
+  const arraybuffer = this._value;
+  let changed = false;
+  let j = 0;
+  for (let i = 0; i < length; ++i) {
+    const v2 = value[i];
+    if (!Cartesian4_default.equalsArray(v2, arraybuffer, j)) {
+      Cartesian4_default.pack(v2, arraybuffer, j);
+      changed = true;
+    }
+    j += 4;
+  }
+  if (changed) {
+    this._gl.uniform4iv(this._location, arraybuffer);
+  }
+};
+function UniformArrayMat2(gl, activeUniform, uniformName, locations) {
+  const length = locations.length;
+  this.name = uniformName;
+  this.value = new Array(length);
+  this._value = new Float32Array(length * 4);
+  this._gl = gl;
+  this._location = locations[0];
+}
+UniformArrayMat2.prototype.set = function() {
+  const value = this.value;
+  const length = value.length;
+  const arraybuffer = this._value;
+  let changed = false;
+  let j = 0;
+  for (let i = 0; i < length; ++i) {
+    const v2 = value[i];
+    if (!Matrix2_default.equalsArray(v2, arraybuffer, j)) {
+      Matrix2_default.pack(v2, arraybuffer, j);
+      changed = true;
+    }
+    j += 4;
+  }
+  if (changed) {
+    this._gl.uniformMatrix2fv(this._location, false, arraybuffer);
+  }
+};
+function UniformArrayMat3(gl, activeUniform, uniformName, locations) {
+  const length = locations.length;
+  this.name = uniformName;
+  this.value = new Array(length);
+  this._value = new Float32Array(length * 9);
+  this._gl = gl;
+  this._location = locations[0];
+}
+UniformArrayMat3.prototype.set = function() {
+  const value = this.value;
+  const length = value.length;
+  const arraybuffer = this._value;
+  let changed = false;
+  let j = 0;
+  for (let i = 0; i < length; ++i) {
+    const v2 = value[i];
+    if (!Matrix3_default.equalsArray(v2, arraybuffer, j)) {
+      Matrix3_default.pack(v2, arraybuffer, j);
+      changed = true;
+    }
+    j += 9;
+  }
+  if (changed) {
+    this._gl.uniformMatrix3fv(this._location, false, arraybuffer);
+  }
+};
+function UniformArrayMat4(gl, activeUniform, uniformName, locations) {
+  const length = locations.length;
+  this.name = uniformName;
+  this.value = new Array(length);
+  this._value = new Float32Array(length * 16);
+  this._gl = gl;
+  this._location = locations[0];
+}
+UniformArrayMat4.prototype.set = function() {
+  const value = this.value;
+  const length = value.length;
+  const arraybuffer = this._value;
+  let changed = false;
+  let j = 0;
+  for (let i = 0; i < length; ++i) {
+    const v2 = value[i];
+    if (!Matrix4_default.equalsArray(v2, arraybuffer, j)) {
+      Matrix4_default.pack(v2, arraybuffer, j);
+      changed = true;
+    }
+    j += 16;
+  }
+  if (changed) {
+    this._gl.uniformMatrix4fv(this._location, false, arraybuffer);
+  }
+};
+var createUniformArray_default = createUniformArray;
+
+// packages/engine/Source/Renderer/ShaderProgram.js
+var nextShaderProgramId = 0;
+function ShaderProgram(options) {
+  let vertexShaderText = options.vertexShaderText;
+  let fragmentShaderText = options.fragmentShaderText;
+  if (typeof spector !== "undefined") {
+    vertexShaderText = vertexShaderText.replace(/^#line/gm, "//#line");
+    fragmentShaderText = fragmentShaderText.replace(/^#line/gm, "//#line");
+  }
+  const modifiedFS = handleUniformPrecisionMismatches(
+    vertexShaderText,
+    fragmentShaderText
+  );
+  this._gl = options.gl;
+  this._logShaderCompilation = options.logShaderCompilation;
+  this._debugShaders = options.debugShaders;
+  this._attributeLocations = options.attributeLocations;
+  this._program = void 0;
+  this._numberOfVertexAttributes = void 0;
+  this._vertexAttributes = void 0;
+  this._uniformsByName = void 0;
+  this._uniforms = void 0;
+  this._automaticUniforms = void 0;
+  this._manualUniforms = void 0;
+  this._duplicateUniformNames = modifiedFS.duplicateUniformNames;
+  this._cachedShader = void 0;
+  this.maximumTextureUnitIndex = void 0;
+  this._vertexShaderSource = options.vertexShaderSource;
+  this._vertexShaderText = options.vertexShaderText;
+  this._fragmentShaderSource = options.fragmentShaderSource;
+  this._fragmentShaderText = modifiedFS.fragmentShaderText;
+  this.id = nextShaderProgramId++;
+}
+ShaderProgram.fromCache = function(options) {
+  options = defaultValue_default(options, defaultValue_default.EMPTY_OBJECT);
+  Check_default.defined("options.context", options.context);
+  return options.context.shaderCache.getShaderProgram(options);
+};
+ShaderProgram.replaceCache = function(options) {
+  options = defaultValue_default(options, defaultValue_default.EMPTY_OBJECT);
+  Check_default.defined("options.context", options.context);
+  return options.context.shaderCache.replaceShaderProgram(options);
+};
+Object.defineProperties(ShaderProgram.prototype, {
+  /**
+   * GLSL source for the shader program's vertex shader.
+   * @memberof ShaderProgram.prototype
+   *
+   * @type {ShaderSource}
+   * @readonly
+   */
+  vertexShaderSource: {
+    get: function() {
+      return this._vertexShaderSource;
+    }
+  },
+  /**
+   * GLSL source for the shader program's fragment shader.
+   * @memberof ShaderProgram.prototype
+   *
+   * @type {ShaderSource}
+   * @readonly
+   */
+  fragmentShaderSource: {
+    get: function() {
+      return this._fragmentShaderSource;
+    }
+  },
+  vertexAttributes: {
+    get: function() {
+      initialize2(this);
+      return this._vertexAttributes;
+    }
+  },
+  numberOfVertexAttributes: {
+    get: function() {
+      initialize2(this);
+      return this._numberOfVertexAttributes;
+    }
+  },
+  allUniforms: {
+    get: function() {
+      initialize2(this);
+      return this._uniformsByName;
+    }
+  }
+});
+function extractUniforms(shaderText) {
+  const uniformNames = [];
+  const uniformLines = shaderText.match(/uniform.*?(?![^{]*})(?=[=\[;])/g);
+  if (defined_default(uniformLines)) {
+    const len = uniformLines.length;
+    for (let i = 0; i < len; i++) {
+      const line = uniformLines[i].trim();
+      const name = line.slice(line.lastIndexOf(" ") + 1);
+      uniformNames.push(name);
+    }
+  }
+  return uniformNames;
+}
+function handleUniformPrecisionMismatches(vertexShaderText, fragmentShaderText) {
+  const duplicateUniformNames = {};
+  if (!ContextLimits_default.highpFloatSupported || !ContextLimits_default.highpIntSupported) {
+    let i, j;
+    let uniformName;
+    let duplicateName;
+    const vertexShaderUniforms = extractUniforms(vertexShaderText);
+    const fragmentShaderUniforms = extractUniforms(fragmentShaderText);
+    const vertexUniformsCount = vertexShaderUniforms.length;
+    const fragmentUniformsCount = fragmentShaderUniforms.length;
+    for (i = 0; i < vertexUniformsCount; i++) {
+      for (j = 0; j < fragmentUniformsCount; j++) {
+        if (vertexShaderUniforms[i] === fragmentShaderUniforms[j]) {
+          uniformName = vertexShaderUniforms[i];
+          duplicateName = `czm_mediump_${uniformName}`;
+          const re = new RegExp(`${uniformName}\\b`, "g");
+          fragmentShaderText = fragmentShaderText.replace(re, duplicateName);
+          duplicateUniformNames[duplicateName] = uniformName;
+        }
+      }
+    }
+  }
+  return {
+    fragmentShaderText,
+    duplicateUniformNames
+  };
+}
+var consolePrefix = "[Cesium WebGL] ";
+function createAndLinkProgram(gl, shader) {
+  const vsSource = shader._vertexShaderText;
+  const fsSource = shader._fragmentShaderText;
+  const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+  gl.shaderSource(vertexShader, vsSource);
+  gl.compileShader(vertexShader);
+  const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+  gl.shaderSource(fragmentShader, fsSource);
+  gl.compileShader(fragmentShader);
+  const program = gl.createProgram();
+  gl.attachShader(program, vertexShader);
+  gl.attachShader(program, fragmentShader);
+  const attributeLocations = shader._attributeLocations;
+  if (defined_default(attributeLocations)) {
+    for (const attribute in attributeLocations) {
+      if (attributeLocations.hasOwnProperty(attribute)) {
+        gl.bindAttribLocation(
+          program,
+          attributeLocations[attribute],
+          attribute
+        );
+      }
+    }
+  }
+  gl.linkProgram(program);
+  let log;
+  if (gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    if (shader._logShaderCompilation) {
+      log = gl.getShaderInfoLog(vertexShader);
+      if (defined_default(log) && log.length > 0) {
+        console.log(`${consolePrefix}Vertex shader compile log: ${log}`);
+      }
+      log = gl.getShaderInfoLog(fragmentShader);
+      if (defined_default(log) && log.length > 0) {
+        console.log(`${consolePrefix}Fragment shader compile log: ${log}`);
+      }
+      log = gl.getProgramInfoLog(program);
+      if (defined_default(log) && log.length > 0) {
+        console.log(`${consolePrefix}Shader program link log: ${log}`);
+      }
+    }
+    gl.deleteShader(vertexShader);
+    gl.deleteShader(fragmentShader);
+    return program;
+  }
+  let errorMessage;
+  const debugShaders = shader._debugShaders;
+  if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+    log = gl.getShaderInfoLog(fragmentShader);
+    console.error(`${consolePrefix}Fragment shader compile log: ${log}`);
+    console.error(`${consolePrefix} Fragment shader source:
+${fsSource}`);
+    errorMessage = `Fragment shader failed to compile.  Compile log: ${log}`;
+  } else if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+    log = gl.getShaderInfoLog(vertexShader);
+    console.error(`${consolePrefix}Vertex shader compile log: ${log}`);
+    console.error(`${consolePrefix} Vertex shader source:
+${vsSource}`);
+    errorMessage = `Vertex shader failed to compile.  Compile log: ${log}`;
+  } else {
+    log = gl.getProgramInfoLog(program);
+    console.error(`${consolePrefix}Shader program link log: ${log}`);
+    logTranslatedSource(vertexShader, "vertex");
+    logTranslatedSource(fragmentShader, "fragment");
+    errorMessage = `Program failed to link.  Link log: ${log}`;
+  }
+  gl.deleteShader(vertexShader);
+  gl.deleteShader(fragmentShader);
+  gl.deleteProgram(program);
+  throw new RuntimeError_default(errorMessage);
+  function logTranslatedSource(compiledShader, name) {
+    if (!defined_default(debugShaders)) {
+      return;
+    }
+    const translation = debugShaders.getTranslatedShaderSource(compiledShader);
+    if (translation === "") {
+      console.error(`${consolePrefix}${name} shader translation failed.`);
+      return;
+    }
+    console.error(
+      `${consolePrefix}Translated ${name} shaderSource:
+${translation}`
+    );
+  }
+}
+function findVertexAttributes(gl, program, numberOfAttributes) {
+  const attributes = {};
+  for (let i = 0; i < numberOfAttributes; ++i) {
+    const attr = gl.getActiveAttrib(program, i);
+    const location2 = gl.getAttribLocation(program, attr.name);
+    attributes[attr.name] = {
+      name: attr.name,
+      type: attr.type,
+      index: location2
+    };
+  }
+  return attributes;
+}
+function findUniforms(gl, program) {
+  const uniformsByName = {};
+  const uniforms = [];
+  const samplerUniforms = [];
+  const numberOfUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+  for (let i = 0; i < numberOfUniforms; ++i) {
+    const activeUniform = gl.getActiveUniform(program, i);
+    const suffix = "[0]";
+    const uniformName = activeUniform.name.indexOf(
+      suffix,
+      activeUniform.name.length - suffix.length
+    ) !== -1 ? activeUniform.name.slice(0, activeUniform.name.length - 3) : activeUniform.name;
+    if (uniformName.indexOf("gl_") !== 0) {
+      if (activeUniform.name.indexOf("[") < 0) {
+        const location2 = gl.getUniformLocation(program, uniformName);
+        if (location2 !== null) {
+          const uniform = createUniform_default(
+            gl,
+            activeUniform,
+            uniformName,
+            location2
+          );
+          uniformsByName[uniformName] = uniform;
+          uniforms.push(uniform);
+          if (uniform._setSampler) {
+            samplerUniforms.push(uniform);
+          }
+        }
+      } else {
+        let uniformArray;
+        let locations;
+        let value;
+        let loc;
+        const indexOfBracket = uniformName.indexOf("[");
+        if (indexOfBracket >= 0) {
+          uniformArray = uniformsByName[uniformName.slice(0, indexOfBracket)];
+          if (!defined_default(uniformArray)) {
+            continue;
+          }
+          locations = uniformArray._locations;
+          if (locations.length <= 1) {
+            value = uniformArray.value;
+            loc = gl.getUniformLocation(program, uniformName);
+            if (loc !== null) {
+              locations.push(loc);
+              value.push(gl.getUniform(program, loc));
+            }
+          }
+        } else {
+          locations = [];
+          for (let j = 0; j < activeUniform.size; ++j) {
+            loc = gl.getUniformLocation(program, `${uniformName}[${j}]`);
+            if (loc !== null) {
+              locations.push(loc);
+            }
+          }
+          uniformArray = createUniformArray_default(
+            gl,
+            activeUniform,
+            uniformName,
+            locations
+          );
+          uniformsByName[uniformName] = uniformArray;
+          uniforms.push(uniformArray);
+          if (uniformArray._setSampler) {
+            samplerUniforms.push(uniformArray);
+          }
+        }
+      }
+    }
+  }
+  return {
+    uniformsByName,
+    uniforms,
+    samplerUniforms
+  };
+}
+function partitionUniforms(shader, uniforms) {
+  const automaticUniforms = [];
+  const manualUniforms = [];
+  for (const uniform in uniforms) {
+    if (uniforms.hasOwnProperty(uniform)) {
+      const uniformObject = uniforms[uniform];
+      let uniformName = uniform;
+      const duplicateUniform = shader._duplicateUniformNames[uniformName];
+      if (defined_default(duplicateUniform)) {
+        uniformObject.name = duplicateUniform;
+        uniformName = duplicateUniform;
+      }
+      const automaticUniform = AutomaticUniforms_default[uniformName];
+      if (defined_default(automaticUniform)) {
+        automaticUniforms.push({
+          uniform: uniformObject,
+          automaticUniform
+        });
+      } else {
+        manualUniforms.push(uniformObject);
+      }
+    }
+  }
+  return {
+    automaticUniforms,
+    manualUniforms
+  };
+}
+function setSamplerUniforms(gl, program, samplerUniforms) {
+  gl.useProgram(program);
+  let textureUnitIndex = 0;
+  const length = samplerUniforms.length;
+  for (let i = 0; i < length; ++i) {
+    textureUnitIndex = samplerUniforms[i]._setSampler(textureUnitIndex);
+  }
+  gl.useProgram(null);
+  return textureUnitIndex;
+}
+function initialize2(shader) {
+  if (defined_default(shader._program)) {
+    return;
+  }
+  reinitialize(shader);
+}
+function reinitialize(shader) {
+  const oldProgram = shader._program;
+  const gl = shader._gl;
+  const program = createAndLinkProgram(gl, shader, shader._debugShaders);
+  const numberOfVertexAttributes = gl.getProgramParameter(
+    program,
+    gl.ACTIVE_ATTRIBUTES
+  );
+  const uniforms = findUniforms(gl, program);
+  const partitionedUniforms = partitionUniforms(
+    shader,
+    uniforms.uniformsByName
+  );
+  shader._program = program;
+  shader._numberOfVertexAttributes = numberOfVertexAttributes;
+  shader._vertexAttributes = findVertexAttributes(
+    gl,
+    program,
+    numberOfVertexAttributes
+  );
+  shader._uniformsByName = uniforms.uniformsByName;
+  shader._uniforms = uniforms.uniforms;
+  shader._automaticUniforms = partitionedUniforms.automaticUniforms;
+  shader._manualUniforms = partitionedUniforms.manualUniforms;
+  shader.maximumTextureUnitIndex = setSamplerUniforms(
+    gl,
+    program,
+    uniforms.samplerUniforms
+  );
+  if (oldProgram) {
+    shader._gl.deleteProgram(oldProgram);
+  }
+  if (typeof spector !== "undefined") {
+    shader._program.__SPECTOR_rebuildProgram = function(vertexSourceCode, fragmentSourceCode, onCompiled, onError) {
+      const originalVS = shader._vertexShaderText;
+      const originalFS = shader._fragmentShaderText;
+      const regex = / ! = /g;
+      shader._vertexShaderText = vertexSourceCode.replace(regex, " != ");
+      shader._fragmentShaderText = fragmentSourceCode.replace(regex, " != ");
+      try {
+        reinitialize(shader);
+        onCompiled(shader._program);
+      } catch (e) {
+        shader._vertexShaderText = originalVS;
+        shader._fragmentShaderText = originalFS;
+        const errorMatcher = /(?:Compile|Link) error: ([^]*)/;
+        const match = errorMatcher.exec(e.message);
+        if (match) {
+          onError(match[1]);
+        } else {
+          onError(e.message);
+        }
+      }
+    };
+  }
+}
+ShaderProgram.prototype._bind = function() {
+  initialize2(this);
+  this._gl.useProgram(this._program);
+};
+ShaderProgram.prototype._setUniforms = function(uniformMap, uniformState, validate) {
+  let len;
+  let i;
+  if (defined_default(uniformMap)) {
+    const manualUniforms = this._manualUniforms;
+    len = manualUniforms.length;
+    for (i = 0; i < len; ++i) {
+      const mu = manualUniforms[i];
+      mu.value = uniformMap[mu.name]();
+    }
+  }
+  const automaticUniforms = this._automaticUniforms;
+  len = automaticUniforms.length;
+  for (i = 0; i < len; ++i) {
+    const au = automaticUniforms[i];
+    au.uniform.value = au.automaticUniform.getValue(uniformState);
+  }
+  const uniforms = this._uniforms;
+  len = uniforms.length;
+  for (i = 0; i < len; ++i) {
+    uniforms[i].set();
+  }
+  if (validate) {
+    const gl = this._gl;
+    const program = this._program;
+    gl.validateProgram(program);
+    if (!gl.getProgramParameter(program, gl.VALIDATE_STATUS)) {
+      throw new DeveloperError_default(
+        `Program validation failed.  Program info log: ${gl.getProgramInfoLog(
+          program
+        )}`
+      );
+    }
+  }
+};
+ShaderProgram.prototype.isDestroyed = function() {
+  return false;
+};
+ShaderProgram.prototype.destroy = function() {
+  this._cachedShader.cache.releaseShaderProgram(this);
+  return void 0;
+};
+ShaderProgram.prototype.finalDestroy = function() {
+  this._gl.deleteProgram(this._program);
+  return destroyObject_default(this);
+};
+var ShaderProgram_default = ShaderProgram;
+
+// packages/engine/Source/Core/ComponentDatatype.js
+var ComponentDatatype = {
+  /**
+   * 8-bit signed byte corresponding to <code>gl.BYTE</code> and the type
+   * of an element in <code>Int8Array</code>.
+   *
+   * @type {number}
+   * @constant
+   */
+  BYTE: WebGLConstants_default.BYTE,
+  /**
+   * 8-bit unsigned byte corresponding to <code>UNSIGNED_BYTE</code> and the type
+   * of an element in <code>Uint8Array</code>.
+   *
+   * @type {number}
+   * @constant
+   */
+  UNSIGNED_BYTE: WebGLConstants_default.UNSIGNED_BYTE,
+  /**
+   * 16-bit signed short corresponding to <code>SHORT</code> and the type
+   * of an element in <code>Int16Array</code>.
+   *
+   * @type {number}
+   * @constant
+   */
+  SHORT: WebGLConstants_default.SHORT,
+  /**
+   * 16-bit unsigned short corresponding to <code>UNSIGNED_SHORT</code> and the type
+   * of an element in <code>Uint16Array</code>.
+   *
+   * @type {number}
+   * @constant
+   */
+  UNSIGNED_SHORT: WebGLConstants_default.UNSIGNED_SHORT,
+  /**
+   * 32-bit signed int corresponding to <code>INT</code> and the type
+   * of an element in <code>Int32Array</code>.
+   *
+   * @memberOf ComponentDatatype
+   *
+   * @type {number}
+   * @constant
+   */
+  INT: WebGLConstants_default.INT,
+  /**
+   * 32-bit unsigned int corresponding to <code>UNSIGNED_INT</code> and the type
+   * of an element in <code>Uint32Array</code>.
+   *
+   * @memberOf ComponentDatatype
+   *
+   * @type {number}
+   * @constant
+   */
+  UNSIGNED_INT: WebGLConstants_default.UNSIGNED_INT,
+  /**
+   * 32-bit floating-point corresponding to <code>FLOAT</code> and the type
+   * of an element in <code>Float32Array</code>.
+   *
+   * @type {number}
+   * @constant
+   */
+  FLOAT: WebGLConstants_default.FLOAT,
+  /**
+   * 64-bit floating-point corresponding to <code>gl.DOUBLE</code> (in Desktop OpenGL;
+   * this is not supported in WebGL, and is emulated in Cesium via {@link GeometryPipeline.encodeAttribute})
+   * and the type of an element in <code>Float64Array</code>.
+   *
+   * @memberOf ComponentDatatype
+   *
+   * @type {number}
+   * @constant
+   * @default 0x140A
+   */
+  DOUBLE: WebGLConstants_default.DOUBLE
+};
+ComponentDatatype.getSizeInBytes = function(componentDatatype) {
+  if (!defined_default(componentDatatype)) {
+    throw new DeveloperError_default("value is required.");
+  }
+  switch (componentDatatype) {
+    case ComponentDatatype.BYTE:
+      return Int8Array.BYTES_PER_ELEMENT;
+    case ComponentDatatype.UNSIGNED_BYTE:
+      return Uint8Array.BYTES_PER_ELEMENT;
+    case ComponentDatatype.SHORT:
+      return Int16Array.BYTES_PER_ELEMENT;
+    case ComponentDatatype.UNSIGNED_SHORT:
+      return Uint16Array.BYTES_PER_ELEMENT;
+    case ComponentDatatype.INT:
+      return Int32Array.BYTES_PER_ELEMENT;
+    case ComponentDatatype.UNSIGNED_INT:
+      return Uint32Array.BYTES_PER_ELEMENT;
+    case ComponentDatatype.FLOAT:
+      return Float32Array.BYTES_PER_ELEMENT;
+    case ComponentDatatype.DOUBLE:
+      return Float64Array.BYTES_PER_ELEMENT;
+    default:
+      throw new DeveloperError_default("componentDatatype is not a valid value.");
+  }
+};
+ComponentDatatype.fromTypedArray = function(array) {
+  if (array instanceof Int8Array) {
+    return ComponentDatatype.BYTE;
+  }
+  if (array instanceof Uint8Array) {
+    return ComponentDatatype.UNSIGNED_BYTE;
+  }
+  if (array instanceof Int16Array) {
+    return ComponentDatatype.SHORT;
+  }
+  if (array instanceof Uint16Array) {
+    return ComponentDatatype.UNSIGNED_SHORT;
+  }
+  if (array instanceof Int32Array) {
+    return ComponentDatatype.INT;
+  }
+  if (array instanceof Uint32Array) {
+    return ComponentDatatype.UNSIGNED_INT;
+  }
+  if (array instanceof Float32Array) {
+    return ComponentDatatype.FLOAT;
+  }
+  if (array instanceof Float64Array) {
+    return ComponentDatatype.DOUBLE;
+  }
+  throw new DeveloperError_default(
+    "array must be an Int8Array, Uint8Array, Int16Array, Uint16Array, Int32Array, Uint32Array, Float32Array, or Float64Array."
+  );
+};
+ComponentDatatype.validate = function(componentDatatype) {
+  return defined_default(componentDatatype) && (componentDatatype === ComponentDatatype.BYTE || componentDatatype === ComponentDatatype.UNSIGNED_BYTE || componentDatatype === ComponentDatatype.SHORT || componentDatatype === ComponentDatatype.UNSIGNED_SHORT || componentDatatype === ComponentDatatype.INT || componentDatatype === ComponentDatatype.UNSIGNED_INT || componentDatatype === ComponentDatatype.FLOAT || componentDatatype === ComponentDatatype.DOUBLE);
+};
+ComponentDatatype.createTypedArray = function(componentDatatype, valuesOrLength) {
+  if (!defined_default(componentDatatype)) {
+    throw new DeveloperError_default("componentDatatype is required.");
+  }
+  if (!defined_default(valuesOrLength)) {
+    throw new DeveloperError_default("valuesOrLength is required.");
+  }
+  switch (componentDatatype) {
+    case ComponentDatatype.BYTE:
+      return new Int8Array(valuesOrLength);
+    case ComponentDatatype.UNSIGNED_BYTE:
+      return new Uint8Array(valuesOrLength);
+    case ComponentDatatype.SHORT:
+      return new Int16Array(valuesOrLength);
+    case ComponentDatatype.UNSIGNED_SHORT:
+      return new Uint16Array(valuesOrLength);
+    case ComponentDatatype.INT:
+      return new Int32Array(valuesOrLength);
+    case ComponentDatatype.UNSIGNED_INT:
+      return new Uint32Array(valuesOrLength);
+    case ComponentDatatype.FLOAT:
+      return new Float32Array(valuesOrLength);
+    case ComponentDatatype.DOUBLE:
+      return new Float64Array(valuesOrLength);
+    default:
+      throw new DeveloperError_default("componentDatatype is not a valid value.");
+  }
+};
+ComponentDatatype.createArrayBufferView = function(componentDatatype, buffer, byteOffset, length) {
+  if (!defined_default(componentDatatype)) {
+    throw new DeveloperError_default("componentDatatype is required.");
+  }
+  if (!defined_default(buffer)) {
+    throw new DeveloperError_default("buffer is required.");
+  }
+  byteOffset = defaultValue_default(byteOffset, 0);
+  length = defaultValue_default(
+    length,
+    (buffer.byteLength - byteOffset) / ComponentDatatype.getSizeInBytes(componentDatatype)
+  );
+  switch (componentDatatype) {
+    case ComponentDatatype.BYTE:
+      return new Int8Array(buffer, byteOffset, length);
+    case ComponentDatatype.UNSIGNED_BYTE:
+      return new Uint8Array(buffer, byteOffset, length);
+    case ComponentDatatype.SHORT:
+      return new Int16Array(buffer, byteOffset, length);
+    case ComponentDatatype.UNSIGNED_SHORT:
+      return new Uint16Array(buffer, byteOffset, length);
+    case ComponentDatatype.INT:
+      return new Int32Array(buffer, byteOffset, length);
+    case ComponentDatatype.UNSIGNED_INT:
+      return new Uint32Array(buffer, byteOffset, length);
+    case ComponentDatatype.FLOAT:
+      return new Float32Array(buffer, byteOffset, length);
+    case ComponentDatatype.DOUBLE:
+      return new Float64Array(buffer, byteOffset, length);
+    default:
+      throw new DeveloperError_default("componentDatatype is not a valid value.");
+  }
+};
+ComponentDatatype.fromName = function(name) {
+  switch (name) {
+    case "BYTE":
+      return ComponentDatatype.BYTE;
+    case "UNSIGNED_BYTE":
+      return ComponentDatatype.UNSIGNED_BYTE;
+    case "SHORT":
+      return ComponentDatatype.SHORT;
+    case "UNSIGNED_SHORT":
+      return ComponentDatatype.UNSIGNED_SHORT;
+    case "INT":
+      return ComponentDatatype.INT;
+    case "UNSIGNED_INT":
+      return ComponentDatatype.UNSIGNED_INT;
+    case "FLOAT":
+      return ComponentDatatype.FLOAT;
+    case "DOUBLE":
+      return ComponentDatatype.DOUBLE;
+    default:
+      throw new DeveloperError_default("name is not a valid value.");
+  }
+};
+var ComponentDatatype_default = Object.freeze(ComponentDatatype);
+
+// packages/engine/Source/Core/GeometryType.js
+var GeometryType = {
+  NONE: 0,
+  TRIANGLES: 1,
+  LINES: 2,
+  POLYLINES: 3
+};
+var GeometryType_default = Object.freeze(GeometryType);
 
 // packages/engine/Source/Core/Quaternion.js
 function Quaternion(x, y, z, w) {
@@ -12182,6 +15929,89 @@ var RequestErrorEvent_default = RequestErrorEvent;
 
 // packages/engine/Source/Core/RequestScheduler.js
 var import_urijs4 = __toESM(require_URI(), 1);
+
+// packages/engine/Source/Core/Event.js
+function Event() {
+  this._listeners = [];
+  this._scopes = [];
+  this._toRemove = [];
+  this._insideRaiseEvent = false;
+}
+Object.defineProperties(Event.prototype, {
+  /**
+   * The number of listeners currently subscribed to the event.
+   * @memberof Event.prototype
+   * @type {number}
+   * @readonly
+   */
+  numberOfListeners: {
+    get: function() {
+      return this._listeners.length - this._toRemove.length;
+    }
+  }
+});
+Event.prototype.addEventListener = function(listener, scope) {
+  Check_default.typeOf.func("listener", listener);
+  this._listeners.push(listener);
+  this._scopes.push(scope);
+  const event = this;
+  return function() {
+    event.removeEventListener(listener, scope);
+  };
+};
+Event.prototype.removeEventListener = function(listener, scope) {
+  Check_default.typeOf.func("listener", listener);
+  const listeners = this._listeners;
+  const scopes = this._scopes;
+  let index = -1;
+  for (let i = 0; i < listeners.length; i++) {
+    if (listeners[i] === listener && scopes[i] === scope) {
+      index = i;
+      break;
+    }
+  }
+  if (index !== -1) {
+    if (this._insideRaiseEvent) {
+      this._toRemove.push(index);
+      listeners[index] = void 0;
+      scopes[index] = void 0;
+    } else {
+      listeners.splice(index, 1);
+      scopes.splice(index, 1);
+    }
+    return true;
+  }
+  return false;
+};
+function compareNumber(a3, b) {
+  return b - a3;
+}
+Event.prototype.raiseEvent = function() {
+  this._insideRaiseEvent = true;
+  let i;
+  const listeners = this._listeners;
+  const scopes = this._scopes;
+  let length = listeners.length;
+  for (i = 0; i < length; i++) {
+    const listener = listeners[i];
+    if (defined_default(listener)) {
+      listeners[i].apply(scopes[i], arguments);
+    }
+  }
+  const toRemove = this._toRemove;
+  length = toRemove.length;
+  if (length > 0) {
+    toRemove.sort(compareNumber);
+    for (i = 0; i < length; i++) {
+      const index = toRemove[i];
+      listeners.splice(index, 1);
+      scopes.splice(index, 1);
+    }
+    toRemove.length = 0;
+  }
+  this._insideRaiseEvent = false;
+};
+var Event_default = Event;
 
 // packages/engine/Source/Core/Heap.js
 function Heap(options) {
@@ -15190,3813 +19020,6 @@ Geometry._textureCoordinateRotationPoints = function(positions, stRotation, elli
 };
 var Geometry_default = Geometry;
 
-// packages/engine/Source/Core/createGuid.js
-function createGuid() {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0;
-    const v2 = c === "x" ? r : r & 3 | 8;
-    return v2.toString(16);
-  });
-}
-var createGuid_default = createGuid;
-
-// packages/engine/Source/Renderer/ContextLimits.js
-var ContextLimits = {
-  _maximumCombinedTextureImageUnits: 0,
-  _maximumCubeMapSize: 0,
-  _maximumFragmentUniformVectors: 0,
-  _maximumTextureImageUnits: 0,
-  _maximumRenderbufferSize: 0,
-  _maximumTextureSize: 0,
-  _maximumVaryingVectors: 0,
-  _maximumVertexAttributes: 0,
-  _maximumVertexTextureImageUnits: 0,
-  _maximumVertexUniformVectors: 0,
-  _minimumAliasedLineWidth: 0,
-  _maximumAliasedLineWidth: 0,
-  _minimumAliasedPointSize: 0,
-  _maximumAliasedPointSize: 0,
-  _maximumViewportWidth: 0,
-  _maximumViewportHeight: 0,
-  _maximumTextureFilterAnisotropy: 0,
-  _maximumDrawBuffers: 0,
-  _maximumColorAttachments: 0,
-  _maximumSamples: 0,
-  _highpFloatSupported: false,
-  _highpIntSupported: false
-};
-Object.defineProperties(ContextLimits, {
-  /**
-   * The maximum number of texture units that can be used from the vertex and fragment
-   * shader with this WebGL implementation.  The minimum is eight.  If both shaders access the
-   * same texture unit, this counts as two texture units.
-   * @memberof ContextLimits
-   * @type {number}
-   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>MAX_COMBINED_TEXTURE_IMAGE_UNITS</code>.
-   */
-  maximumCombinedTextureImageUnits: {
-    get: function() {
-      return ContextLimits._maximumCombinedTextureImageUnits;
-    }
-  },
-  /**
-   * The approximate maximum cube mape width and height supported by this WebGL implementation.
-   * The minimum is 16, but most desktop and laptop implementations will support much larger sizes like 8,192.
-   * @memberof ContextLimits
-   * @type {number}
-   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>MAX_CUBE_MAP_TEXTURE_SIZE</code>.
-   */
-  maximumCubeMapSize: {
-    get: function() {
-      return ContextLimits._maximumCubeMapSize;
-    }
-  },
-  /**
-   * The maximum number of <code>vec4</code>, <code>ivec4</code>, and <code>bvec4</code>
-   * uniforms that can be used by a fragment shader with this WebGL implementation.  The minimum is 16.
-   * @memberof ContextLimits
-   * @type {number}
-   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>MAX_FRAGMENT_UNIFORM_VECTORS</code>.
-   */
-  maximumFragmentUniformVectors: {
-    get: function() {
-      return ContextLimits._maximumFragmentUniformVectors;
-    }
-  },
-  /**
-   * The maximum number of texture units that can be used from the fragment shader with this WebGL implementation.  The minimum is eight.
-   * @memberof ContextLimits
-   * @type {number}
-   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>MAX_TEXTURE_IMAGE_UNITS</code>.
-   */
-  maximumTextureImageUnits: {
-    get: function() {
-      return ContextLimits._maximumTextureImageUnits;
-    }
-  },
-  /**
-   * The maximum renderbuffer width and height supported by this WebGL implementation.
-   * The minimum is 16, but most desktop and laptop implementations will support much larger sizes like 8,192.
-   * @memberof ContextLimits
-   * @type {number}
-   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>MAX_RENDERBUFFER_SIZE</code>.
-   */
-  maximumRenderbufferSize: {
-    get: function() {
-      return ContextLimits._maximumRenderbufferSize;
-    }
-  },
-  /**
-   * The approximate maximum texture width and height supported by this WebGL implementation.
-   * The minimum is 64, but most desktop and laptop implementations will support much larger sizes like 8,192.
-   * @memberof ContextLimits
-   * @type {number}
-   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>MAX_TEXTURE_SIZE</code>.
-   */
-  maximumTextureSize: {
-    get: function() {
-      return ContextLimits._maximumTextureSize;
-    }
-  },
-  /**
-   * The maximum number of <code>vec4</code> varying variables supported by this WebGL implementation.
-   * The minimum is eight.  Matrices and arrays count as multiple <code>vec4</code>s.
-   * @memberof ContextLimits
-   * @type {number}
-   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>MAX_VARYING_VECTORS</code>.
-   */
-  maximumVaryingVectors: {
-    get: function() {
-      return ContextLimits._maximumVaryingVectors;
-    }
-  },
-  /**
-   * The maximum number of <code>vec4</code> vertex attributes supported by this WebGL implementation.  The minimum is eight.
-   * @memberof ContextLimits
-   * @type {number}
-   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>MAX_VERTEX_ATTRIBS</code>.
-   */
-  maximumVertexAttributes: {
-    get: function() {
-      return ContextLimits._maximumVertexAttributes;
-    }
-  },
-  /**
-   * The maximum number of texture units that can be used from the vertex shader with this WebGL implementation.
-   * The minimum is zero, which means the GL does not support vertex texture fetch.
-   * @memberof ContextLimits
-   * @type {number}
-   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>MAX_VERTEX_TEXTURE_IMAGE_UNITS</code>.
-   */
-  maximumVertexTextureImageUnits: {
-    get: function() {
-      return ContextLimits._maximumVertexTextureImageUnits;
-    }
-  },
-  /**
-   * The maximum number of <code>vec4</code>, <code>ivec4</code>, and <code>bvec4</code>
-   * uniforms that can be used by a vertex shader with this WebGL implementation.  The minimum is 16.
-   * @memberof ContextLimits
-   * @type {number}
-   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>MAX_VERTEX_UNIFORM_VECTORS</code>.
-   */
-  maximumVertexUniformVectors: {
-    get: function() {
-      return ContextLimits._maximumVertexUniformVectors;
-    }
-  },
-  /**
-   * The minimum aliased line width, in pixels, supported by this WebGL implementation.  It will be at most one.
-   * @memberof ContextLimits
-   * @type {number}
-   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>ALIASED_LINE_WIDTH_RANGE</code>.
-   */
-  minimumAliasedLineWidth: {
-    get: function() {
-      return ContextLimits._minimumAliasedLineWidth;
-    }
-  },
-  /**
-   * The maximum aliased line width, in pixels, supported by this WebGL implementation.  It will be at least one.
-   * @memberof ContextLimits
-   * @type {number}
-   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>ALIASED_LINE_WIDTH_RANGE</code>.
-   */
-  maximumAliasedLineWidth: {
-    get: function() {
-      return ContextLimits._maximumAliasedLineWidth;
-    }
-  },
-  /**
-   * The minimum aliased point size, in pixels, supported by this WebGL implementation.  It will be at most one.
-   * @memberof ContextLimits
-   * @type {number}
-   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>ALIASED_POINT_SIZE_RANGE</code>.
-   */
-  minimumAliasedPointSize: {
-    get: function() {
-      return ContextLimits._minimumAliasedPointSize;
-    }
-  },
-  /**
-   * The maximum aliased point size, in pixels, supported by this WebGL implementation.  It will be at least one.
-   * @memberof ContextLimits
-   * @type {number}
-   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>ALIASED_POINT_SIZE_RANGE</code>.
-   */
-  maximumAliasedPointSize: {
-    get: function() {
-      return ContextLimits._maximumAliasedPointSize;
-    }
-  },
-  /**
-   * The maximum supported width of the viewport.  It will be at least as large as the visible width of the associated canvas.
-   * @memberof ContextLimits
-   * @type {number}
-   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>MAX_VIEWPORT_DIMS</code>.
-   */
-  maximumViewportWidth: {
-    get: function() {
-      return ContextLimits._maximumViewportWidth;
-    }
-  },
-  /**
-   * The maximum supported height of the viewport.  It will be at least as large as the visible height of the associated canvas.
-   * @memberof ContextLimits
-   * @type {number}
-   * @see {@link https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGet.xml|glGet} with <code>MAX_VIEWPORT_DIMS</code>.
-   */
-  maximumViewportHeight: {
-    get: function() {
-      return ContextLimits._maximumViewportHeight;
-    }
-  },
-  /**
-   * The maximum degree of anisotropy for texture filtering
-   * @memberof ContextLimits
-   * @type {number}
-   */
-  maximumTextureFilterAnisotropy: {
-    get: function() {
-      return ContextLimits._maximumTextureFilterAnisotropy;
-    }
-  },
-  /**
-   * The maximum number of simultaneous outputs that may be written in a fragment shader.
-   * @memberof ContextLimits
-   * @type {number}
-   */
-  maximumDrawBuffers: {
-    get: function() {
-      return ContextLimits._maximumDrawBuffers;
-    }
-  },
-  /**
-   * The maximum number of color attachments supported.
-   * @memberof ContextLimits
-   * @type {number}
-   */
-  maximumColorAttachments: {
-    get: function() {
-      return ContextLimits._maximumColorAttachments;
-    }
-  },
-  /**
-   * The maximum number of samples supported for multisampling.
-   * @memberof ContextLimits
-   * @type {number}
-   */
-  maximumSamples: {
-    get: function() {
-      return ContextLimits._maximumSamples;
-    }
-  },
-  /**
-   * High precision float supported (<code>highp</code>) in fragment shaders.
-   * @memberof ContextLimits
-   * @type {boolean}
-   */
-  highpFloatSupported: {
-    get: function() {
-      return ContextLimits._highpFloatSupported;
-    }
-  },
-  /**
-   * High precision int supported (<code>highp</code>) in fragment shaders.
-   * @memberof ContextLimits
-   * @type {boolean}
-   */
-  highpIntSupported: {
-    get: function() {
-      return ContextLimits._highpIntSupported;
-    }
-  }
-});
-var ContextLimits_default = ContextLimits;
-
-// packages/engine/Source/Renderer/DrawCommand.js
-var Flags = {
-  CULL: 1,
-  OCCLUDE: 2,
-  EXECUTE_IN_CLOSEST_FRUSTUM: 4,
-  DEBUG_SHOW_BOUNDING_VOLUME: 8,
-  CAST_SHADOWS: 16,
-  RECEIVE_SHADOWS: 32,
-  PICK_ONLY: 64,
-  DEPTH_FOR_TRANSLUCENT_CLASSIFICATION: 128
-};
-function DrawCommand(options) {
-  options = defaultValue_default(options, defaultValue_default.EMPTY_OBJECT);
-  this._boundingVolume = options.boundingVolume;
-  this._orientedBoundingBox = options.orientedBoundingBox;
-  this._modelMatrix = options.modelMatrix;
-  this._primitiveType = defaultValue_default(
-    options.primitiveType,
-    PrimitiveType_default.TRIANGLES
-  );
-  this._vertexArray = options.vertexArray;
-  this._count = options.count;
-  this._offset = defaultValue_default(options.offset, 0);
-  this._instanceCount = defaultValue_default(options.instanceCount, 0);
-  this._shaderProgram = options.shaderProgram;
-  this._uniformMap = options.uniformMap;
-  this._renderState = options.renderState;
-  this._framebuffer = options.framebuffer;
-  this._pass = options.pass;
-  this._owner = options.owner;
-  this._debugOverlappingFrustums = 0;
-  this._pickId = options.pickId;
-  this._flags = 0;
-  this.cull = defaultValue_default(options.cull, true);
-  this.occlude = defaultValue_default(options.occlude, true);
-  this.executeInClosestFrustum = defaultValue_default(
-    options.executeInClosestFrustum,
-    false
-  );
-  this.debugShowBoundingVolume = defaultValue_default(
-    options.debugShowBoundingVolume,
-    false
-  );
-  this.castShadows = defaultValue_default(options.castShadows, false);
-  this.receiveShadows = defaultValue_default(options.receiveShadows, false);
-  this.pickOnly = defaultValue_default(options.pickOnly, false);
-  this.depthForTranslucentClassification = defaultValue_default(
-    options.depthForTranslucentClassification,
-    false
-  );
-  this.dirty = true;
-  this.lastDirtyTime = 0;
-  this.derivedCommands = {};
-}
-function hasFlag(command, flag) {
-  return (command._flags & flag) === flag;
-}
-function setFlag(command, flag, value) {
-  if (value) {
-    command._flags |= flag;
-  } else {
-    command._flags &= ~flag;
-  }
-}
-Object.defineProperties(DrawCommand.prototype, {
-  /**
-   * The bounding volume of the geometry in world space.  This is used for culling and frustum selection.
-   * <p>
-   * For best rendering performance, use the tightest possible bounding volume.  Although
-   * <code>undefined</code> is allowed, always try to provide a bounding volume to
-   * allow the tightest possible near and far planes to be computed for the scene, and
-   * minimize the number of frustums needed.
-   * </p>
-   *
-   * @memberof DrawCommand.prototype
-   * @type {object}
-   * @default undefined
-   *
-   * @see DrawCommand#debugShowBoundingVolume
-   */
-  boundingVolume: {
-    get: function() {
-      return this._boundingVolume;
-    },
-    set: function(value) {
-      if (this._boundingVolume !== value) {
-        this._boundingVolume = value;
-        this.dirty = true;
-      }
-    }
-  },
-  /**
-   * The oriented bounding box of the geometry in world space. If this is defined, it is used instead of
-   * {@link DrawCommand#boundingVolume} for plane intersection testing.
-   *
-   * @memberof DrawCommand.prototype
-   * @type {OrientedBoundingBox}
-   * @default undefined
-   *
-   * @see DrawCommand#debugShowBoundingVolume
-   */
-  orientedBoundingBox: {
-    get: function() {
-      return this._orientedBoundingBox;
-    },
-    set: function(value) {
-      if (this._orientedBoundingBox !== value) {
-        this._orientedBoundingBox = value;
-        this.dirty = true;
-      }
-    }
-  },
-  /**
-   * When <code>true</code>, the renderer frustum and horizon culls the command based on its {@link DrawCommand#boundingVolume}.
-   * If the command was already culled, set this to <code>false</code> for a performance improvement.
-   *
-   * @memberof DrawCommand.prototype
-   * @type {boolean}
-   * @default true
-   */
-  cull: {
-    get: function() {
-      return hasFlag(this, Flags.CULL);
-    },
-    set: function(value) {
-      if (hasFlag(this, Flags.CULL) !== value) {
-        setFlag(this, Flags.CULL, value);
-        this.dirty = true;
-      }
-    }
-  },
-  /**
-   * When <code>true</code>, the horizon culls the command based on its {@link DrawCommand#boundingVolume}.
-   * {@link DrawCommand#cull} must also be <code>true</code> in order for the command to be culled.
-   *
-   * @memberof DrawCommand.prototype
-   * @type {boolean}
-   * @default true
-   */
-  occlude: {
-    get: function() {
-      return hasFlag(this, Flags.OCCLUDE);
-    },
-    set: function(value) {
-      if (hasFlag(this, Flags.OCCLUDE) !== value) {
-        setFlag(this, Flags.OCCLUDE, value);
-        this.dirty = true;
-      }
-    }
-  },
-  /**
-   * The transformation from the geometry in model space to world space.
-   * <p>
-   * When <code>undefined</code>, the geometry is assumed to be defined in world space.
-   * </p>
-   *
-   * @memberof DrawCommand.prototype
-   * @type {Matrix4}
-   * @default undefined
-   */
-  modelMatrix: {
-    get: function() {
-      return this._modelMatrix;
-    },
-    set: function(value) {
-      if (this._modelMatrix !== value) {
-        this._modelMatrix = value;
-        this.dirty = true;
-      }
-    }
-  },
-  /**
-   * The type of geometry in the vertex array.
-   *
-   * @memberof DrawCommand.prototype
-   * @type {PrimitiveType}
-   * @default PrimitiveType.TRIANGLES
-   */
-  primitiveType: {
-    get: function() {
-      return this._primitiveType;
-    },
-    set: function(value) {
-      if (this._primitiveType !== value) {
-        this._primitiveType = value;
-        this.dirty = true;
-      }
-    }
-  },
-  /**
-   * The vertex array.
-   *
-   * @memberof DrawCommand.prototype
-   * @type {VertexArray}
-   * @default undefined
-   */
-  vertexArray: {
-    get: function() {
-      return this._vertexArray;
-    },
-    set: function(value) {
-      if (this._vertexArray !== value) {
-        this._vertexArray = value;
-        this.dirty = true;
-      }
-    }
-  },
-  /**
-   * The number of vertices to draw in the vertex array.
-   *
-   * @memberof DrawCommand.prototype
-   * @type {number}
-   * @default undefined
-   */
-  count: {
-    get: function() {
-      return this._count;
-    },
-    set: function(value) {
-      if (this._count !== value) {
-        this._count = value;
-        this.dirty = true;
-      }
-    }
-  },
-  /**
-   * The offset to start drawing in the vertex array.
-   *
-   * @memberof DrawCommand.prototype
-   * @type {number}
-   * @default 0
-   */
-  offset: {
-    get: function() {
-      return this._offset;
-    },
-    set: function(value) {
-      if (this._offset !== value) {
-        this._offset = value;
-        this.dirty = true;
-      }
-    }
-  },
-  /**
-   * The number of instances to draw.
-   *
-   * @memberof DrawCommand.prototype
-   * @type {number}
-   * @default 0
-   */
-  instanceCount: {
-    get: function() {
-      return this._instanceCount;
-    },
-    set: function(value) {
-      if (this._instanceCount !== value) {
-        this._instanceCount = value;
-        this.dirty = true;
-      }
-    }
-  },
-  /**
-   * The shader program to apply.
-   *
-   * @memberof DrawCommand.prototype
-   * @type {ShaderProgram}
-   * @default undefined
-   */
-  shaderProgram: {
-    get: function() {
-      return this._shaderProgram;
-    },
-    set: function(value) {
-      if (this._shaderProgram !== value) {
-        this._shaderProgram = value;
-        this.dirty = true;
-      }
-    }
-  },
-  /**
-   * Whether this command should cast shadows when shadowing is enabled.
-   *
-   * @memberof DrawCommand.prototype
-   * @type {boolean}
-   * @default false
-   */
-  castShadows: {
-    get: function() {
-      return hasFlag(this, Flags.CAST_SHADOWS);
-    },
-    set: function(value) {
-      if (hasFlag(this, Flags.CAST_SHADOWS) !== value) {
-        setFlag(this, Flags.CAST_SHADOWS, value);
-        this.dirty = true;
-      }
-    }
-  },
-  /**
-   * Whether this command should receive shadows when shadowing is enabled.
-   *
-   * @memberof DrawCommand.prototype
-   * @type {boolean}
-   * @default false
-   */
-  receiveShadows: {
-    get: function() {
-      return hasFlag(this, Flags.RECEIVE_SHADOWS);
-    },
-    set: function(value) {
-      if (hasFlag(this, Flags.RECEIVE_SHADOWS) !== value) {
-        setFlag(this, Flags.RECEIVE_SHADOWS, value);
-        this.dirty = true;
-      }
-    }
-  },
-  /**
-   * An object with functions whose names match the uniforms in the shader program
-   * and return values to set those uniforms.
-   *
-   * @memberof DrawCommand.prototype
-   * @type {object}
-   * @default undefined
-   */
-  uniformMap: {
-    get: function() {
-      return this._uniformMap;
-    },
-    set: function(value) {
-      if (this._uniformMap !== value) {
-        this._uniformMap = value;
-        this.dirty = true;
-      }
-    }
-  },
-  /**
-   * The render state.
-   *
-   * @memberof DrawCommand.prototype
-   * @type {RenderState}
-   * @default undefined
-   */
-  renderState: {
-    get: function() {
-      return this._renderState;
-    },
-    set: function(value) {
-      if (this._renderState !== value) {
-        this._renderState = value;
-        this.dirty = true;
-      }
-    }
-  },
-  /**
-   * The framebuffer to draw to.
-   *
-   * @memberof DrawCommand.prototype
-   * @type {Framebuffer}
-   * @default undefined
-   */
-  framebuffer: {
-    get: function() {
-      return this._framebuffer;
-    },
-    set: function(value) {
-      if (this._framebuffer !== value) {
-        this._framebuffer = value;
-        this.dirty = true;
-      }
-    }
-  },
-  /**
-   * The pass when to render.
-   *
-   * @memberof DrawCommand.prototype
-   * @type {Pass}
-   * @default undefined
-   */
-  pass: {
-    get: function() {
-      return this._pass;
-    },
-    set: function(value) {
-      if (this._pass !== value) {
-        this._pass = value;
-        this.dirty = true;
-      }
-    }
-  },
-  /**
-   * Specifies if this command is only to be executed in the frustum closest
-   * to the eye containing the bounding volume. Defaults to <code>false</code>.
-   *
-   * @memberof DrawCommand.prototype
-   * @type {boolean}
-   * @default false
-   */
-  executeInClosestFrustum: {
-    get: function() {
-      return hasFlag(this, Flags.EXECUTE_IN_CLOSEST_FRUSTUM);
-    },
-    set: function(value) {
-      if (hasFlag(this, Flags.EXECUTE_IN_CLOSEST_FRUSTUM) !== value) {
-        setFlag(this, Flags.EXECUTE_IN_CLOSEST_FRUSTUM, value);
-        this.dirty = true;
-      }
-    }
-  },
-  /**
-   * The object who created this command.  This is useful for debugging command
-   * execution; it allows us to see who created a command when we only have a
-   * reference to the command, and can be used to selectively execute commands
-   * with {@link Scene#debugCommandFilter}.
-   *
-   * @memberof DrawCommand.prototype
-   * @type {object}
-   * @default undefined
-   *
-   * @see Scene#debugCommandFilter
-   */
-  owner: {
-    get: function() {
-      return this._owner;
-    },
-    set: function(value) {
-      if (this._owner !== value) {
-        this._owner = value;
-        this.dirty = true;
-      }
-    }
-  },
-  /**
-   * This property is for debugging only; it is not for production use nor is it optimized.
-   * <p>
-   * Draws the {@link DrawCommand#boundingVolume} for this command, assuming it is a sphere, when the command executes.
-   * </p>
-   *
-   * @memberof DrawCommand.prototype
-   * @type {boolean}
-   * @default false
-   *
-   * @see DrawCommand#boundingVolume
-   */
-  debugShowBoundingVolume: {
-    get: function() {
-      return hasFlag(this, Flags.DEBUG_SHOW_BOUNDING_VOLUME);
-    },
-    set: function(value) {
-      if (hasFlag(this, Flags.DEBUG_SHOW_BOUNDING_VOLUME) !== value) {
-        setFlag(this, Flags.DEBUG_SHOW_BOUNDING_VOLUME, value);
-        this.dirty = true;
-      }
-    }
-  },
-  /**
-   * Used to implement Scene.debugShowFrustums.
-   * @private
-   */
-  debugOverlappingFrustums: {
-    get: function() {
-      return this._debugOverlappingFrustums;
-    },
-    set: function(value) {
-      if (this._debugOverlappingFrustums !== value) {
-        this._debugOverlappingFrustums = value;
-        this.dirty = true;
-      }
-    }
-  },
-  /**
-   * A GLSL string that will evaluate to a pick id. When <code>undefined</code>, the command will only draw depth
-   * during the pick pass.
-   *
-   * @memberof DrawCommand.prototype
-   * @type {string}
-   * @default undefined
-   */
-  pickId: {
-    get: function() {
-      return this._pickId;
-    },
-    set: function(value) {
-      if (this._pickId !== value) {
-        this._pickId = value;
-        this.dirty = true;
-      }
-    }
-  },
-  /**
-   * Whether this command should be executed in the pick pass only.
-   *
-   * @memberof DrawCommand.prototype
-   * @type {boolean}
-   * @default false
-   */
-  pickOnly: {
-    get: function() {
-      return hasFlag(this, Flags.PICK_ONLY);
-    },
-    set: function(value) {
-      if (hasFlag(this, Flags.PICK_ONLY) !== value) {
-        setFlag(this, Flags.PICK_ONLY, value);
-        this.dirty = true;
-      }
-    }
-  },
-  /**
-   * Whether this command should be derived to draw depth for classification of translucent primitives.
-   *
-   * @memberof DrawCommand.prototype
-   * @type {boolean}
-   * @default false
-   */
-  depthForTranslucentClassification: {
-    get: function() {
-      return hasFlag(this, Flags.DEPTH_FOR_TRANSLUCENT_CLASSIFICATION);
-    },
-    set: function(value) {
-      if (hasFlag(this, Flags.DEPTH_FOR_TRANSLUCENT_CLASSIFICATION) !== value) {
-        setFlag(this, Flags.DEPTH_FOR_TRANSLUCENT_CLASSIFICATION, value);
-        this.dirty = true;
-      }
-    }
-  }
-});
-DrawCommand.shallowClone = function(command, result) {
-  if (!defined_default(command)) {
-    return void 0;
-  }
-  if (!defined_default(result)) {
-    result = new DrawCommand();
-  }
-  result._boundingVolume = command._boundingVolume;
-  result._orientedBoundingBox = command._orientedBoundingBox;
-  result._modelMatrix = command._modelMatrix;
-  result._primitiveType = command._primitiveType;
-  result._vertexArray = command._vertexArray;
-  result._count = command._count;
-  result._offset = command._offset;
-  result._instanceCount = command._instanceCount;
-  result._shaderProgram = command._shaderProgram;
-  result._uniformMap = command._uniformMap;
-  result._renderState = command._renderState;
-  result._framebuffer = command._framebuffer;
-  result._pass = command._pass;
-  result._owner = command._owner;
-  result._debugOverlappingFrustums = command._debugOverlappingFrustums;
-  result._pickId = command._pickId;
-  result._flags = command._flags;
-  result.dirty = true;
-  result.lastDirtyTime = 0;
-  return result;
-};
-DrawCommand.prototype.execute = function(context, passState) {
-  context.draw(this, passState);
-};
-var DrawCommand_default = DrawCommand;
-
-// packages/engine/Source/Renderer/AutomaticUniforms.js
-var viewerPositionWCScratch = new Cartesian3_default();
-function AutomaticUniform(options) {
-  this._size = options.size;
-  this._datatype = options.datatype;
-  this.getValue = options.getValue;
-}
-var datatypeToGlsl = {};
-datatypeToGlsl[WebGLConstants_default.FLOAT] = "float";
-datatypeToGlsl[WebGLConstants_default.FLOAT_VEC2] = "vec2";
-datatypeToGlsl[WebGLConstants_default.FLOAT_VEC3] = "vec3";
-datatypeToGlsl[WebGLConstants_default.FLOAT_VEC4] = "vec4";
-datatypeToGlsl[WebGLConstants_default.INT] = "int";
-datatypeToGlsl[WebGLConstants_default.INT_VEC2] = "ivec2";
-datatypeToGlsl[WebGLConstants_default.INT_VEC3] = "ivec3";
-datatypeToGlsl[WebGLConstants_default.INT_VEC4] = "ivec4";
-datatypeToGlsl[WebGLConstants_default.BOOL] = "bool";
-datatypeToGlsl[WebGLConstants_default.BOOL_VEC2] = "bvec2";
-datatypeToGlsl[WebGLConstants_default.BOOL_VEC3] = "bvec3";
-datatypeToGlsl[WebGLConstants_default.BOOL_VEC4] = "bvec4";
-datatypeToGlsl[WebGLConstants_default.FLOAT_MAT2] = "mat2";
-datatypeToGlsl[WebGLConstants_default.FLOAT_MAT3] = "mat3";
-datatypeToGlsl[WebGLConstants_default.FLOAT_MAT4] = "mat4";
-datatypeToGlsl[WebGLConstants_default.SAMPLER_2D] = "sampler2D";
-datatypeToGlsl[WebGLConstants_default.SAMPLER_CUBE] = "samplerCube";
-AutomaticUniform.prototype.getDeclaration = function(name) {
-  let declaration = `uniform ${datatypeToGlsl[this._datatype]} ${name}`;
-  const size = this._size;
-  if (size === 1) {
-    declaration += ";";
-  } else {
-    declaration += `[${size.toString()}];`;
-  }
-  return declaration;
-};
-var AutomaticUniforms = {
-  /**
-   * An automatic GLSL uniform containing the viewport's <code>x</code>, <code>y</code>, <code>width</code>,
-   * and <code>height</code> properties in an <code>vec4</code>'s <code>x</code>, <code>y</code>, <code>z</code>,
-   * and <code>w</code> components, respectively.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform vec4 czm_viewport;
-   *
-   * // Scale the window coordinate components to [0, 1] by dividing
-   * // by the viewport's width and height.
-   * vec2 v = gl_FragCoord.xy / czm_viewport.zw;
-   *
-   * @see Context#getViewport
-   */
-  czm_viewport: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_VEC4,
-    getValue: function(uniformState) {
-      return uniformState.viewportCartesian4;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 4x4 orthographic projection matrix that
-   * transforms window coordinates to clip coordinates.  Clip coordinates is the
-   * coordinate system for a vertex shader's <code>gl_Position</code> output.
-   * <br /><br />
-   * This transform is useful when a vertex shader inputs or manipulates window coordinates
-   * as done by {@link BillboardCollection}.
-   * <br /><br />
-   * Do not confuse {@link czm_viewportTransformation} with <code>czm_viewportOrthographic</code>.
-   * The former transforms from normalized device coordinates to window coordinates; the later transforms
-   * from window coordinates to clip coordinates, and is often used to assign to <code>gl_Position</code>.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat4 czm_viewportOrthographic;
-   *
-   * // Example
-   * gl_Position = czm_viewportOrthographic * vec4(windowPosition, 0.0, 1.0);
-   *
-   * @see UniformState#viewportOrthographic
-   * @see czm_viewport
-   * @see czm_viewportTransformation
-   * @see BillboardCollection
-   */
-  czm_viewportOrthographic: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT4,
-    getValue: function(uniformState) {
-      return uniformState.viewportOrthographic;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 4x4 transformation matrix that
-   * transforms normalized device coordinates to window coordinates.  The context's
-   * full viewport is used, and the depth range is assumed to be <code>near = 0</code>
-   * and <code>far = 1</code>.
-   * <br /><br />
-   * This transform is useful when there is a need to manipulate window coordinates
-   * in a vertex shader as done by {@link BillboardCollection}.  In many cases,
-   * this matrix will not be used directly; instead, {@link czm_modelToWindowCoordinates}
-   * will be used to transform directly from model to window coordinates.
-   * <br /><br />
-   * Do not confuse <code>czm_viewportTransformation</code> with {@link czm_viewportOrthographic}.
-   * The former transforms from normalized device coordinates to window coordinates; the later transforms
-   * from window coordinates to clip coordinates, and is often used to assign to <code>gl_Position</code>.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat4 czm_viewportTransformation;
-   *
-   * // Use czm_viewportTransformation as part of the
-   * // transform from model to window coordinates.
-   * vec4 q = czm_modelViewProjection * positionMC;               // model to clip coordinates
-   * q.xyz /= q.w;                                                // clip to normalized device coordinates (ndc)
-   * q.xyz = (czm_viewportTransformation * vec4(q.xyz, 1.0)).xyz; // ndc to window coordinates
-   *
-   * @see UniformState#viewportTransformation
-   * @see czm_viewport
-   * @see czm_viewportOrthographic
-   * @see czm_modelToWindowCoordinates
-   * @see BillboardCollection
-   */
-  czm_viewportTransformation: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT4,
-    getValue: function(uniformState) {
-      return uniformState.viewportTransformation;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing the depth of the scene
-   * after the globe pass and then updated after the 3D Tiles pass.
-   * The depth is packed into an RGBA texture.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform sampler2D czm_globeDepthTexture;
-   *
-   * // Get the depth at the current fragment
-   * vec2 coords = gl_FragCoord.xy / czm_viewport.zw;
-   * float depth = czm_unpackDepth(texture(czm_globeDepthTexture, coords));
-   */
-  czm_globeDepthTexture: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.SAMPLER_2D,
-    getValue: function(uniformState) {
-      return uniformState.globeDepthTexture;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 4x4 model transformation matrix that
-   * transforms model coordinates to world coordinates.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat4 czm_model;
-   *
-   * // Example
-   * vec4 worldPosition = czm_model * modelPosition;
-   *
-   * @see UniformState#model
-   * @see czm_inverseModel
-   * @see czm_modelView
-   * @see czm_modelViewProjection
-   */
-  czm_model: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT4,
-    getValue: function(uniformState) {
-      return uniformState.model;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 4x4 model transformation matrix that
-   * transforms world coordinates to model coordinates.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat4 czm_inverseModel;
-   *
-   * // Example
-   * vec4 modelPosition = czm_inverseModel * worldPosition;
-   *
-   * @see UniformState#inverseModel
-   * @see czm_model
-   * @see czm_inverseModelView
-   */
-  czm_inverseModel: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT4,
-    getValue: function(uniformState) {
-      return uniformState.inverseModel;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 4x4 view transformation matrix that
-   * transforms world coordinates to eye coordinates.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat4 czm_view;
-   *
-   * // Example
-   * vec4 eyePosition = czm_view * worldPosition;
-   *
-   * @see UniformState#view
-   * @see czm_viewRotation
-   * @see czm_modelView
-   * @see czm_viewProjection
-   * @see czm_modelViewProjection
-   * @see czm_inverseView
-   */
-  czm_view: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT4,
-    getValue: function(uniformState) {
-      return uniformState.view;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 4x4 view transformation matrix that
-   * transforms 3D world coordinates to eye coordinates.  In 3D mode, this is identical to
-   * {@link czm_view}, but in 2D and Columbus View it represents the view matrix
-   * as if the camera were at an equivalent location in 3D mode.  This is useful for lighting
-   * 2D and Columbus View in the same way that 3D is lit.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat4 czm_view3D;
-   *
-   * // Example
-   * vec4 eyePosition3D = czm_view3D * worldPosition3D;
-   *
-   * @see UniformState#view3D
-   * @see czm_view
-   */
-  czm_view3D: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT4,
-    getValue: function(uniformState) {
-      return uniformState.view3D;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 3x3 view rotation matrix that
-   * transforms vectors in world coordinates to eye coordinates.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat3 czm_viewRotation;
-   *
-   * // Example
-   * vec3 eyeVector = czm_viewRotation * worldVector;
-   *
-   * @see UniformState#viewRotation
-   * @see czm_view
-   * @see czm_inverseView
-   * @see czm_inverseViewRotation
-   */
-  czm_viewRotation: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT3,
-    getValue: function(uniformState) {
-      return uniformState.viewRotation;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 3x3 view rotation matrix that
-   * transforms vectors in 3D world coordinates to eye coordinates.  In 3D mode, this is identical to
-   * {@link czm_viewRotation}, but in 2D and Columbus View it represents the view matrix
-   * as if the camera were at an equivalent location in 3D mode.  This is useful for lighting
-   * 2D and Columbus View in the same way that 3D is lit.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat3 czm_viewRotation3D;
-   *
-   * // Example
-   * vec3 eyeVector = czm_viewRotation3D * worldVector;
-   *
-   * @see UniformState#viewRotation3D
-   * @see czm_viewRotation
-   */
-  czm_viewRotation3D: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT3,
-    getValue: function(uniformState) {
-      return uniformState.viewRotation3D;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 4x4 transformation matrix that
-   * transforms from eye coordinates to world coordinates.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat4 czm_inverseView;
-   *
-   * // Example
-   * vec4 worldPosition = czm_inverseView * eyePosition;
-   *
-   * @see UniformState#inverseView
-   * @see czm_view
-   * @see czm_inverseNormal
-   */
-  czm_inverseView: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT4,
-    getValue: function(uniformState) {
-      return uniformState.inverseView;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 4x4 transformation matrix that
-   * transforms from 3D eye coordinates to world coordinates.  In 3D mode, this is identical to
-   * {@link czm_inverseView}, but in 2D and Columbus View it represents the inverse view matrix
-   * as if the camera were at an equivalent location in 3D mode.  This is useful for lighting
-   * 2D and Columbus View in the same way that 3D is lit.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat4 czm_inverseView3D;
-   *
-   * // Example
-   * vec4 worldPosition = czm_inverseView3D * eyePosition;
-   *
-   * @see UniformState#inverseView3D
-   * @see czm_inverseView
-   */
-  czm_inverseView3D: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT4,
-    getValue: function(uniformState) {
-      return uniformState.inverseView3D;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 3x3 rotation matrix that
-   * transforms vectors from eye coordinates to world coordinates.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat3 czm_inverseViewRotation;
-   *
-   * // Example
-   * vec4 worldVector = czm_inverseViewRotation * eyeVector;
-   *
-   * @see UniformState#inverseView
-   * @see czm_view
-   * @see czm_viewRotation
-   * @see czm_inverseViewRotation
-   */
-  czm_inverseViewRotation: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT3,
-    getValue: function(uniformState) {
-      return uniformState.inverseViewRotation;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 3x3 rotation matrix that
-   * transforms vectors from 3D eye coordinates to world coordinates.  In 3D mode, this is identical to
-   * {@link czm_inverseViewRotation}, but in 2D and Columbus View it represents the inverse view matrix
-   * as if the camera were at an equivalent location in 3D mode.  This is useful for lighting
-   * 2D and Columbus View in the same way that 3D is lit.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat3 czm_inverseViewRotation3D;
-   *
-   * // Example
-   * vec4 worldVector = czm_inverseViewRotation3D * eyeVector;
-   *
-   * @see UniformState#inverseView3D
-   * @see czm_inverseViewRotation
-   */
-  czm_inverseViewRotation3D: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT3,
-    getValue: function(uniformState) {
-      return uniformState.inverseViewRotation3D;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 4x4 projection transformation matrix that
-   * transforms eye coordinates to clip coordinates.  Clip coordinates is the
-   * coordinate system for a vertex shader's <code>gl_Position</code> output.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat4 czm_projection;
-   *
-   * // Example
-   * gl_Position = czm_projection * eyePosition;
-   *
-   * @see UniformState#projection
-   * @see czm_viewProjection
-   * @see czm_modelViewProjection
-   * @see czm_infiniteProjection
-   */
-  czm_projection: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT4,
-    getValue: function(uniformState) {
-      return uniformState.projection;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 4x4 inverse projection transformation matrix that
-   * transforms from clip coordinates to eye coordinates. Clip coordinates is the
-   * coordinate system for a vertex shader's <code>gl_Position</code> output.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat4 czm_inverseProjection;
-   *
-   * // Example
-   * vec4 eyePosition = czm_inverseProjection * clipPosition;
-   *
-   * @see UniformState#inverseProjection
-   * @see czm_projection
-   */
-  czm_inverseProjection: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT4,
-    getValue: function(uniformState) {
-      return uniformState.inverseProjection;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 4x4 projection transformation matrix with the far plane at infinity,
-   * that transforms eye coordinates to clip coordinates.  Clip coordinates is the
-   * coordinate system for a vertex shader's <code>gl_Position</code> output.  An infinite far plane is used
-   * in algorithms like shadow volumes and GPU ray casting with proxy geometry to ensure that triangles
-   * are not clipped by the far plane.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat4 czm_infiniteProjection;
-   *
-   * // Example
-   * gl_Position = czm_infiniteProjection * eyePosition;
-   *
-   * @see UniformState#infiniteProjection
-   * @see czm_projection
-   * @see czm_modelViewInfiniteProjection
-   */
-  czm_infiniteProjection: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT4,
-    getValue: function(uniformState) {
-      return uniformState.infiniteProjection;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 4x4 model-view transformation matrix that
-   * transforms model coordinates to eye coordinates.
-   * <br /><br />
-   * Positions should be transformed to eye coordinates using <code>czm_modelView</code> and
-   * normals should be transformed using {@link czm_normal}.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat4 czm_modelView;
-   *
-   * // Example
-   * vec4 eyePosition = czm_modelView * modelPosition;
-   *
-   * // The above is equivalent to, but more efficient than:
-   * vec4 eyePosition = czm_view * czm_model * modelPosition;
-   *
-   * @see UniformState#modelView
-   * @see czm_model
-   * @see czm_view
-   * @see czm_modelViewProjection
-   * @see czm_normal
-   */
-  czm_modelView: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT4,
-    getValue: function(uniformState) {
-      return uniformState.modelView;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 4x4 model-view transformation matrix that
-   * transforms 3D model coordinates to eye coordinates.  In 3D mode, this is identical to
-   * {@link czm_modelView}, but in 2D and Columbus View it represents the model-view matrix
-   * as if the camera were at an equivalent location in 3D mode.  This is useful for lighting
-   * 2D and Columbus View in the same way that 3D is lit.
-   * <br /><br />
-   * Positions should be transformed to eye coordinates using <code>czm_modelView3D</code> and
-   * normals should be transformed using {@link czm_normal3D}.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat4 czm_modelView3D;
-   *
-   * // Example
-   * vec4 eyePosition = czm_modelView3D * modelPosition;
-   *
-   * // The above is equivalent to, but more efficient than:
-   * vec4 eyePosition = czm_view3D * czm_model * modelPosition;
-   *
-   * @see UniformState#modelView3D
-   * @see czm_modelView
-   */
-  czm_modelView3D: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT4,
-    getValue: function(uniformState) {
-      return uniformState.modelView3D;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 4x4 model-view transformation matrix that
-   * transforms model coordinates, relative to the eye, to eye coordinates.  This is used
-   * in conjunction with {@link czm_translateRelativeToEye}.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat4 czm_modelViewRelativeToEye;
-   *
-   * // Example
-   * attribute vec3 positionHigh;
-   * attribute vec3 positionLow;
-   *
-   * void main()
-   * {
-   *   vec4 p = czm_translateRelativeToEye(positionHigh, positionLow);
-   *   gl_Position = czm_projection * (czm_modelViewRelativeToEye * p);
-   * }
-   *
-   * @see czm_modelViewProjectionRelativeToEye
-   * @see czm_translateRelativeToEye
-   * @see EncodedCartesian3
-   */
-  czm_modelViewRelativeToEye: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT4,
-    getValue: function(uniformState) {
-      return uniformState.modelViewRelativeToEye;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 4x4 transformation matrix that
-   * transforms from eye coordinates to model coordinates.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat4 czm_inverseModelView;
-   *
-   * // Example
-   * vec4 modelPosition = czm_inverseModelView * eyePosition;
-   *
-   * @see UniformState#inverseModelView
-   * @see czm_modelView
-   */
-  czm_inverseModelView: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT4,
-    getValue: function(uniformState) {
-      return uniformState.inverseModelView;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 4x4 transformation matrix that
-   * transforms from eye coordinates to 3D model coordinates.  In 3D mode, this is identical to
-   * {@link czm_inverseModelView}, but in 2D and Columbus View it represents the inverse model-view matrix
-   * as if the camera were at an equivalent location in 3D mode.  This is useful for lighting
-   * 2D and Columbus View in the same way that 3D is lit.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat4 czm_inverseModelView3D;
-   *
-   * // Example
-   * vec4 modelPosition = czm_inverseModelView3D * eyePosition;
-   *
-   * @see UniformState#inverseModelView
-   * @see czm_inverseModelView
-   * @see czm_modelView3D
-   */
-  czm_inverseModelView3D: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT4,
-    getValue: function(uniformState) {
-      return uniformState.inverseModelView3D;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 4x4 view-projection transformation matrix that
-   * transforms world coordinates to clip coordinates.  Clip coordinates is the
-   * coordinate system for a vertex shader's <code>gl_Position</code> output.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat4 czm_viewProjection;
-   *
-   * // Example
-   * vec4 gl_Position = czm_viewProjection * czm_model * modelPosition;
-   *
-   * // The above is equivalent to, but more efficient than:
-   * gl_Position = czm_projection * czm_view * czm_model * modelPosition;
-   *
-   * @see UniformState#viewProjection
-   * @see czm_view
-   * @see czm_projection
-   * @see czm_modelViewProjection
-   * @see czm_inverseViewProjection
-   */
-  czm_viewProjection: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT4,
-    getValue: function(uniformState) {
-      return uniformState.viewProjection;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 4x4 view-projection transformation matrix that
-   * transforms clip coordinates to world coordinates.  Clip coordinates is the
-   * coordinate system for a vertex shader's <code>gl_Position</code> output.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat4 czm_inverseViewProjection;
-   *
-   * // Example
-   * vec4 worldPosition = czm_inverseViewProjection * clipPosition;
-   *
-   * @see UniformState#inverseViewProjection
-   * @see czm_viewProjection
-   */
-  czm_inverseViewProjection: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT4,
-    getValue: function(uniformState) {
-      return uniformState.inverseViewProjection;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 4x4 model-view-projection transformation matrix that
-   * transforms model coordinates to clip coordinates.  Clip coordinates is the
-   * coordinate system for a vertex shader's <code>gl_Position</code> output.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat4 czm_modelViewProjection;
-   *
-   * // Example
-   * vec4 gl_Position = czm_modelViewProjection * modelPosition;
-   *
-   * // The above is equivalent to, but more efficient than:
-   * gl_Position = czm_projection * czm_view * czm_model * modelPosition;
-   *
-   * @see UniformState#modelViewProjection
-   * @see czm_model
-   * @see czm_view
-   * @see czm_projection
-   * @see czm_modelView
-   * @see czm_viewProjection
-   * @see czm_modelViewInfiniteProjection
-   * @see czm_inverseModelViewProjection
-   */
-  czm_modelViewProjection: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT4,
-    getValue: function(uniformState) {
-      return uniformState.modelViewProjection;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 4x4 inverse model-view-projection transformation matrix that
-   * transforms clip coordinates to model coordinates.  Clip coordinates is the
-   * coordinate system for a vertex shader's <code>gl_Position</code> output.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat4 czm_inverseModelViewProjection;
-   *
-   * // Example
-   * vec4 modelPosition = czm_inverseModelViewProjection * clipPosition;
-   *
-   * @see UniformState#modelViewProjection
-   * @see czm_modelViewProjection
-   */
-  czm_inverseModelViewProjection: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT4,
-    getValue: function(uniformState) {
-      return uniformState.inverseModelViewProjection;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 4x4 model-view-projection transformation matrix that
-   * transforms model coordinates, relative to the eye, to clip coordinates.  Clip coordinates is the
-   * coordinate system for a vertex shader's <code>gl_Position</code> output.  This is used in
-   * conjunction with {@link czm_translateRelativeToEye}.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat4 czm_modelViewProjectionRelativeToEye;
-   *
-   * // Example
-   * attribute vec3 positionHigh;
-   * attribute vec3 positionLow;
-   *
-   * void main()
-   * {
-   *   vec4 p = czm_translateRelativeToEye(positionHigh, positionLow);
-   *   gl_Position = czm_modelViewProjectionRelativeToEye * p;
-   * }
-   *
-   * @see czm_modelViewRelativeToEye
-   * @see czm_translateRelativeToEye
-   * @see EncodedCartesian3
-   */
-  czm_modelViewProjectionRelativeToEye: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT4,
-    getValue: function(uniformState) {
-      return uniformState.modelViewProjectionRelativeToEye;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 4x4 model-view-projection transformation matrix that
-   * transforms model coordinates to clip coordinates.  Clip coordinates is the
-   * coordinate system for a vertex shader's <code>gl_Position</code> output.  The projection matrix places
-   * the far plane at infinity.  This is useful in algorithms like shadow volumes and GPU ray casting with
-   * proxy geometry to ensure that triangles are not clipped by the far plane.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat4 czm_modelViewInfiniteProjection;
-   *
-   * // Example
-   * vec4 gl_Position = czm_modelViewInfiniteProjection * modelPosition;
-   *
-   * // The above is equivalent to, but more efficient than:
-   * gl_Position = czm_infiniteProjection * czm_view * czm_model * modelPosition;
-   *
-   * @see UniformState#modelViewInfiniteProjection
-   * @see czm_model
-   * @see czm_view
-   * @see czm_infiniteProjection
-   * @see czm_modelViewProjection
-   */
-  czm_modelViewInfiniteProjection: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT4,
-    getValue: function(uniformState) {
-      return uniformState.modelViewInfiniteProjection;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform that indicates if the current camera is orthographic in 3D.
-   *
-   * @see UniformState#orthographicIn3D
-   */
-  czm_orthographicIn3D: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT,
-    getValue: function(uniformState) {
-      return uniformState.orthographicIn3D ? 1 : 0;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 3x3 normal transformation matrix that
-   * transforms normal vectors in model coordinates to eye coordinates.
-   * <br /><br />
-   * Positions should be transformed to eye coordinates using {@link czm_modelView} and
-   * normals should be transformed using <code>czm_normal</code>.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat3 czm_normal;
-   *
-   * // Example
-   * vec3 eyeNormal = czm_normal * normal;
-   *
-   * @see UniformState#normal
-   * @see czm_inverseNormal
-   * @see czm_modelView
-   */
-  czm_normal: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT3,
-    getValue: function(uniformState) {
-      return uniformState.normal;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 3x3 normal transformation matrix that
-   * transforms normal vectors in 3D model coordinates to eye coordinates.
-   * In 3D mode, this is identical to
-   * {@link czm_normal}, but in 2D and Columbus View it represents the normal transformation
-   * matrix as if the camera were at an equivalent location in 3D mode.  This is useful for lighting
-   * 2D and Columbus View in the same way that 3D is lit.
-   * <br /><br />
-   * Positions should be transformed to eye coordinates using {@link czm_modelView3D} and
-   * normals should be transformed using <code>czm_normal3D</code>.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat3 czm_normal3D;
-   *
-   * // Example
-   * vec3 eyeNormal = czm_normal3D * normal;
-   *
-   * @see UniformState#normal3D
-   * @see czm_normal
-   */
-  czm_normal3D: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT3,
-    getValue: function(uniformState) {
-      return uniformState.normal3D;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 3x3 normal transformation matrix that
-   * transforms normal vectors in eye coordinates to model coordinates.  This is
-   * the opposite of the transform provided by {@link czm_normal}.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat3 czm_inverseNormal;
-   *
-   * // Example
-   * vec3 normalMC = czm_inverseNormal * normalEC;
-   *
-   * @see UniformState#inverseNormal
-   * @see czm_normal
-   * @see czm_modelView
-   * @see czm_inverseView
-   */
-  czm_inverseNormal: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT3,
-    getValue: function(uniformState) {
-      return uniformState.inverseNormal;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 3x3 normal transformation matrix that
-   * transforms normal vectors in eye coordinates to 3D model coordinates.  This is
-   * the opposite of the transform provided by {@link czm_normal}.
-   * In 3D mode, this is identical to
-   * {@link czm_inverseNormal}, but in 2D and Columbus View it represents the inverse normal transformation
-   * matrix as if the camera were at an equivalent location in 3D mode.  This is useful for lighting
-   * 2D and Columbus View in the same way that 3D is lit.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat3 czm_inverseNormal3D;
-   *
-   * // Example
-   * vec3 normalMC = czm_inverseNormal3D * normalEC;
-   *
-   * @see UniformState#inverseNormal3D
-   * @see czm_inverseNormal
-   */
-  czm_inverseNormal3D: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT3,
-    getValue: function(uniformState) {
-      return uniformState.inverseNormal3D;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform containing the height in meters of the
-   * eye (camera) above or below the ellipsoid.
-   *
-   * @see UniformState#eyeHeight
-   */
-  czm_eyeHeight: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT,
-    getValue: function(uniformState) {
-      return uniformState.eyeHeight;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform containing height (<code>x</code>) and height squared (<code>y</code>)
-   * in meters of the eye (camera) above the 2D world plane. This uniform is only valid
-   * when the {@link SceneMode} is <code>SCENE2D</code>.
-   *
-   * @see UniformState#eyeHeight2D
-   */
-  czm_eyeHeight2D: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_VEC2,
-    getValue: function(uniformState) {
-      return uniformState.eyeHeight2D;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform containing the near distance (<code>x</code>) and the far distance (<code>y</code>)
-   * of the frustum defined by the camera.  This is the largest possible frustum, not an individual
-   * frustum used for multi-frustum rendering.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform vec2 czm_entireFrustum;
-   *
-   * // Example
-   * float frustumLength = czm_entireFrustum.y - czm_entireFrustum.x;
-   *
-   * @see UniformState#entireFrustum
-   * @see czm_currentFrustum
-   */
-  czm_entireFrustum: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_VEC2,
-    getValue: function(uniformState) {
-      return uniformState.entireFrustum;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform containing the near distance (<code>x</code>) and the far distance (<code>y</code>)
-   * of the frustum defined by the camera.  This is the individual
-   * frustum used for multi-frustum rendering.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform vec2 czm_currentFrustum;
-   *
-   * // Example
-   * float frustumLength = czm_currentFrustum.y - czm_currentFrustum.x;
-   *
-   * @see UniformState#currentFrustum
-   * @see czm_entireFrustum
-   */
-  czm_currentFrustum: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_VEC2,
-    getValue: function(uniformState) {
-      return uniformState.currentFrustum;
-    }
-  }),
-  /**
-   * The distances to the frustum planes. The top, bottom, left and right distances are
-   * the x, y, z, and w components, respectively.
-   */
-  czm_frustumPlanes: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_VEC4,
-    getValue: function(uniformState) {
-      return uniformState.frustumPlanes;
-    }
-  }),
-  /**
-   * Gets the far plane's distance from the near plane, plus 1.0.
-   */
-  czm_farDepthFromNearPlusOne: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT,
-    getValue: function(uniformState) {
-      return uniformState.farDepthFromNearPlusOne;
-    }
-  }),
-  /**
-   * Gets the log2 of {@link AutomaticUniforms#czm_farDepthFromNearPlusOne}.
-   */
-  czm_log2FarDepthFromNearPlusOne: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT,
-    getValue: function(uniformState) {
-      return uniformState.log2FarDepthFromNearPlusOne;
-    }
-  }),
-  /**
-   * Gets 1.0 divided by {@link AutomaticUniforms#czm_log2FarDepthFromNearPlusOne}.
-   */
-  czm_oneOverLog2FarDepthFromNearPlusOne: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT,
-    getValue: function(uniformState) {
-      return uniformState.oneOverLog2FarDepthFromNearPlusOne;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing the sun position in world coordinates.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform vec3 czm_sunPositionWC;
-   *
-   * @see UniformState#sunPositionWC
-   * @see czm_sunPositionColumbusView
-   * @see czm_sunDirectionWC
-   */
-  czm_sunPositionWC: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_VEC3,
-    getValue: function(uniformState) {
-      return uniformState.sunPositionWC;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing the sun position in Columbus view world coordinates.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform vec3 czm_sunPositionColumbusView;
-   *
-   * @see UniformState#sunPositionColumbusView
-   * @see czm_sunPositionWC
-   */
-  czm_sunPositionColumbusView: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_VEC3,
-    getValue: function(uniformState) {
-      return uniformState.sunPositionColumbusView;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing the normalized direction to the sun in eye coordinates.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform vec3 czm_sunDirectionEC;
-   *
-   * // Example
-   * float diffuse = max(dot(czm_sunDirectionEC, normalEC), 0.0);
-   *
-   * @see UniformState#sunDirectionEC
-   * @see czm_moonDirectionEC
-   * @see czm_sunDirectionWC
-   */
-  czm_sunDirectionEC: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_VEC3,
-    getValue: function(uniformState) {
-      return uniformState.sunDirectionEC;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing the normalized direction to the sun in world coordinates.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform vec3 czm_sunDirectionWC;
-   *
-   * // Example
-   * float diffuse = max(dot(czm_sunDirectionWC, normalWC), 0.0);
-   *
-   * @see UniformState#sunDirectionWC
-   * @see czm_sunPositionWC
-   * @see czm_sunDirectionEC
-   */
-  czm_sunDirectionWC: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_VEC3,
-    getValue: function(uniformState) {
-      return uniformState.sunDirectionWC;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing the normalized direction to the moon in eye coordinates.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform vec3 czm_moonDirectionEC;
-   *
-   * // Example
-   * float diffuse = max(dot(czm_moonDirectionEC, normalEC), 0.0);
-   *
-   * @see UniformState#moonDirectionEC
-   * @see czm_sunDirectionEC
-   */
-  czm_moonDirectionEC: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_VEC3,
-    getValue: function(uniformState) {
-      return uniformState.moonDirectionEC;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing the normalized direction to the scene's light source in eye coordinates.
-   * This is commonly used for directional lighting computations.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform vec3 czm_lightDirectionEC;
-   *
-   * // Example
-   * float diffuse = max(dot(czm_lightDirectionEC, normalEC), 0.0);
-   *
-   * @see UniformState#lightDirectionEC
-   * @see czm_lightDirectionWC
-   */
-  czm_lightDirectionEC: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_VEC3,
-    getValue: function(uniformState) {
-      return uniformState.lightDirectionEC;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing the normalized direction to the scene's light source in world coordinates.
-   * This is commonly used for directional lighting computations.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform vec3 czm_lightDirectionWC;
-   *
-   * // Example
-   * float diffuse = max(dot(czm_lightDirectionWC, normalWC), 0.0);
-   *
-   * @see UniformState#lightDirectionWC
-   * @see czm_lightDirectionEC
-   */
-  czm_lightDirectionWC: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_VEC3,
-    getValue: function(uniformState) {
-      return uniformState.lightDirectionWC;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform that represents the color of light emitted by the scene's light source. This
-   * is equivalent to the light color multiplied by the light intensity limited to a maximum luminance of 1.0
-   * suitable for non-HDR lighting.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform vec3 czm_lightColor;
-   *
-   * // Example
-   * vec3 diffuseColor = czm_lightColor * max(dot(czm_lightDirectionWC, normalWC), 0.0);
-   *
-   * @see UniformState#lightColor
-   * @see czm_lightColorHdr
-   */
-  czm_lightColor: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_VEC3,
-    getValue: function(uniformState) {
-      return uniformState.lightColor;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform that represents the high dynamic range color of light emitted by the scene's light
-   * source. This is equivalent to the light color multiplied by the light intensity suitable for HDR lighting.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform vec3 czm_lightColorHdr;
-   *
-   * // Example
-   * vec3 diffuseColor = czm_lightColorHdr * max(dot(czm_lightDirectionWC, normalWC), 0.0);
-   *
-   * @see UniformState#lightColorHdr
-   * @see czm_lightColor
-   */
-  czm_lightColorHdr: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_VEC3,
-    getValue: function(uniformState) {
-      return uniformState.lightColorHdr;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing the high bits of the camera position in model
-   * coordinates.  This is used for GPU RTE to eliminate jittering artifacts when rendering
-   * as described in {@link http://help.agi.com/AGIComponents/html/BlogPrecisionsPrecisions.htm|Precisions, Precisions}.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform vec3 czm_encodedCameraPositionMCHigh;
-   *
-   * @see czm_encodedCameraPositionMCLow
-   * @see czm_modelViewRelativeToEye
-   * @see czm_modelViewProjectionRelativeToEye
-   */
-  czm_encodedCameraPositionMCHigh: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_VEC3,
-    getValue: function(uniformState) {
-      return uniformState.encodedCameraPositionMCHigh;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing the low bits of the camera position in model
-   * coordinates.  This is used for GPU RTE to eliminate jittering artifacts when rendering
-   * as described in {@linkhttp://help.agi.com/AGIComponents/html/BlogPrecisionsPrecisions.htm|Precisions, Precisions}.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform vec3 czm_encodedCameraPositionMCLow;
-   *
-   * @see czm_encodedCameraPositionMCHigh
-   * @see czm_modelViewRelativeToEye
-   * @see czm_modelViewProjectionRelativeToEye
-   */
-  czm_encodedCameraPositionMCLow: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_VEC3,
-    getValue: function(uniformState) {
-      return uniformState.encodedCameraPositionMCLow;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing the position of the viewer (camera) in world coordinates.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform vec3 czm_viewerPositionWC;
-   */
-  czm_viewerPositionWC: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_VEC3,
-    getValue: function(uniformState) {
-      return Matrix4_default.getTranslation(
-        uniformState.inverseView,
-        viewerPositionWCScratch
-      );
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing the frame number. This uniform is automatically incremented
-   * every frame.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform float czm_frameNumber;
-   */
-  czm_frameNumber: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT,
-    getValue: function(uniformState) {
-      return uniformState.frameState.frameNumber;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing the current morph transition time between
-   * 2D/Columbus View and 3D, with 0.0 being 2D or Columbus View and 1.0 being 3D.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform float czm_morphTime;
-   *
-   * // Example
-   * vec4 p = czm_columbusViewMorph(position2D, position3D, czm_morphTime);
-   */
-  czm_morphTime: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT,
-    getValue: function(uniformState) {
-      return uniformState.frameState.morphTime;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing the current {@link SceneMode}, expressed
-   * as a float.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform float czm_sceneMode;
-   *
-   * // Example
-   * if (czm_sceneMode == czm_sceneMode2D)
-   * {
-   *     eyeHeightSq = czm_eyeHeight2D.y;
-   * }
-   *
-   * @see czm_sceneMode2D
-   * @see czm_sceneModeColumbusView
-   * @see czm_sceneMode3D
-   * @see czm_sceneModeMorphing
-   */
-  czm_sceneMode: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT,
-    getValue: function(uniformState) {
-      return uniformState.frameState.mode;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing the current rendering pass.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform float czm_pass;
-   *
-   * // Example
-   * if ((czm_pass == czm_passTranslucent) && isOpaque())
-   * {
-   *     gl_Position *= 0.0; // Cull opaque geometry in the translucent pass
-   * }
-   */
-  czm_pass: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT,
-    getValue: function(uniformState) {
-      return uniformState.pass;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing the current scene background color.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform vec4 czm_backgroundColor;
-   *
-   * // Example: If the given color's RGB matches the background color, invert it.
-   * vec4 adjustColorForContrast(vec4 color)
-   * {
-   *     if (czm_backgroundColor.rgb == color.rgb)
-   *     {
-   *         color.rgb = vec3(1.0) - color.rgb;
-   *     }
-   *
-   *     return color;
-   * }
-   */
-  czm_backgroundColor: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_VEC4,
-    getValue: function(uniformState) {
-      return uniformState.backgroundColor;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform containing the BRDF look up texture used for image-based lighting computations.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform sampler2D czm_brdfLut;
-   *
-   * // Example: For a given roughness and NdotV value, find the material's BRDF information in the red and green channels
-   * float roughness = 0.5;
-   * float NdotV = dot(normal, view);
-   * vec2 brdfLut = texture(czm_brdfLut, vec2(NdotV, 1.0 - roughness)).rg;
-   */
-  czm_brdfLut: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.SAMPLER_2D,
-    getValue: function(uniformState) {
-      return uniformState.brdfLut;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform containing the environment map used within the scene.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform samplerCube czm_environmentMap;
-   *
-   * // Example: Create a perfect reflection of the environment map on a  model
-   * float reflected = reflect(view, normal);
-   * vec4 reflectedColor = texture(czm_environmentMap, reflected);
-   */
-  czm_environmentMap: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.SAMPLER_CUBE,
-    getValue: function(uniformState) {
-      return uniformState.environmentMap;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform containing the specular environment map atlas used within the scene.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform sampler2D czm_specularEnvironmentMaps;
-   */
-  czm_specularEnvironmentMaps: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.SAMPLER_2D,
-    getValue: function(uniformState) {
-      return uniformState.specularEnvironmentMaps;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform containing the size of the specular environment map atlas used within the scene.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform vec2 czm_specularEnvironmentMapSize;
-   */
-  czm_specularEnvironmentMapSize: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_VEC2,
-    getValue: function(uniformState) {
-      return uniformState.specularEnvironmentMapsDimensions;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform containing the maximum level-of-detail of the specular environment map atlas used within the scene.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform float czm_specularEnvironmentMapsMaximumLOD;
-   */
-  czm_specularEnvironmentMapsMaximumLOD: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT,
-    getValue: function(uniformState) {
-      return uniformState.specularEnvironmentMapsMaximumLOD;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform containing the spherical harmonic coefficients used within the scene.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform vec3[9] czm_sphericalHarmonicCoefficients;
-   */
-  czm_sphericalHarmonicCoefficients: new AutomaticUniform({
-    size: 9,
-    datatype: WebGLConstants_default.FLOAT_VEC3,
-    getValue: function(uniformState) {
-      return uniformState.sphericalHarmonicCoefficients;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing a 3x3 rotation matrix that transforms
-   * from True Equator Mean Equinox (TEME) axes to the pseudo-fixed axes at the current scene time.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform mat3 czm_temeToPseudoFixed;
-   *
-   * // Example
-   * vec3 pseudoFixed = czm_temeToPseudoFixed * teme;
-   *
-   * @see UniformState#temeToPseudoFixedMatrix
-   * @see Transforms.computeTemeToPseudoFixedMatrix
-   */
-  czm_temeToPseudoFixed: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_MAT3,
-    getValue: function(uniformState) {
-      return uniformState.temeToPseudoFixedMatrix;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing the ratio of canvas coordinate space to canvas pixel space.
-   *
-   * @example
-   * uniform float czm_pixelRatio;
-   */
-  czm_pixelRatio: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT,
-    getValue: function(uniformState) {
-      return uniformState.pixelRatio;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform scalar used to mix a color with the fog color based on the distance to the camera.
-   *
-   * @see czm_fog
-   */
-  czm_fogDensity: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT,
-    getValue: function(uniformState) {
-      return uniformState.fogDensity;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing the splitter position to use when rendering with a splitter.
-   * This will be in pixel coordinates relative to the canvas.
-   *
-   * @example
-   * // GLSL declaration
-   * uniform float czm_splitPosition;
-   */
-  czm_splitPosition: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT,
-    getValue: function(uniformState) {
-      return uniformState.splitPosition;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform scalar representing the geometric tolerance per meter
-   */
-  czm_geometricToleranceOverMeter: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT,
-    getValue: function(uniformState) {
-      return uniformState.geometricToleranceOverMeter;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform representing the distance from the camera at which to disable the depth test of billboards, labels and points
-   * to, for example, prevent clipping against terrain. When set to zero, the depth test should always be applied. When less than zero,
-   * the depth test should never be applied.
-   */
-  czm_minimumDisableDepthTestDistance: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT,
-    getValue: function(uniformState) {
-      return uniformState.minimumDisableDepthTestDistance;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform that will be the highlight color of unclassified 3D Tiles.
-   */
-  czm_invertClassificationColor: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_VEC4,
-    getValue: function(uniformState) {
-      return uniformState.invertClassificationColor;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform that is used for gamma correction.
-   */
-  czm_gamma: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT,
-    getValue: function(uniformState) {
-      return uniformState.gamma;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform that stores the ellipsoid radii.
-   */
-  czm_ellipsoidRadii: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_VEC3,
-    getValue: function(uniformState) {
-      return uniformState.ellipsoid.radii;
-    }
-  }),
-  /**
-   * An automatic GLSL uniform that stores the ellipsoid inverse radii.
-   */
-  czm_ellipsoidInverseRadii: new AutomaticUniform({
-    size: 1,
-    datatype: WebGLConstants_default.FLOAT_VEC3,
-    getValue: function(uniformState) {
-      return uniformState.ellipsoid.oneOverRadii;
-    }
-  })
-};
-var AutomaticUniforms_default = AutomaticUniforms;
-
-// packages/engine/Source/Renderer/createUniform.js
-function createUniform(gl, activeUniform, uniformName, location2) {
-  switch (activeUniform.type) {
-    case gl.FLOAT:
-      return new UniformFloat(gl, activeUniform, uniformName, location2);
-    case gl.FLOAT_VEC2:
-      return new UniformFloatVec2(gl, activeUniform, uniformName, location2);
-    case gl.FLOAT_VEC3:
-      return new UniformFloatVec3(gl, activeUniform, uniformName, location2);
-    case gl.FLOAT_VEC4:
-      return new UniformFloatVec4(gl, activeUniform, uniformName, location2);
-    case gl.SAMPLER_2D:
-    case gl.SAMPLER_CUBE:
-      return new UniformSampler(gl, activeUniform, uniformName, location2);
-    case gl.INT:
-    case gl.BOOL:
-      return new UniformInt(gl, activeUniform, uniformName, location2);
-    case gl.INT_VEC2:
-    case gl.BOOL_VEC2:
-      return new UniformIntVec2(gl, activeUniform, uniformName, location2);
-    case gl.INT_VEC3:
-    case gl.BOOL_VEC3:
-      return new UniformIntVec3(gl, activeUniform, uniformName, location2);
-    case gl.INT_VEC4:
-    case gl.BOOL_VEC4:
-      return new UniformIntVec4(gl, activeUniform, uniformName, location2);
-    case gl.FLOAT_MAT2:
-      return new UniformMat2(gl, activeUniform, uniformName, location2);
-    case gl.FLOAT_MAT3:
-      return new UniformMat3(gl, activeUniform, uniformName, location2);
-    case gl.FLOAT_MAT4:
-      return new UniformMat4(gl, activeUniform, uniformName, location2);
-    default:
-      throw new RuntimeError_default(
-        `Unrecognized uniform type: ${activeUniform.type} for uniform "${uniformName}".`
-      );
-  }
-}
-function UniformFloat(gl, activeUniform, uniformName, location2) {
-  this.name = uniformName;
-  this.value = void 0;
-  this._value = 0;
-  this._gl = gl;
-  this._location = location2;
-}
-UniformFloat.prototype.set = function() {
-  if (this.value !== this._value) {
-    this._value = this.value;
-    this._gl.uniform1f(this._location, this.value);
-  }
-};
-function UniformFloatVec2(gl, activeUniform, uniformName, location2) {
-  this.name = uniformName;
-  this.value = void 0;
-  this._value = new Cartesian2_default();
-  this._gl = gl;
-  this._location = location2;
-}
-UniformFloatVec2.prototype.set = function() {
-  const v2 = this.value;
-  if (!Cartesian2_default.equals(v2, this._value)) {
-    Cartesian2_default.clone(v2, this._value);
-    this._gl.uniform2f(this._location, v2.x, v2.y);
-  }
-};
-function UniformFloatVec3(gl, activeUniform, uniformName, location2) {
-  this.name = uniformName;
-  this.value = void 0;
-  this._value = void 0;
-  this._gl = gl;
-  this._location = location2;
-}
-UniformFloatVec3.prototype.set = function() {
-  const v2 = this.value;
-  if (defined_default(v2.red)) {
-    if (!Color_default.equals(v2, this._value)) {
-      this._value = Color_default.clone(v2, this._value);
-      this._gl.uniform3f(this._location, v2.red, v2.green, v2.blue);
-    }
-  } else if (defined_default(v2.x)) {
-    if (!Cartesian3_default.equals(v2, this._value)) {
-      this._value = Cartesian3_default.clone(v2, this._value);
-      this._gl.uniform3f(this._location, v2.x, v2.y, v2.z);
-    }
-  } else {
-    throw new DeveloperError_default(`Invalid vec3 value for uniform "${this.name}".`);
-  }
-};
-function UniformFloatVec4(gl, activeUniform, uniformName, location2) {
-  this.name = uniformName;
-  this.value = void 0;
-  this._value = void 0;
-  this._gl = gl;
-  this._location = location2;
-}
-UniformFloatVec4.prototype.set = function() {
-  const v2 = this.value;
-  if (defined_default(v2.red)) {
-    if (!Color_default.equals(v2, this._value)) {
-      this._value = Color_default.clone(v2, this._value);
-      this._gl.uniform4f(this._location, v2.red, v2.green, v2.blue, v2.alpha);
-    }
-  } else if (defined_default(v2.x)) {
-    if (!Cartesian4_default.equals(v2, this._value)) {
-      this._value = Cartesian4_default.clone(v2, this._value);
-      this._gl.uniform4f(this._location, v2.x, v2.y, v2.z, v2.w);
-    }
-  } else {
-    throw new DeveloperError_default(`Invalid vec4 value for uniform "${this.name}".`);
-  }
-};
-function UniformSampler(gl, activeUniform, uniformName, location2) {
-  this.name = uniformName;
-  this.value = void 0;
-  this._gl = gl;
-  this._location = location2;
-  this.textureUnitIndex = void 0;
-}
-UniformSampler.prototype.set = function() {
-  const gl = this._gl;
-  gl.activeTexture(gl.TEXTURE0 + this.textureUnitIndex);
-  const v2 = this.value;
-  gl.bindTexture(v2._target, v2._texture);
-};
-UniformSampler.prototype._setSampler = function(textureUnitIndex) {
-  this.textureUnitIndex = textureUnitIndex;
-  this._gl.uniform1i(this._location, textureUnitIndex);
-  return textureUnitIndex + 1;
-};
-function UniformInt(gl, activeUniform, uniformName, location2) {
-  this.name = uniformName;
-  this.value = void 0;
-  this._value = 0;
-  this._gl = gl;
-  this._location = location2;
-}
-UniformInt.prototype.set = function() {
-  if (this.value !== this._value) {
-    this._value = this.value;
-    this._gl.uniform1i(this._location, this.value);
-  }
-};
-function UniformIntVec2(gl, activeUniform, uniformName, location2) {
-  this.name = uniformName;
-  this.value = void 0;
-  this._value = new Cartesian2_default();
-  this._gl = gl;
-  this._location = location2;
-}
-UniformIntVec2.prototype.set = function() {
-  const v2 = this.value;
-  if (!Cartesian2_default.equals(v2, this._value)) {
-    Cartesian2_default.clone(v2, this._value);
-    this._gl.uniform2i(this._location, v2.x, v2.y);
-  }
-};
-function UniformIntVec3(gl, activeUniform, uniformName, location2) {
-  this.name = uniformName;
-  this.value = void 0;
-  this._value = new Cartesian3_default();
-  this._gl = gl;
-  this._location = location2;
-}
-UniformIntVec3.prototype.set = function() {
-  const v2 = this.value;
-  if (!Cartesian3_default.equals(v2, this._value)) {
-    Cartesian3_default.clone(v2, this._value);
-    this._gl.uniform3i(this._location, v2.x, v2.y, v2.z);
-  }
-};
-function UniformIntVec4(gl, activeUniform, uniformName, location2) {
-  this.name = uniformName;
-  this.value = void 0;
-  this._value = new Cartesian4_default();
-  this._gl = gl;
-  this._location = location2;
-}
-UniformIntVec4.prototype.set = function() {
-  const v2 = this.value;
-  if (!Cartesian4_default.equals(v2, this._value)) {
-    Cartesian4_default.clone(v2, this._value);
-    this._gl.uniform4i(this._location, v2.x, v2.y, v2.z, v2.w);
-  }
-};
-var scratchUniformArray = new Float32Array(4);
-function UniformMat2(gl, activeUniform, uniformName, location2) {
-  this.name = uniformName;
-  this.value = void 0;
-  this._value = new Matrix2_default();
-  this._gl = gl;
-  this._location = location2;
-}
-UniformMat2.prototype.set = function() {
-  if (!Matrix2_default.equalsArray(this.value, this._value, 0)) {
-    Matrix2_default.clone(this.value, this._value);
-    const array = Matrix2_default.toArray(this.value, scratchUniformArray);
-    this._gl.uniformMatrix2fv(this._location, false, array);
-  }
-};
-var scratchMat3Array = new Float32Array(9);
-function UniformMat3(gl, activeUniform, uniformName, location2) {
-  this.name = uniformName;
-  this.value = void 0;
-  this._value = new Matrix3_default();
-  this._gl = gl;
-  this._location = location2;
-}
-UniformMat3.prototype.set = function() {
-  if (!Matrix3_default.equalsArray(this.value, this._value, 0)) {
-    Matrix3_default.clone(this.value, this._value);
-    const array = Matrix3_default.toArray(this.value, scratchMat3Array);
-    this._gl.uniformMatrix3fv(this._location, false, array);
-  }
-};
-var scratchMat4Array = new Float32Array(16);
-function UniformMat4(gl, activeUniform, uniformName, location2) {
-  this.name = uniformName;
-  this.value = void 0;
-  this._value = new Matrix4_default();
-  this._gl = gl;
-  this._location = location2;
-}
-UniformMat4.prototype.set = function() {
-  if (!Matrix4_default.equalsArray(this.value, this._value, 0)) {
-    Matrix4_default.clone(this.value, this._value);
-    const array = Matrix4_default.toArray(this.value, scratchMat4Array);
-    this._gl.uniformMatrix4fv(this._location, false, array);
-  }
-};
-var createUniform_default = createUniform;
-
-// packages/engine/Source/Renderer/createUniformArray.js
-function createUniformArray(gl, activeUniform, uniformName, locations) {
-  switch (activeUniform.type) {
-    case gl.FLOAT:
-      return new UniformArrayFloat(gl, activeUniform, uniformName, locations);
-    case gl.FLOAT_VEC2:
-      return new UniformArrayFloatVec2(
-        gl,
-        activeUniform,
-        uniformName,
-        locations
-      );
-    case gl.FLOAT_VEC3:
-      return new UniformArrayFloatVec3(
-        gl,
-        activeUniform,
-        uniformName,
-        locations
-      );
-    case gl.FLOAT_VEC4:
-      return new UniformArrayFloatVec4(
-        gl,
-        activeUniform,
-        uniformName,
-        locations
-      );
-    case gl.SAMPLER_2D:
-    case gl.SAMPLER_CUBE:
-      return new UniformArraySampler(gl, activeUniform, uniformName, locations);
-    case gl.INT:
-    case gl.BOOL:
-      return new UniformArrayInt(gl, activeUniform, uniformName, locations);
-    case gl.INT_VEC2:
-    case gl.BOOL_VEC2:
-      return new UniformArrayIntVec2(gl, activeUniform, uniformName, locations);
-    case gl.INT_VEC3:
-    case gl.BOOL_VEC3:
-      return new UniformArrayIntVec3(gl, activeUniform, uniformName, locations);
-    case gl.INT_VEC4:
-    case gl.BOOL_VEC4:
-      return new UniformArrayIntVec4(gl, activeUniform, uniformName, locations);
-    case gl.FLOAT_MAT2:
-      return new UniformArrayMat2(gl, activeUniform, uniformName, locations);
-    case gl.FLOAT_MAT3:
-      return new UniformArrayMat3(gl, activeUniform, uniformName, locations);
-    case gl.FLOAT_MAT4:
-      return new UniformArrayMat4(gl, activeUniform, uniformName, locations);
-    default:
-      throw new RuntimeError_default(
-        `Unrecognized uniform type: ${activeUniform.type} for uniform "${uniformName}".`
-      );
-  }
-}
-function UniformArrayFloat(gl, activeUniform, uniformName, locations) {
-  const length = locations.length;
-  this.name = uniformName;
-  this.value = new Array(length);
-  this._value = new Float32Array(length);
-  this._gl = gl;
-  this._location = locations[0];
-}
-UniformArrayFloat.prototype.set = function() {
-  const value = this.value;
-  const length = value.length;
-  const arraybuffer = this._value;
-  let changed = false;
-  for (let i = 0; i < length; ++i) {
-    const v2 = value[i];
-    if (v2 !== arraybuffer[i]) {
-      arraybuffer[i] = v2;
-      changed = true;
-    }
-  }
-  if (changed) {
-    this._gl.uniform1fv(this._location, arraybuffer);
-  }
-};
-function UniformArrayFloatVec2(gl, activeUniform, uniformName, locations) {
-  const length = locations.length;
-  this.name = uniformName;
-  this.value = new Array(length);
-  this._value = new Float32Array(length * 2);
-  this._gl = gl;
-  this._location = locations[0];
-}
-UniformArrayFloatVec2.prototype.set = function() {
-  const value = this.value;
-  const length = value.length;
-  const arraybuffer = this._value;
-  let changed = false;
-  let j = 0;
-  for (let i = 0; i < length; ++i) {
-    const v2 = value[i];
-    if (!Cartesian2_default.equalsArray(v2, arraybuffer, j)) {
-      Cartesian2_default.pack(v2, arraybuffer, j);
-      changed = true;
-    }
-    j += 2;
-  }
-  if (changed) {
-    this._gl.uniform2fv(this._location, arraybuffer);
-  }
-};
-function UniformArrayFloatVec3(gl, activeUniform, uniformName, locations) {
-  const length = locations.length;
-  this.name = uniformName;
-  this.value = new Array(length);
-  this._value = new Float32Array(length * 3);
-  this._gl = gl;
-  this._location = locations[0];
-}
-UniformArrayFloatVec3.prototype.set = function() {
-  const value = this.value;
-  const length = value.length;
-  const arraybuffer = this._value;
-  let changed = false;
-  let j = 0;
-  for (let i = 0; i < length; ++i) {
-    const v2 = value[i];
-    if (defined_default(v2.red)) {
-      if (v2.red !== arraybuffer[j] || v2.green !== arraybuffer[j + 1] || v2.blue !== arraybuffer[j + 2]) {
-        arraybuffer[j] = v2.red;
-        arraybuffer[j + 1] = v2.green;
-        arraybuffer[j + 2] = v2.blue;
-        changed = true;
-      }
-    } else if (defined_default(v2.x)) {
-      if (!Cartesian3_default.equalsArray(v2, arraybuffer, j)) {
-        Cartesian3_default.pack(v2, arraybuffer, j);
-        changed = true;
-      }
-    } else {
-      throw new DeveloperError_default("Invalid vec3 value.");
-    }
-    j += 3;
-  }
-  if (changed) {
-    this._gl.uniform3fv(this._location, arraybuffer);
-  }
-};
-function UniformArrayFloatVec4(gl, activeUniform, uniformName, locations) {
-  const length = locations.length;
-  this.name = uniformName;
-  this.value = new Array(length);
-  this._value = new Float32Array(length * 4);
-  this._gl = gl;
-  this._location = locations[0];
-}
-UniformArrayFloatVec4.prototype.set = function() {
-  const value = this.value;
-  const length = value.length;
-  const arraybuffer = this._value;
-  let changed = false;
-  let j = 0;
-  for (let i = 0; i < length; ++i) {
-    const v2 = value[i];
-    if (defined_default(v2.red)) {
-      if (!Color_default.equalsArray(v2, arraybuffer, j)) {
-        Color_default.pack(v2, arraybuffer, j);
-        changed = true;
-      }
-    } else if (defined_default(v2.x)) {
-      if (!Cartesian4_default.equalsArray(v2, arraybuffer, j)) {
-        Cartesian4_default.pack(v2, arraybuffer, j);
-        changed = true;
-      }
-    } else {
-      throw new DeveloperError_default("Invalid vec4 value.");
-    }
-    j += 4;
-  }
-  if (changed) {
-    this._gl.uniform4fv(this._location, arraybuffer);
-  }
-};
-function UniformArraySampler(gl, activeUniform, uniformName, locations) {
-  const length = locations.length;
-  this.name = uniformName;
-  this.value = new Array(length);
-  this._value = new Float32Array(length);
-  this._gl = gl;
-  this._locations = locations;
-  this.textureUnitIndex = void 0;
-}
-UniformArraySampler.prototype.set = function() {
-  const gl = this._gl;
-  const textureUnitIndex = gl.TEXTURE0 + this.textureUnitIndex;
-  const value = this.value;
-  const length = value.length;
-  for (let i = 0; i < length; ++i) {
-    const v2 = value[i];
-    gl.activeTexture(textureUnitIndex + i);
-    gl.bindTexture(v2._target, v2._texture);
-  }
-};
-UniformArraySampler.prototype._setSampler = function(textureUnitIndex) {
-  this.textureUnitIndex = textureUnitIndex;
-  const locations = this._locations;
-  const length = locations.length;
-  for (let i = 0; i < length; ++i) {
-    const index = textureUnitIndex + i;
-    this._gl.uniform1i(locations[i], index);
-  }
-  return textureUnitIndex + length;
-};
-function UniformArrayInt(gl, activeUniform, uniformName, locations) {
-  const length = locations.length;
-  this.name = uniformName;
-  this.value = new Array(length);
-  this._value = new Int32Array(length);
-  this._gl = gl;
-  this._location = locations[0];
-}
-UniformArrayInt.prototype.set = function() {
-  const value = this.value;
-  const length = value.length;
-  const arraybuffer = this._value;
-  let changed = false;
-  for (let i = 0; i < length; ++i) {
-    const v2 = value[i];
-    if (v2 !== arraybuffer[i]) {
-      arraybuffer[i] = v2;
-      changed = true;
-    }
-  }
-  if (changed) {
-    this._gl.uniform1iv(this._location, arraybuffer);
-  }
-};
-function UniformArrayIntVec2(gl, activeUniform, uniformName, locations) {
-  const length = locations.length;
-  this.name = uniformName;
-  this.value = new Array(length);
-  this._value = new Int32Array(length * 2);
-  this._gl = gl;
-  this._location = locations[0];
-}
-UniformArrayIntVec2.prototype.set = function() {
-  const value = this.value;
-  const length = value.length;
-  const arraybuffer = this._value;
-  let changed = false;
-  let j = 0;
-  for (let i = 0; i < length; ++i) {
-    const v2 = value[i];
-    if (!Cartesian2_default.equalsArray(v2, arraybuffer, j)) {
-      Cartesian2_default.pack(v2, arraybuffer, j);
-      changed = true;
-    }
-    j += 2;
-  }
-  if (changed) {
-    this._gl.uniform2iv(this._location, arraybuffer);
-  }
-};
-function UniformArrayIntVec3(gl, activeUniform, uniformName, locations) {
-  const length = locations.length;
-  this.name = uniformName;
-  this.value = new Array(length);
-  this._value = new Int32Array(length * 3);
-  this._gl = gl;
-  this._location = locations[0];
-}
-UniformArrayIntVec3.prototype.set = function() {
-  const value = this.value;
-  const length = value.length;
-  const arraybuffer = this._value;
-  let changed = false;
-  let j = 0;
-  for (let i = 0; i < length; ++i) {
-    const v2 = value[i];
-    if (!Cartesian3_default.equalsArray(v2, arraybuffer, j)) {
-      Cartesian3_default.pack(v2, arraybuffer, j);
-      changed = true;
-    }
-    j += 3;
-  }
-  if (changed) {
-    this._gl.uniform3iv(this._location, arraybuffer);
-  }
-};
-function UniformArrayIntVec4(gl, activeUniform, uniformName, locations) {
-  const length = locations.length;
-  this.name = uniformName;
-  this.value = new Array(length);
-  this._value = new Int32Array(length * 4);
-  this._gl = gl;
-  this._location = locations[0];
-}
-UniformArrayIntVec4.prototype.set = function() {
-  const value = this.value;
-  const length = value.length;
-  const arraybuffer = this._value;
-  let changed = false;
-  let j = 0;
-  for (let i = 0; i < length; ++i) {
-    const v2 = value[i];
-    if (!Cartesian4_default.equalsArray(v2, arraybuffer, j)) {
-      Cartesian4_default.pack(v2, arraybuffer, j);
-      changed = true;
-    }
-    j += 4;
-  }
-  if (changed) {
-    this._gl.uniform4iv(this._location, arraybuffer);
-  }
-};
-function UniformArrayMat2(gl, activeUniform, uniformName, locations) {
-  const length = locations.length;
-  this.name = uniformName;
-  this.value = new Array(length);
-  this._value = new Float32Array(length * 4);
-  this._gl = gl;
-  this._location = locations[0];
-}
-UniformArrayMat2.prototype.set = function() {
-  const value = this.value;
-  const length = value.length;
-  const arraybuffer = this._value;
-  let changed = false;
-  let j = 0;
-  for (let i = 0; i < length; ++i) {
-    const v2 = value[i];
-    if (!Matrix2_default.equalsArray(v2, arraybuffer, j)) {
-      Matrix2_default.pack(v2, arraybuffer, j);
-      changed = true;
-    }
-    j += 4;
-  }
-  if (changed) {
-    this._gl.uniformMatrix2fv(this._location, false, arraybuffer);
-  }
-};
-function UniformArrayMat3(gl, activeUniform, uniformName, locations) {
-  const length = locations.length;
-  this.name = uniformName;
-  this.value = new Array(length);
-  this._value = new Float32Array(length * 9);
-  this._gl = gl;
-  this._location = locations[0];
-}
-UniformArrayMat3.prototype.set = function() {
-  const value = this.value;
-  const length = value.length;
-  const arraybuffer = this._value;
-  let changed = false;
-  let j = 0;
-  for (let i = 0; i < length; ++i) {
-    const v2 = value[i];
-    if (!Matrix3_default.equalsArray(v2, arraybuffer, j)) {
-      Matrix3_default.pack(v2, arraybuffer, j);
-      changed = true;
-    }
-    j += 9;
-  }
-  if (changed) {
-    this._gl.uniformMatrix3fv(this._location, false, arraybuffer);
-  }
-};
-function UniformArrayMat4(gl, activeUniform, uniformName, locations) {
-  const length = locations.length;
-  this.name = uniformName;
-  this.value = new Array(length);
-  this._value = new Float32Array(length * 16);
-  this._gl = gl;
-  this._location = locations[0];
-}
-UniformArrayMat4.prototype.set = function() {
-  const value = this.value;
-  const length = value.length;
-  const arraybuffer = this._value;
-  let changed = false;
-  let j = 0;
-  for (let i = 0; i < length; ++i) {
-    const v2 = value[i];
-    if (!Matrix4_default.equalsArray(v2, arraybuffer, j)) {
-      Matrix4_default.pack(v2, arraybuffer, j);
-      changed = true;
-    }
-    j += 16;
-  }
-  if (changed) {
-    this._gl.uniformMatrix4fv(this._location, false, arraybuffer);
-  }
-};
-var createUniformArray_default = createUniformArray;
-
-// packages/engine/Source/Renderer/ShaderProgram.js
-var nextShaderProgramId = 0;
-function ShaderProgram(options) {
-  let vertexShaderText = options.vertexShaderText;
-  let fragmentShaderText = options.fragmentShaderText;
-  if (typeof spector !== "undefined") {
-    vertexShaderText = vertexShaderText.replace(/^#line/gm, "//#line");
-    fragmentShaderText = fragmentShaderText.replace(/^#line/gm, "//#line");
-  }
-  const modifiedFS = handleUniformPrecisionMismatches(
-    vertexShaderText,
-    fragmentShaderText
-  );
-  this._gl = options.gl;
-  this._logShaderCompilation = options.logShaderCompilation;
-  this._debugShaders = options.debugShaders;
-  this._attributeLocations = options.attributeLocations;
-  this._program = void 0;
-  this._numberOfVertexAttributes = void 0;
-  this._vertexAttributes = void 0;
-  this._uniformsByName = void 0;
-  this._uniforms = void 0;
-  this._automaticUniforms = void 0;
-  this._manualUniforms = void 0;
-  this._duplicateUniformNames = modifiedFS.duplicateUniformNames;
-  this._cachedShader = void 0;
-  this.maximumTextureUnitIndex = void 0;
-  this._vertexShaderSource = options.vertexShaderSource;
-  this._vertexShaderText = options.vertexShaderText;
-  this._fragmentShaderSource = options.fragmentShaderSource;
-  this._fragmentShaderText = modifiedFS.fragmentShaderText;
-  this.id = nextShaderProgramId++;
-}
-ShaderProgram.fromCache = function(options) {
-  options = defaultValue_default(options, defaultValue_default.EMPTY_OBJECT);
-  Check_default.defined("options.context", options.context);
-  return options.context.shaderCache.getShaderProgram(options);
-};
-ShaderProgram.replaceCache = function(options) {
-  options = defaultValue_default(options, defaultValue_default.EMPTY_OBJECT);
-  Check_default.defined("options.context", options.context);
-  return options.context.shaderCache.replaceShaderProgram(options);
-};
-Object.defineProperties(ShaderProgram.prototype, {
-  /**
-   * GLSL source for the shader program's vertex shader.
-   * @memberof ShaderProgram.prototype
-   *
-   * @type {ShaderSource}
-   * @readonly
-   */
-  vertexShaderSource: {
-    get: function() {
-      return this._vertexShaderSource;
-    }
-  },
-  /**
-   * GLSL source for the shader program's fragment shader.
-   * @memberof ShaderProgram.prototype
-   *
-   * @type {ShaderSource}
-   * @readonly
-   */
-  fragmentShaderSource: {
-    get: function() {
-      return this._fragmentShaderSource;
-    }
-  },
-  vertexAttributes: {
-    get: function() {
-      initialize2(this);
-      return this._vertexAttributes;
-    }
-  },
-  numberOfVertexAttributes: {
-    get: function() {
-      initialize2(this);
-      return this._numberOfVertexAttributes;
-    }
-  },
-  allUniforms: {
-    get: function() {
-      initialize2(this);
-      return this._uniformsByName;
-    }
-  }
-});
-function extractUniforms(shaderText) {
-  const uniformNames = [];
-  const uniformLines = shaderText.match(/uniform.*?(?![^{]*})(?=[=\[;])/g);
-  if (defined_default(uniformLines)) {
-    const len = uniformLines.length;
-    for (let i = 0; i < len; i++) {
-      const line = uniformLines[i].trim();
-      const name = line.slice(line.lastIndexOf(" ") + 1);
-      uniformNames.push(name);
-    }
-  }
-  return uniformNames;
-}
-function handleUniformPrecisionMismatches(vertexShaderText, fragmentShaderText) {
-  const duplicateUniformNames = {};
-  if (!ContextLimits_default.highpFloatSupported || !ContextLimits_default.highpIntSupported) {
-    let i, j;
-    let uniformName;
-    let duplicateName;
-    const vertexShaderUniforms = extractUniforms(vertexShaderText);
-    const fragmentShaderUniforms = extractUniforms(fragmentShaderText);
-    const vertexUniformsCount = vertexShaderUniforms.length;
-    const fragmentUniformsCount = fragmentShaderUniforms.length;
-    for (i = 0; i < vertexUniformsCount; i++) {
-      for (j = 0; j < fragmentUniformsCount; j++) {
-        if (vertexShaderUniforms[i] === fragmentShaderUniforms[j]) {
-          uniformName = vertexShaderUniforms[i];
-          duplicateName = `czm_mediump_${uniformName}`;
-          const re = new RegExp(`${uniformName}\\b`, "g");
-          fragmentShaderText = fragmentShaderText.replace(re, duplicateName);
-          duplicateUniformNames[duplicateName] = uniformName;
-        }
-      }
-    }
-  }
-  return {
-    fragmentShaderText,
-    duplicateUniformNames
-  };
-}
-var consolePrefix = "[Cesium WebGL] ";
-function createAndLinkProgram(gl, shader) {
-  const vsSource = shader._vertexShaderText;
-  const fsSource = shader._fragmentShaderText;
-  const vertexShader = gl.createShader(gl.VERTEX_SHADER);
-  gl.shaderSource(vertexShader, vsSource);
-  gl.compileShader(vertexShader);
-  const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-  gl.shaderSource(fragmentShader, fsSource);
-  gl.compileShader(fragmentShader);
-  const program = gl.createProgram();
-  gl.attachShader(program, vertexShader);
-  gl.attachShader(program, fragmentShader);
-  const attributeLocations = shader._attributeLocations;
-  if (defined_default(attributeLocations)) {
-    for (const attribute in attributeLocations) {
-      if (attributeLocations.hasOwnProperty(attribute)) {
-        gl.bindAttribLocation(
-          program,
-          attributeLocations[attribute],
-          attribute
-        );
-      }
-    }
-  }
-  gl.linkProgram(program);
-  let log;
-  if (gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    if (shader._logShaderCompilation) {
-      log = gl.getShaderInfoLog(vertexShader);
-      if (defined_default(log) && log.length > 0) {
-        console.log(`${consolePrefix}Vertex shader compile log: ${log}`);
-      }
-      log = gl.getShaderInfoLog(fragmentShader);
-      if (defined_default(log) && log.length > 0) {
-        console.log(`${consolePrefix}Fragment shader compile log: ${log}`);
-      }
-      log = gl.getProgramInfoLog(program);
-      if (defined_default(log) && log.length > 0) {
-        console.log(`${consolePrefix}Shader program link log: ${log}`);
-      }
-    }
-    gl.deleteShader(vertexShader);
-    gl.deleteShader(fragmentShader);
-    return program;
-  }
-  let errorMessage;
-  const debugShaders = shader._debugShaders;
-  if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
-    log = gl.getShaderInfoLog(fragmentShader);
-    console.error(`${consolePrefix}Fragment shader compile log: ${log}`);
-    console.error(`${consolePrefix} Fragment shader source:
-${fsSource}`);
-    errorMessage = `Fragment shader failed to compile.  Compile log: ${log}`;
-  } else if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
-    log = gl.getShaderInfoLog(vertexShader);
-    console.error(`${consolePrefix}Vertex shader compile log: ${log}`);
-    console.error(`${consolePrefix} Vertex shader source:
-${vsSource}`);
-    errorMessage = `Vertex shader failed to compile.  Compile log: ${log}`;
-  } else {
-    log = gl.getProgramInfoLog(program);
-    console.error(`${consolePrefix}Shader program link log: ${log}`);
-    logTranslatedSource(vertexShader, "vertex");
-    logTranslatedSource(fragmentShader, "fragment");
-    errorMessage = `Program failed to link.  Link log: ${log}`;
-  }
-  gl.deleteShader(vertexShader);
-  gl.deleteShader(fragmentShader);
-  gl.deleteProgram(program);
-  throw new RuntimeError_default(errorMessage);
-  function logTranslatedSource(compiledShader, name) {
-    if (!defined_default(debugShaders)) {
-      return;
-    }
-    const translation = debugShaders.getTranslatedShaderSource(compiledShader);
-    if (translation === "") {
-      console.error(`${consolePrefix}${name} shader translation failed.`);
-      return;
-    }
-    console.error(
-      `${consolePrefix}Translated ${name} shaderSource:
-${translation}`
-    );
-  }
-}
-function findVertexAttributes(gl, program, numberOfAttributes) {
-  const attributes = {};
-  for (let i = 0; i < numberOfAttributes; ++i) {
-    const attr = gl.getActiveAttrib(program, i);
-    const location2 = gl.getAttribLocation(program, attr.name);
-    attributes[attr.name] = {
-      name: attr.name,
-      type: attr.type,
-      index: location2
-    };
-  }
-  return attributes;
-}
-function findUniforms(gl, program) {
-  const uniformsByName = {};
-  const uniforms = [];
-  const samplerUniforms = [];
-  const numberOfUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
-  for (let i = 0; i < numberOfUniforms; ++i) {
-    const activeUniform = gl.getActiveUniform(program, i);
-    const suffix = "[0]";
-    const uniformName = activeUniform.name.indexOf(
-      suffix,
-      activeUniform.name.length - suffix.length
-    ) !== -1 ? activeUniform.name.slice(0, activeUniform.name.length - 3) : activeUniform.name;
-    if (uniformName.indexOf("gl_") !== 0) {
-      if (activeUniform.name.indexOf("[") < 0) {
-        const location2 = gl.getUniformLocation(program, uniformName);
-        if (location2 !== null) {
-          const uniform = createUniform_default(
-            gl,
-            activeUniform,
-            uniformName,
-            location2
-          );
-          uniformsByName[uniformName] = uniform;
-          uniforms.push(uniform);
-          if (uniform._setSampler) {
-            samplerUniforms.push(uniform);
-          }
-        }
-      } else {
-        let uniformArray;
-        let locations;
-        let value;
-        let loc;
-        const indexOfBracket = uniformName.indexOf("[");
-        if (indexOfBracket >= 0) {
-          uniformArray = uniformsByName[uniformName.slice(0, indexOfBracket)];
-          if (!defined_default(uniformArray)) {
-            continue;
-          }
-          locations = uniformArray._locations;
-          if (locations.length <= 1) {
-            value = uniformArray.value;
-            loc = gl.getUniformLocation(program, uniformName);
-            if (loc !== null) {
-              locations.push(loc);
-              value.push(gl.getUniform(program, loc));
-            }
-          }
-        } else {
-          locations = [];
-          for (let j = 0; j < activeUniform.size; ++j) {
-            loc = gl.getUniformLocation(program, `${uniformName}[${j}]`);
-            if (loc !== null) {
-              locations.push(loc);
-            }
-          }
-          uniformArray = createUniformArray_default(
-            gl,
-            activeUniform,
-            uniformName,
-            locations
-          );
-          uniformsByName[uniformName] = uniformArray;
-          uniforms.push(uniformArray);
-          if (uniformArray._setSampler) {
-            samplerUniforms.push(uniformArray);
-          }
-        }
-      }
-    }
-  }
-  return {
-    uniformsByName,
-    uniforms,
-    samplerUniforms
-  };
-}
-function partitionUniforms(shader, uniforms) {
-  const automaticUniforms = [];
-  const manualUniforms = [];
-  for (const uniform in uniforms) {
-    if (uniforms.hasOwnProperty(uniform)) {
-      const uniformObject = uniforms[uniform];
-      let uniformName = uniform;
-      const duplicateUniform = shader._duplicateUniformNames[uniformName];
-      if (defined_default(duplicateUniform)) {
-        uniformObject.name = duplicateUniform;
-        uniformName = duplicateUniform;
-      }
-      const automaticUniform = AutomaticUniforms_default[uniformName];
-      if (defined_default(automaticUniform)) {
-        automaticUniforms.push({
-          uniform: uniformObject,
-          automaticUniform
-        });
-      } else {
-        manualUniforms.push(uniformObject);
-      }
-    }
-  }
-  return {
-    automaticUniforms,
-    manualUniforms
-  };
-}
-function setSamplerUniforms(gl, program, samplerUniforms) {
-  gl.useProgram(program);
-  let textureUnitIndex = 0;
-  const length = samplerUniforms.length;
-  for (let i = 0; i < length; ++i) {
-    textureUnitIndex = samplerUniforms[i]._setSampler(textureUnitIndex);
-  }
-  gl.useProgram(null);
-  return textureUnitIndex;
-}
-function initialize2(shader) {
-  if (defined_default(shader._program)) {
-    return;
-  }
-  reinitialize(shader);
-}
-function reinitialize(shader) {
-  const oldProgram = shader._program;
-  const gl = shader._gl;
-  const program = createAndLinkProgram(gl, shader, shader._debugShaders);
-  const numberOfVertexAttributes = gl.getProgramParameter(
-    program,
-    gl.ACTIVE_ATTRIBUTES
-  );
-  const uniforms = findUniforms(gl, program);
-  const partitionedUniforms = partitionUniforms(
-    shader,
-    uniforms.uniformsByName
-  );
-  shader._program = program;
-  shader._numberOfVertexAttributes = numberOfVertexAttributes;
-  shader._vertexAttributes = findVertexAttributes(
-    gl,
-    program,
-    numberOfVertexAttributes
-  );
-  shader._uniformsByName = uniforms.uniformsByName;
-  shader._uniforms = uniforms.uniforms;
-  shader._automaticUniforms = partitionedUniforms.automaticUniforms;
-  shader._manualUniforms = partitionedUniforms.manualUniforms;
-  shader.maximumTextureUnitIndex = setSamplerUniforms(
-    gl,
-    program,
-    uniforms.samplerUniforms
-  );
-  if (oldProgram) {
-    shader._gl.deleteProgram(oldProgram);
-  }
-  if (typeof spector !== "undefined") {
-    shader._program.__SPECTOR_rebuildProgram = function(vertexSourceCode, fragmentSourceCode, onCompiled, onError) {
-      const originalVS = shader._vertexShaderText;
-      const originalFS = shader._fragmentShaderText;
-      const regex = / ! = /g;
-      shader._vertexShaderText = vertexSourceCode.replace(regex, " != ");
-      shader._fragmentShaderText = fragmentSourceCode.replace(regex, " != ");
-      try {
-        reinitialize(shader);
-        onCompiled(shader._program);
-      } catch (e) {
-        shader._vertexShaderText = originalVS;
-        shader._fragmentShaderText = originalFS;
-        const errorMatcher = /(?:Compile|Link) error: ([^]*)/;
-        const match = errorMatcher.exec(e.message);
-        if (match) {
-          onError(match[1]);
-        } else {
-          onError(e.message);
-        }
-      }
-    };
-  }
-}
-ShaderProgram.prototype._bind = function() {
-  initialize2(this);
-  this._gl.useProgram(this._program);
-};
-ShaderProgram.prototype._setUniforms = function(uniformMap, uniformState, validate) {
-  let len;
-  let i;
-  if (defined_default(uniformMap)) {
-    const manualUniforms = this._manualUniforms;
-    len = manualUniforms.length;
-    for (i = 0; i < len; ++i) {
-      const mu = manualUniforms[i];
-      mu.value = uniformMap[mu.name]();
-    }
-  }
-  const automaticUniforms = this._automaticUniforms;
-  len = automaticUniforms.length;
-  for (i = 0; i < len; ++i) {
-    const au = automaticUniforms[i];
-    au.uniform.value = au.automaticUniform.getValue(uniformState);
-  }
-  const uniforms = this._uniforms;
-  len = uniforms.length;
-  for (i = 0; i < len; ++i) {
-    uniforms[i].set();
-  }
-  if (validate) {
-    const gl = this._gl;
-    const program = this._program;
-    gl.validateProgram(program);
-    if (!gl.getProgramParameter(program, gl.VALIDATE_STATUS)) {
-      throw new DeveloperError_default(
-        `Program validation failed.  Program info log: ${gl.getProgramInfoLog(
-          program
-        )}`
-      );
-    }
-  }
-};
-ShaderProgram.prototype.isDestroyed = function() {
-  return false;
-};
-ShaderProgram.prototype.destroy = function() {
-  this._cachedShader.cache.releaseShaderProgram(this);
-  return void 0;
-};
-ShaderProgram.prototype.finalDestroy = function() {
-  this._gl.deleteProgram(this._program);
-  return destroyObject_default(this);
-};
-var ShaderProgram_default = ShaderProgram;
-
-// packages/engine/Source/Renderer/BufferUsage.js
-var BufferUsage = {
-  STREAM_DRAW: WebGLConstants_default.STREAM_DRAW,
-  STATIC_DRAW: WebGLConstants_default.STATIC_DRAW,
-  DYNAMIC_DRAW: WebGLConstants_default.DYNAMIC_DRAW,
-  validate: function(bufferUsage) {
-    return bufferUsage === BufferUsage.STREAM_DRAW || bufferUsage === BufferUsage.STATIC_DRAW || bufferUsage === BufferUsage.DYNAMIC_DRAW;
-  }
-};
-var BufferUsage_default = Object.freeze(BufferUsage);
-
-// packages/engine/Source/Core/IndexDatatype.js
-var IndexDatatype = {
-  /**
-   * 8-bit unsigned byte corresponding to <code>UNSIGNED_BYTE</code> and the type
-   * of an element in <code>Uint8Array</code>.
-   *
-   * @type {number}
-   * @constant
-   */
-  UNSIGNED_BYTE: WebGLConstants_default.UNSIGNED_BYTE,
-  /**
-   * 16-bit unsigned short corresponding to <code>UNSIGNED_SHORT</code> and the type
-   * of an element in <code>Uint16Array</code>.
-   *
-   * @type {number}
-   * @constant
-   */
-  UNSIGNED_SHORT: WebGLConstants_default.UNSIGNED_SHORT,
-  /**
-   * 32-bit unsigned int corresponding to <code>UNSIGNED_INT</code> and the type
-   * of an element in <code>Uint32Array</code>.
-   *
-   * @type {number}
-   * @constant
-   */
-  UNSIGNED_INT: WebGLConstants_default.UNSIGNED_INT
-};
-IndexDatatype.getSizeInBytes = function(indexDatatype) {
-  switch (indexDatatype) {
-    case IndexDatatype.UNSIGNED_BYTE:
-      return Uint8Array.BYTES_PER_ELEMENT;
-    case IndexDatatype.UNSIGNED_SHORT:
-      return Uint16Array.BYTES_PER_ELEMENT;
-    case IndexDatatype.UNSIGNED_INT:
-      return Uint32Array.BYTES_PER_ELEMENT;
-  }
-  throw new DeveloperError_default(
-    "indexDatatype is required and must be a valid IndexDatatype constant."
-  );
-};
-IndexDatatype.fromSizeInBytes = function(sizeInBytes) {
-  switch (sizeInBytes) {
-    case 2:
-      return IndexDatatype.UNSIGNED_SHORT;
-    case 4:
-      return IndexDatatype.UNSIGNED_INT;
-    case 1:
-      return IndexDatatype.UNSIGNED_BYTE;
-    default:
-      throw new DeveloperError_default(
-        "Size in bytes cannot be mapped to an IndexDatatype"
-      );
-  }
-};
-IndexDatatype.validate = function(indexDatatype) {
-  return defined_default(indexDatatype) && (indexDatatype === IndexDatatype.UNSIGNED_BYTE || indexDatatype === IndexDatatype.UNSIGNED_SHORT || indexDatatype === IndexDatatype.UNSIGNED_INT);
-};
-IndexDatatype.createTypedArray = function(numberOfVertices, indicesLengthOrArray) {
-  if (!defined_default(numberOfVertices)) {
-    throw new DeveloperError_default("numberOfVertices is required.");
-  }
-  if (numberOfVertices >= Math_default.SIXTY_FOUR_KILOBYTES) {
-    return new Uint32Array(indicesLengthOrArray);
-  }
-  return new Uint16Array(indicesLengthOrArray);
-};
-IndexDatatype.createTypedArrayFromArrayBuffer = function(numberOfVertices, sourceArray, byteOffset, length) {
-  if (!defined_default(numberOfVertices)) {
-    throw new DeveloperError_default("numberOfVertices is required.");
-  }
-  if (!defined_default(sourceArray)) {
-    throw new DeveloperError_default("sourceArray is required.");
-  }
-  if (!defined_default(byteOffset)) {
-    throw new DeveloperError_default("byteOffset is required.");
-  }
-  if (numberOfVertices >= Math_default.SIXTY_FOUR_KILOBYTES) {
-    return new Uint32Array(sourceArray, byteOffset, length);
-  }
-  return new Uint16Array(sourceArray, byteOffset, length);
-};
-IndexDatatype.fromTypedArray = function(array) {
-  if (array instanceof Uint8Array) {
-    return IndexDatatype.UNSIGNED_BYTE;
-  }
-  if (array instanceof Uint16Array) {
-    return IndexDatatype.UNSIGNED_SHORT;
-  }
-  if (array instanceof Uint32Array) {
-    return IndexDatatype.UNSIGNED_INT;
-  }
-  throw new DeveloperError_default(
-    "array must be a Uint8Array, Uint16Array, or Uint32Array."
-  );
-};
-var IndexDatatype_default = Object.freeze(IndexDatatype);
-
-// packages/engine/Source/Renderer/Buffer.js
-function Buffer2(options) {
-  options = defaultValue_default(options, defaultValue_default.EMPTY_OBJECT);
-  Check_default.defined("options.context", options.context);
-  if (!defined_default(options.typedArray) && !defined_default(options.sizeInBytes)) {
-    throw new DeveloperError_default(
-      "Either options.sizeInBytes or options.typedArray is required."
-    );
-  }
-  if (defined_default(options.typedArray) && defined_default(options.sizeInBytes)) {
-    throw new DeveloperError_default(
-      "Cannot pass in both options.sizeInBytes and options.typedArray."
-    );
-  }
-  if (defined_default(options.typedArray)) {
-    Check_default.typeOf.object("options.typedArray", options.typedArray);
-    Check_default.typeOf.number(
-      "options.typedArray.byteLength",
-      options.typedArray.byteLength
-    );
-  }
-  if (!BufferUsage_default.validate(options.usage)) {
-    throw new DeveloperError_default("usage is invalid.");
-  }
-  const gl = options.context._gl;
-  const bufferTarget = options.bufferTarget;
-  const typedArray = options.typedArray;
-  let sizeInBytes = options.sizeInBytes;
-  const usage = options.usage;
-  const hasArray = defined_default(typedArray);
-  if (hasArray) {
-    sizeInBytes = typedArray.byteLength;
-  }
-  Check_default.typeOf.number.greaterThan("sizeInBytes", sizeInBytes, 0);
-  const buffer = gl.createBuffer();
-  gl.bindBuffer(bufferTarget, buffer);
-  gl.bufferData(bufferTarget, hasArray ? typedArray : sizeInBytes, usage);
-  gl.bindBuffer(bufferTarget, null);
-  this._id = createGuid_default();
-  this._gl = gl;
-  this._webgl2 = options.context._webgl2;
-  this._bufferTarget = bufferTarget;
-  this._sizeInBytes = sizeInBytes;
-  this._usage = usage;
-  this._buffer = buffer;
-  this.vertexArrayDestroyable = true;
-}
-Buffer2.createVertexBuffer = function(options) {
-  Check_default.defined("options.context", options.context);
-  return new Buffer2({
-    context: options.context,
-    bufferTarget: WebGLConstants_default.ARRAY_BUFFER,
-    typedArray: options.typedArray,
-    sizeInBytes: options.sizeInBytes,
-    usage: options.usage
-  });
-};
-Buffer2.createIndexBuffer = function(options) {
-  Check_default.defined("options.context", options.context);
-  if (!IndexDatatype_default.validate(options.indexDatatype)) {
-    throw new DeveloperError_default("Invalid indexDatatype.");
-  }
-  if (options.indexDatatype === IndexDatatype_default.UNSIGNED_INT && !options.context.elementIndexUint) {
-    throw new DeveloperError_default(
-      "IndexDatatype.UNSIGNED_INT requires OES_element_index_uint, which is not supported on this system.  Check context.elementIndexUint."
-    );
-  }
-  const context = options.context;
-  const indexDatatype = options.indexDatatype;
-  const bytesPerIndex = IndexDatatype_default.getSizeInBytes(indexDatatype);
-  const buffer = new Buffer2({
-    context,
-    bufferTarget: WebGLConstants_default.ELEMENT_ARRAY_BUFFER,
-    typedArray: options.typedArray,
-    sizeInBytes: options.sizeInBytes,
-    usage: options.usage
-  });
-  const numberOfIndices = buffer.sizeInBytes / bytesPerIndex;
-  Object.defineProperties(buffer, {
-    indexDatatype: {
-      get: function() {
-        return indexDatatype;
-      }
-    },
-    bytesPerIndex: {
-      get: function() {
-        return bytesPerIndex;
-      }
-    },
-    numberOfIndices: {
-      get: function() {
-        return numberOfIndices;
-      }
-    }
-  });
-  return buffer;
-};
-Object.defineProperties(Buffer2.prototype, {
-  sizeInBytes: {
-    get: function() {
-      return this._sizeInBytes;
-    }
-  },
-  usage: {
-    get: function() {
-      return this._usage;
-    }
-  }
-});
-Buffer2.prototype._getBuffer = function() {
-  return this._buffer;
-};
-Buffer2.prototype.copyFromArrayView = function(arrayView, offsetInBytes) {
-  offsetInBytes = defaultValue_default(offsetInBytes, 0);
-  Check_default.defined("arrayView", arrayView);
-  Check_default.typeOf.number.lessThanOrEquals(
-    "offsetInBytes + arrayView.byteLength",
-    offsetInBytes + arrayView.byteLength,
-    this._sizeInBytes
-  );
-  const gl = this._gl;
-  const target = this._bufferTarget;
-  gl.bindBuffer(target, this._buffer);
-  gl.bufferSubData(target, offsetInBytes, arrayView);
-  gl.bindBuffer(target, null);
-};
-Buffer2.prototype.copyFromBuffer = function(readBuffer, readOffset, writeOffset, sizeInBytes) {
-  if (!this._webgl2) {
-    throw new DeveloperError_default("A WebGL 2 context is required.");
-  }
-  if (!defined_default(readBuffer)) {
-    throw new DeveloperError_default("readBuffer must be defined.");
-  }
-  if (!defined_default(sizeInBytes) || sizeInBytes <= 0) {
-    throw new DeveloperError_default(
-      "sizeInBytes must be defined and be greater than zero."
-    );
-  }
-  if (!defined_default(readOffset) || readOffset < 0 || readOffset + sizeInBytes > readBuffer._sizeInBytes) {
-    throw new DeveloperError_default(
-      "readOffset must be greater than or equal to zero and readOffset + sizeInBytes must be less than of equal to readBuffer.sizeInBytes."
-    );
-  }
-  if (!defined_default(writeOffset) || writeOffset < 0 || writeOffset + sizeInBytes > this._sizeInBytes) {
-    throw new DeveloperError_default(
-      "writeOffset must be greater than or equal to zero and writeOffset + sizeInBytes must be less than of equal to this.sizeInBytes."
-    );
-  }
-  if (this._buffer === readBuffer._buffer && (writeOffset >= readOffset && writeOffset < readOffset + sizeInBytes || readOffset > writeOffset && readOffset < writeOffset + sizeInBytes)) {
-    throw new DeveloperError_default(
-      "When readBuffer is equal to this, the ranges [readOffset + sizeInBytes) and [writeOffset, writeOffset + sizeInBytes) must not overlap."
-    );
-  }
-  if (this._bufferTarget === WebGLConstants_default.ELEMENT_ARRAY_BUFFER && readBuffer._bufferTarget !== WebGLConstants_default.ELEMENT_ARRAY_BUFFER || this._bufferTarget !== WebGLConstants_default.ELEMENT_ARRAY_BUFFER && readBuffer._bufferTarget === WebGLConstants_default.ELEMENT_ARRAY_BUFFER) {
-    throw new DeveloperError_default(
-      "Can not copy an index buffer into another buffer type."
-    );
-  }
-  const readTarget = WebGLConstants_default.COPY_READ_BUFFER;
-  const writeTarget = WebGLConstants_default.COPY_WRITE_BUFFER;
-  const gl = this._gl;
-  gl.bindBuffer(writeTarget, this._buffer);
-  gl.bindBuffer(readTarget, readBuffer._buffer);
-  gl.copyBufferSubData(
-    readTarget,
-    writeTarget,
-    readOffset,
-    writeOffset,
-    sizeInBytes
-  );
-  gl.bindBuffer(writeTarget, null);
-  gl.bindBuffer(readTarget, null);
-};
-Buffer2.prototype.getBufferData = function(arrayView, sourceOffset, destinationOffset, length) {
-  sourceOffset = defaultValue_default(sourceOffset, 0);
-  destinationOffset = defaultValue_default(destinationOffset, 0);
-  if (!this._webgl2) {
-    throw new DeveloperError_default("A WebGL 2 context is required.");
-  }
-  if (!defined_default(arrayView)) {
-    throw new DeveloperError_default("arrayView is required.");
-  }
-  let copyLength;
-  let elementSize;
-  let arrayLength = arrayView.byteLength;
-  if (!defined_default(length)) {
-    if (defined_default(arrayLength)) {
-      copyLength = arrayLength - destinationOffset;
-      elementSize = 1;
-    } else {
-      arrayLength = arrayView.length;
-      copyLength = arrayLength - destinationOffset;
-      elementSize = arrayView.BYTES_PER_ELEMENT;
-    }
-  } else {
-    copyLength = length;
-    if (defined_default(arrayLength)) {
-      elementSize = 1;
-    } else {
-      arrayLength = arrayView.length;
-      elementSize = arrayView.BYTES_PER_ELEMENT;
-    }
-  }
-  if (destinationOffset < 0 || destinationOffset > arrayLength) {
-    throw new DeveloperError_default(
-      "destinationOffset must be greater than zero and less than the arrayView length."
-    );
-  }
-  if (destinationOffset + copyLength > arrayLength) {
-    throw new DeveloperError_default(
-      "destinationOffset + length must be less than or equal to the arrayViewLength."
-    );
-  }
-  if (sourceOffset < 0 || sourceOffset > this._sizeInBytes) {
-    throw new DeveloperError_default(
-      "sourceOffset must be greater than zero and less than the buffers size."
-    );
-  }
-  if (sourceOffset + copyLength * elementSize > this._sizeInBytes) {
-    throw new DeveloperError_default(
-      "sourceOffset + length must be less than the buffers size."
-    );
-  }
-  const gl = this._gl;
-  const target = WebGLConstants_default.COPY_READ_BUFFER;
-  gl.bindBuffer(target, this._buffer);
-  gl.getBufferSubData(
-    target,
-    sourceOffset,
-    arrayView,
-    destinationOffset,
-    length
-  );
-  gl.bindBuffer(target, null);
-};
-Buffer2.prototype.isDestroyed = function() {
-  return false;
-};
-Buffer2.prototype.destroy = function() {
-  this._gl.deleteBuffer(this._buffer);
-  return destroyObject_default(this);
-};
-var Buffer_default = Buffer2;
-
 // packages/engine/Source/Renderer/VertexArray.js
 function addAttribute(attributes, attribute, index, context) {
   const hasVertexBuffer = defined_default(attribute.vertexBuffer);
@@ -19508,29 +19531,6 @@ VertexArray.prototype.destroy = function() {
   return destroyObject_default(this);
 };
 var VertexArray_default = VertexArray;
-
-// packages/engine/Source/Renderer/ClearCommand.js
-function ClearCommand(options) {
-  options = defaultValue_default(options, defaultValue_default.EMPTY_OBJECT);
-  this.color = options.color;
-  this.depth = options.depth;
-  this.stencil = options.stencil;
-  this.renderState = options.renderState;
-  this.framebuffer = options.framebuffer;
-  this.owner = options.owner;
-  this.pass = options.pass;
-}
-ClearCommand.ALL = Object.freeze(
-  new ClearCommand({
-    color: new Color_default(0, 0, 0, 0),
-    depth: 1,
-    stencil: 0
-  })
-);
-ClearCommand.prototype.execute = function(context, passState) {
-  context.clear(this, passState);
-};
-var ClearCommand_default = ClearCommand;
 
 // packages/engine/index.js
 globalThis.CESIUM_VERSION = "1.109.1";
