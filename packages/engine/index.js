@@ -1,4 +1,4 @@
-globalThis.CESIUM_VERSION = "1.109.1";
+globalThis.CESIUM_VERSION = "1.109.2";
 export { default as AutomaticUniforms } from './Source/Renderer/AutomaticUniforms.js';
 export { default as Buffer } from './Source/Renderer/Buffer.js';
 export { default as BufferUsage } from './Source/Renderer/BufferUsage.js';
@@ -421,7 +421,6 @@ export { default as WindingOrder } from './Source/Core/WindingOrder.js';
 export { default as WireframeIndexGenerator } from './Source/Core/WireframeIndexGenerator.js';
 export { default as wrapFunction } from './Source/Core/wrapFunction.js';
 export { default as writeTextToCanvas } from './Source/Core/writeTextToCanvas.js';
-export { default as CesiumWidget } from './Source/Widget/CesiumWidget.js';
 export { default as _shadersAdjustTranslucentFS } from './Source/Shaders/AdjustTranslucentFS.js';
 export { default as _shadersAtmosphereCommon } from './Source/Shaders/AtmosphereCommon.js';
 export { default as _shadersBillboardCollectionFS } from './Source/Shaders/BillboardCollectionFS.js';
@@ -472,6 +471,7 @@ export { default as _shadersVector3DTilePolylinesVS } from './Source/Shaders/Vec
 export { default as _shadersVectorTileVS } from './Source/Shaders/VectorTileVS.js';
 export { default as _shadersViewportQuadFS } from './Source/Shaders/ViewportQuadFS.js';
 export { default as _shadersViewportQuadVS } from './Source/Shaders/ViewportQuadVS.js';
+export { default as CesiumWidget } from './Source/Widget/CesiumWidget.js';
 export { default as AlphaMode } from './Source/Scene/AlphaMode.js';
 export { default as Appearance } from './Source/Scene/Appearance.js';
 export { default as ArcGisBaseMapType } from './Source/Scene/ArcGisBaseMapType.js';
@@ -581,6 +581,7 @@ export { default as getClipAndStyleCode } from './Source/Scene/getClipAndStyleCo
 export { default as getClippingFunction } from './Source/Scene/getClippingFunction.js';
 export { default as GetFeatureInfoFormat } from './Source/Scene/GetFeatureInfoFormat.js';
 export { default as getMultiClippingFunction } from './Source/Scene/getMultiClippingFunction.js';
+export { default as getOptimizedClippingFunction } from './Source/Scene/getOptimizedClippingFunction.js';
 export { default as Globe } from './Source/Scene/Globe.js';
 export { default as GlobeDepth } from './Source/Scene/GlobeDepth.js';
 export { default as GlobeSurfaceShaderSet } from './Source/Scene/GlobeSurfaceShaderSet.js';
@@ -672,6 +673,7 @@ export { default as NeverTileDiscardPolicy } from './Source/Scene/NeverTileDisca
 export { default as OctahedralProjectedCubeMap } from './Source/Scene/OctahedralProjectedCubeMap.js';
 export { default as OIT } from './Source/Scene/OIT.js';
 export { default as OpenStreetMapImageryProvider } from './Source/Scene/OpenStreetMapImageryProvider.js';
+export { default as OptimizedClippingCollection } from './Source/Scene/OptimizedClippingCollection.js';
 export { default as OrderedGroundPrimitiveCollection } from './Source/Scene/OrderedGroundPrimitiveCollection.js';
 export { default as parseBatchTable } from './Source/Scene/parseBatchTable.js';
 export { default as parseFeatureMetadataLegacy } from './Source/Scene/parseFeatureMetadataLegacy.js';
@@ -1031,6 +1033,15 @@ export { default as _shaderssolarRadius } from './Source/Shaders/Builtin/Constan
 export { default as _shadersthreePiOver2 } from './Source/Shaders/Builtin/Constants/threePiOver2.js';
 export { default as _shaderstwoPi } from './Source/Shaders/Builtin/Constants/twoPi.js';
 export { default as _shaderswebMercatorMaxLatitude } from './Source/Shaders/Builtin/Constants/webMercatorMaxLatitude.js';
+export { default as _shadersdepthRangeStruct } from './Source/Shaders/Builtin/Structs/depthRangeStruct.js';
+export { default as _shadersmaterial } from './Source/Shaders/Builtin/Structs/material.js';
+export { default as _shadersmaterialInput } from './Source/Shaders/Builtin/Structs/materialInput.js';
+export { default as _shadersmodelMaterial } from './Source/Shaders/Builtin/Structs/modelMaterial.js';
+export { default as _shadersmodelVertexOutput } from './Source/Shaders/Builtin/Structs/modelVertexOutput.js';
+export { default as _shaderspbrParameters } from './Source/Shaders/Builtin/Structs/pbrParameters.js';
+export { default as _shadersray } from './Source/Shaders/Builtin/Structs/ray.js';
+export { default as _shadersraySegment } from './Source/Shaders/Builtin/Structs/raySegment.js';
+export { default as _shadersshadowParameters } from './Source/Shaders/Builtin/Structs/shadowParameters.js';
 export { default as _shadersacesTonemapping } from './Source/Shaders/Builtin/Functions/acesTonemapping.js';
 export { default as _shadersalphaWeight } from './Source/Shaders/Builtin/Functions/alphaWeight.js';
 export { default as _shadersantialias } from './Source/Shaders/Builtin/Functions/antialias.js';
@@ -1115,13 +1126,4 @@ export { default as _shaderswriteDepthClamp } from './Source/Shaders/Builtin/Fun
 export { default as _shaderswriteLogDepth } from './Source/Shaders/Builtin/Functions/writeLogDepth.js';
 export { default as _shaderswriteNonPerspective } from './Source/Shaders/Builtin/Functions/writeNonPerspective.js';
 export { default as _shadersXYZToRGB } from './Source/Shaders/Builtin/Functions/XYZToRGB.js';
-export { default as _shadersdepthRangeStruct } from './Source/Shaders/Builtin/Structs/depthRangeStruct.js';
-export { default as _shadersmaterial } from './Source/Shaders/Builtin/Structs/material.js';
-export { default as _shadersmaterialInput } from './Source/Shaders/Builtin/Structs/materialInput.js';
-export { default as _shadersmodelMaterial } from './Source/Shaders/Builtin/Structs/modelMaterial.js';
-export { default as _shadersmodelVertexOutput } from './Source/Shaders/Builtin/Structs/modelVertexOutput.js';
-export { default as _shaderspbrParameters } from './Source/Shaders/Builtin/Structs/pbrParameters.js';
-export { default as _shadersray } from './Source/Shaders/Builtin/Structs/ray.js';
-export { default as _shadersraySegment } from './Source/Shaders/Builtin/Structs/raySegment.js';
-export { default as _shadersshadowParameters } from './Source/Shaders/Builtin/Structs/shadowParameters.js';
 export { default as createTaskProcessorWorker } from './Source/Workers/createTaskProcessorWorker.js';
