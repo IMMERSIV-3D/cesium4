@@ -29758,6 +29758,8 @@ Compatible with mathematics functions in {@link Plane}
 is on.  If <code>distance</code> is positive, the origin is in the half-space
 in the direction of the normal; if negative, the origin is in the half-space
 opposite to the normal; if zero, the plane passes through the origin.
+ * @param [options._fromVertex = Cartesian3.ZERO] - The plane's intersection from vertex.
+ * @param [options._toVertex = Cartesian3.ZERO] - The plane's intersection to vertex.
  */
 export class ClippingPlane {
     constructor(normal: Cartesian3, distance: number);
@@ -29773,6 +29775,14 @@ export class ClippingPlane {
      * The plane's normal.
      */
     normal: Cartesian3;
+    /**
+     * The plane's intersection from vertex.
+     */
+    fromVertex: Cartesian3;
+    /**
+     * The plane's intersection to vertex.
+     */
+    toVertex: Cartesian3;
     /**
      * Create a ClippingPlane from a Plane object.
      * @param plane - The plane containing parameters to copy
@@ -31517,6 +31527,10 @@ export class Globe {
      * A property specifying a {@link MultiClippingPlaneCollection} used to selectively disable rendering on the outside of each ClippingPlaneCollection.
      */
     multiClippingPlanes: MultiClippingPlaneCollection;
+    /**
+     * A property specifying a {@link OptimizedClippingCollection} used to selectively disable rendering on the outside of each ClippingPlaneCollection.
+     */
+    optimizedClippingCollection: OptimizedClippingCollection;
     /**
      * A property specifying a {@link Rectangle} used to limit globe rendering to a cartographic area.
     Defaults to the maximum extent of cartographic coordinates.
@@ -37139,6 +37153,113 @@ servers, so you must conform to their
  */
 export class OpenStreetMapImageryProvider extends UrlTemplateImageryProvider {
     constructor(options: OpenStreetMapImageryProvider.ConstructorOptions);
+}
+
+/**
+ * Specifies a set of ClippingPlaneCollections. ClippingPlaneCollections selectively disable rendering in a region on the
+outside of the specified list of {@link ClippingPlaneCollections} objects for the globe, it has not been tested on models nor 3D Tilesets.
+OptimizedClippingCollection is now not abled to deal with unionClippingRegions.
+
+<p>
+In general the clipping planes' coordinates are relative to the object they're attached to, so a plane with distance set to 0 will clip
+through the center of the object.
+</p>
+<p>
+</p>
+ * @param [options] - Object with the following properties:
+ * @param [options.collections = []] - An array of {@link ClippingPlaneCollection} objects used to selectively disable rendering on the outside of collection.
+ * @param [options.modelMatrix = Matrix4.IDENTITY] - The 4x4 transformation matrix specifying an additional transform relative to the clipping planes original coordinate system.
+ * @param [options.sphereColliderCenter = Cartesian3.ZERO] - The center of sphere collider of the all vertices.
+ * @param [options.sphereColliderRadius = 15000000.0] - The radius of sphere collider of the all vertices.
+ * @param [options.optimizedCollections = []] - An array of {@link OptimizedClippingCollection} objects used for performance optimization of clipping.
+ * @param [options.planeCollection = null] - A {@link ClippingPlaneCollection} object used to selectively disable rendering on the outside of collection.
+ * @param [options.edgeColor = Color.WHITE] - The color applied to highlight the edge along which an object is clipped.
+ * @param [options.edgeWidth = 0.0] - The width, in pixels, of the highlight applied to the edge along which an object is clipped.
+ */
+export class OptimizedClippingCollection {
+    constructor(options?: {
+        collections?: ClippingPlaneCollection[];
+        modelMatrix?: Matrix4;
+        sphereColliderCenter?: Cartesian3;
+        sphereColliderRadius?: number;
+        optimizedCollections?: OptimizedClippingCollection[];
+        planeCollection?: ClippingPlaneCollection;
+        edgeColor?: Color;
+        edgeWidth?: number;
+    });
+    /**
+     * The 4x4 transformation matrix specifying an additional transform relative to the clipping planes
+    original coordinate system.
+     */
+    modelMatrix: Matrix4;
+    /**
+     * The center of sphere collider of the all vertices.
+     */
+    sphereColliderCenter: Cartesian3;
+    /**
+     * The radius of sphere collider of the all vertices.
+     */
+    sphereColliderRadius: number;
+    /**
+     * An array of 0ptimized clipping collections used for performance optimization of clipping.
+     */
+    _optimizedCollections: OptimizedClippingCollection[];
+    /**
+     * A clipping plane collection used to selectively disable rendering on the outside of collection.
+     */
+    _planeCollection: ClippingPlaneCollection;
+    /**
+     * The color applied to highlight the edge along which an object is clipped.
+     */
+    edgeColor: Color;
+    /**
+     * The width, in pixels, of the highlight applied to the edge along which an object is clipped.
+     */
+    edgeWidth: number;
+    /**
+     * Returns the number of ClippingPlaneCollections in this OptimizedClippingCollection.
+     */
+    readonly length: number;
+    /**
+     * Returns the combined state of each ClippingPlaneCollection.
+     */
+    readonly collectionsState: string;
+    /**
+     * Returns the max length of ClippingPlaneCollection in this OptimizedClippingCollection. This is used in
+    getOptimizedClippingFunction.js .
+     */
+    readonly maxCollectionLength: number;
+    /**
+     * Returns the count of all planes.
+     */
+    readonly totalPlanesCount: number;
+    /**
+     * Returns the count of all plane Collections.
+     */
+    readonly planeCollectionsCount: number;
+    /**
+     * Returns the count of all optimized Collections.
+     */
+    readonly optimizedCollectionsCount: number;
+    /**
+     * Called when {@link Viewer} or {@link CesiumWidget} render the scene to
+    build the resources for clipping planes.
+    <p>
+    Do not call this function directly.
+    </p>
+     */
+    update(): void;
+    /**
+     * Destroys the WebGL resources held by this object.  Destroying an object allows for deterministic
+    release of WebGL resources, instead of relying on the garbage collector to destroy this object.
+    <br /><br />
+    Once an object is destroyed, it should not be used; calling any function other than
+    <code>isDestroyed</code> will result in a {@link DeveloperError} exception.  Therefore,
+    assign the return value (<code>undefined</code>) to the object as done in the example.
+     * @example
+     * optimizedClippingCollections = optimizedClippingCollections && optimizedClippingCollections.destroy();
+     */
+    destroy(): void;
 }
 
 /**

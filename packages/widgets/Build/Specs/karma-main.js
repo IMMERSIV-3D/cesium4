@@ -19533,7 +19533,7 @@ VertexArray.prototype.destroy = function() {
 var VertexArray_default = VertexArray;
 
 // packages/engine/index.js
-globalThis.CESIUM_VERSION = "1.109.1";
+globalThis.CESIUM_VERSION = "1.109.2";
 
 // Specs/equals.js
 function isTypedArray(o) {
