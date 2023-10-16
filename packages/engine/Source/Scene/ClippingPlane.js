@@ -1,5 +1,6 @@
 import Cartesian3 from "../Core/Cartesian3.js";
 import Check from "../Core/Check.js";
+import defaultValue from "../Core/defaultValue.js";
 import defined from "../Core/defined.js";
 
 /**
@@ -15,8 +16,10 @@ import defined from "../Core/defined.js";
  * is on.  If <code>distance</code> is positive, the origin is in the half-space
  * in the direction of the normal; if negative, the origin is in the half-space
  * opposite to the normal; if zero, the plane passes through the origin.
+ * @param {Cartesian3} [options._fromVertex=Cartesian3.ZERO] The plane's intersection from vertex.
+ * @param {Cartesian3} [options._toVertex=Cartesian3.ZERO] The plane's intersection to vertex.
  */
-function ClippingPlane(normal, distance) {
+function ClippingPlane(normal, distance, options) {
   //>>includeStart('debug', pragmas.debug);
   Check.typeOf.object("normal", normal);
   Check.typeOf.number("distance", distance);
@@ -26,6 +29,10 @@ function ClippingPlane(normal, distance) {
   this._normal = new UpdateChangedCartesian3(normal, this);
   this.onChangeCallback = undefined;
   this.index = -1; // to be set by ClippingPlaneCollection
+
+  options = defaultValue(options, defaultValue.EMPTY_OBJECT);
+  this._fromVertex = defaultValue(options.fromVertex, Cartesian3.ZERO);
+  this._toVertex = defaultValue(options.toVertex, Cartesian3.ZERO);
 }
 
 Object.defineProperties(ClippingPlane.prototype, {
@@ -75,6 +82,28 @@ Object.defineProperties(ClippingPlane.prototype, {
       }
       // Set without firing callback again
       Cartesian3.clone(value, this._normal._cartesian3);
+    },
+  },
+  /**
+   * The plane's intersection from vertex.
+   *
+   * @type {Cartesian3}
+   * @memberof ClippingPlane.prototype
+   */
+  fromVertex: {
+    get: function () {
+      return this._fromVertex;
+    },
+  },
+  /**
+   * The plane's intersection to vertex.
+   *
+   * @type {Cartesian3}
+   * @memberof ClippingPlane.prototype
+   */
+  toVertex: {
+    get: function () {
+      return this._toVertex;
     },
   },
 });

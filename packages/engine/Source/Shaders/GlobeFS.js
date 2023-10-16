@@ -72,14 +72,27 @@ uniform vec4 u_cartographicLimitRectangle;\n\
 uniform vec2 u_nightFadeDistance;\n\
 #endif\n\
 \n\
-#if defined(ENABLE_CLIPPING_PLANES) || defined(ENABLE_MULTI_CLIPPING_PLANES)\n\
+#if defined(ENABLE_CLIPPING_PLANES) || defined(ENABLE_MULTI_CLIPPING_PLANES) || defined(ENABLE_OPTIMIZED_CLIPPING)\n\
 uniform highp sampler2D u_clippingPlanes;\n\
+uniform highp sampler2D u_clippingPlaneCollectionsPlanes;\n\
 uniform mat4 u_clippingPlanesMatrix;\n\
 uniform vec4 u_clippingPlanesEdgeStyle;\n\
 #endif\n\
 \n\
 #ifdef ENABLE_MULTI_CLIPPING_PLANES\n\
 uniform mediump sampler2D u_multiClippingPlanesLength;\n\
+#endif\n\
+\n\
+#ifdef ENABLE_OPTIMIZED_CLIPPING\n\
+uniform mat4 u_clippingPlanesModelMatrix;\n\
+//uniform mediump sampler2D u_clippingPlaneCollectionLengths;\n\
+uniform mediump sampler2D u_clippingPlaneCollectionSpans;\n\
+//uniform mediump sampler2D u_clippingPlaneCollectionsPlaneStates;\n\
+//uniform highp sampler2D u_clippingPlaneCollectionsPlaneFromVertices;\n\
+//uniform highp sampler2D u_clippingPlaneCollectionsPlaneToVertices;\n\
+uniform mediump sampler2D u_optimizedCollectionSpans;\n\
+//uniform mediump sampler2D u_optimizedCollectionStates;\n\
+uniform highp sampler2D u_optimizedCollectionColliders;\n\
 #endif\n\
 \n\
 #if defined(GROUND_ATMOSPHERE) || defined(FOG) && defined(DYNAMIC_ATMOSPHERE_LIGHTING) && (defined(ENABLE_VERTEX_LIGHTING) || defined(ENABLE_DAYNIGHT_SHADING))\n\
@@ -327,6 +340,24 @@ void main()\n\
     float clipDistance = clip(gl_FragCoord, u_clippingPlanes, u_clippingPlanesMatrix, u_multiClippingPlanesLength);\n\
 #endif\n\
 \n\
+#ifdef ENABLE_OPTIMIZED_CLIPPING\n\
+    float clipDistance = clip(\n\
+        gl_FragCoord,\n\
+        u_clippingPlaneCollectionsPlanes,\n\
+        u_clippingPlaneCollectionSpans,\n\
+        u_clippingPlanesMatrix,\n\
+        u_clippingPlanesModelMatrix,\n\
+        //u_clippingPlaneCollectionLengths,\n\
+        //u_clippingPlaneCollectionsPlaneStates,\n\
+        //u_clippingPlaneCollectionsPlaneFromVertices,\n\
+        //u_clippingPlaneCollectionsPlaneToVertices,\n\
+        u_optimizedCollectionSpans,\n\
+        //u_optimizedCollectionStates,\n\
+        u_optimizedCollectionColliders//,\n\
+        //0\n\
+        );\n\
+#endif\n\
+\n\
 #if defined(SHOW_REFLECTIVE_OCEAN) || defined(ENABLE_DAYNIGHT_SHADING) || defined(HDR)\n\
     vec3 normalMC = czm_geodeticSurfaceNormal(v_positionMC, vec3(0.0), vec3(1.0));   // normalized surface normal in model coordinates\n\
     vec3 normalEC = czm_normal3D * normalMC;                                         // normalized surface normal in eye coordinates\n\
@@ -425,7 +456,7 @@ void main()\n\
     vec4 finalColor = color;\n\
 #endif\n\
 \n\
-#if defined(ENABLE_CLIPPING_PLANES) || defined(ENABLE_MULTI_CLIPPING_PLANES)\n\
+#if defined(ENABLE_CLIPPING_PLANES) || defined(ENABLE_MULTI_CLIPPING_PLANES) || defined(ENABLE_OPTIMIZED_CLIPPING) \n\
     vec4 clippingPlanesEdgeColor = vec4(1.0);\n\
     clippingPlanesEdgeColor.rgb = u_clippingPlanesEdgeStyle.rgb;\n\
     float clippingPlanesEdgeWidth = u_clippingPlanesEdgeStyle.a;\n\

@@ -484,6 +484,46 @@ Object.defineProperties(Globe.prototype, {
     },
   },
   /**
+   * A property specifying a {@link OptimizedClippingCollection} used to selectively disable rendering on the outside of each ClippingPlaneCollection.
+   *
+   * @memberof Globe.prototype
+   * @type {OptimizedClippingCollection}
+   */
+  optimizedClippingCollection: {
+    get: function () {
+      return this._surface.tileProvider._optimizedClippingCollection;
+    },
+    set: function (value) {
+      //console.log("sdfsdffffffffffff");
+      //const optimizedCollections = value.optimizedCollections;
+      //console.log(optimizedCollections.length);
+      //const first = optimizedCollections[0];
+      //const second = optimizedCollections[1];
+      //optimizedCollections.forEach(o => {
+      //  const col = o.planeCollection;
+      //  console.log("sphereCollider");
+      //  console.log(o.sphereColliderCenter);
+      //  console.log(o.sphereColliderRadius);
+      //  console.log("col");
+      //  console.log(col);
+      //  console.log(col.length);
+      //  console.log(o.optimizedCollections.length);
+      //  for (let i = 0; i < col.length; i++) {
+      //    const plane = col.get(i);
+      //    console.log("plane");
+      //    console.log(plane);
+      //    console.log(plane.normal);
+      //    console.log(plane.distance);
+      //    console.log(plane.fromVertex);
+      //    console.log(plane.toVertex);
+      //  }
+
+      //})
+
+      this._surface.tileProvider._optimizedClippingCollection = value;
+    },
+  },
+  /**
    * A property specifying a {@link Rectangle} used to limit globe rendering to a cartographic area.
    * Defaults to the maximum extent of cartographic coordinates.
    *
