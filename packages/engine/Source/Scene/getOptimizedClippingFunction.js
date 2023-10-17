@@ -45,6 +45,8 @@ function getOptimizedClippingFunction(optimizedClippingCollection, context) {
     optimizedClippingCollection.planeCollectionsCount
   );
 
+  functions += "\n";
+
   functions += clippingFunctionIntersect(
     optimizedClippingCollection.optimizedCollectionsCount,
     optimizedClippingCollection.planeCollectionsCount
@@ -145,8 +147,14 @@ function getOptimezedCollectionClipLoop(
   const nextDepth = depth + 1;
   const optimizedCollectionsCountDivisor = 1.0 / optimizedCollectionsCount;
 
+  let optimizedCollectionsCountDivisorString = `${optimizedCollectionsCountDivisor}`;
+
+  if (optimizedCollectionsCountDivisorString.indexOf(".") === -1) {
+    optimizedCollectionsCountDivisorString += ".0";
+  }
+
   let functionString = `collider = texture(optimizedCollectionColliders,
-      vec2((float(i${depth}) + 0.5) * ${optimizedCollectionsCountDivisor}, 0.5));
+      vec2((float(i${depth}) + 0.5) * ${optimizedCollectionsCountDivisorString}, 0.5));
 
     if(collider.w > colliderRadiusMaxWhenAmplificationByFactor)
     {
@@ -175,7 +183,7 @@ function getOptimezedCollectionClipLoop(
 
   functionString += `}
       optimizedCollectionSpan = texture(optimizedCollectionSpans, 
-        vec2((float(i${depth}) + 0.5) * ${optimizedCollectionsCountDivisor}, 0.5)); 
+        vec2((float(i${depth}) + 0.5) * ${optimizedCollectionsCountDivisorString}, 0.5)); 
 
       int i${nextDepth} = int(optimizedCollectionSpan.x); 
       //int i${nextDepth}Lim = int((optimizedCollectionSpan.xy * optimizedCollectionSpan.zw).y); 
@@ -217,6 +225,11 @@ function getOptimezedCollectionClipLoop(
 
 function clippingByPlanesFunctionIntersect(planeCollectionsCount) {
   const planeCollectionsCountDivisor = 1.0 / planeCollectionsCount;
+  let planeCollectionsCountDivisorString = `${planeCollectionsCountDivisor}`;
+
+  if (planeCollectionsCountDivisorString.indexOf(".") === -1) {
+    planeCollectionsCountDivisorString += ".0";
+  }
 
   const functionString = `float clipByPlanes( 
     vec4 position, 
@@ -232,7 +245,7 @@ function clippingByPlanesFunctionIntersect(planeCollectionsCount) {
       float clipAmount = 0.0; 
 
       vec4 planeCollectionSpan = texture(clippingPlaneCollectionSpans, 
-        vec2((float(planeCollectionId) + 0.5) * ${planeCollectionsCountDivisor}, 0.5)); 
+        vec2((float(planeCollectionId) + 0.5) * ${planeCollectionsCountDivisorString}, 0.5)); 
       
       int planeCollectionStart = int(planeCollectionSpan.x); 
       //int planeCollectionEnd = int((planeCollectionSpan.xy * planeCollectionSpan.zw).y); 
