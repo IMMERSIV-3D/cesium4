@@ -74,7 +74,7 @@ function createTaskProcessorWorker(workerFunction) {
 var createTaskProcessorWorker_default = createTaskProcessorWorker;
 
 // packages/engine/index.js
-globalThis.CESIUM_VERSION = "1.109.4";
+globalThis.CESIUM_VERSION = "1.109.5";
 
 // Specs/TestWorkers/transferArrayBuffer.js
 var transferArrayBuffer_default = createTaskProcessorWorker_default(function(parameters, transferableObjects) {

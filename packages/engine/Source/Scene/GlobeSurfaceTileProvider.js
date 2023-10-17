@@ -864,7 +864,7 @@ GlobeSurfaceTileProvider.prototype.computeTileVisibility = function (
     }
   }
 
-  const optimizedClippingPlanes = this._optimizedClippingCollection.getAllClippingPlanes();
+  const optimizedClippingPlanes = this._optimizedClippingCollection?.getAllClippingPlanes();
   if (
     defined(optimizedClippingPlanes) &&
     optimizedClippingPlanes.length > 0 &&
