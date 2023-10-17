@@ -847,7 +847,11 @@ GlobeSurfaceTileProvider.prototype.computeTileVisibility = function (
   }
 
   const multiClippingPlanes = this._multiClippingPlanes;
-  if (defined(multiClippingPlanes) && multiClippingPlanes.enabled) {
+  if (
+    defined(multiClippingPlanes) &&
+    this._multiClippingPlanes.length > 0 &&
+    multiClippingPlanes.enabled
+  ) {
     for (let i = 0; i < multiClippingPlanes.length; i++) {
       const plane = multiClippingPlanes[i];
       const planeIntersection = plane.computeIntersectionWithBoundingVolume(
@@ -861,7 +865,11 @@ GlobeSurfaceTileProvider.prototype.computeTileVisibility = function (
   }
 
   const optimizedClippingPlanes = this._optimizedClippingCollection.getAllClippingPlanes();
-  if (defined(optimizedClippingPlanes) && optimizedClippingPlanes.enabled) {
+  if (
+    defined(optimizedClippingPlanes) &&
+    optimizedClippingPlanes.length > 0 &&
+    optimizedClippingPlanes.enabled
+  ) {
     for (let i = 0; i < optimizedClippingPlanes.length; i++) {
       const plane = optimizedClippingPlanes[i];
       const planeIntersection = plane.computeIntersectionWithBoundingVolume(
